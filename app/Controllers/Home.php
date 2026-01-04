@@ -502,7 +502,7 @@ class Home extends BaseController
                 // dumping sql
 
                 // Insert Version
-                $this->db->insert('version', array('version' => trim(($this->config->product_version ?? null)), 'current' => '1', 'date' => date('Y-m-d H:i:s')));
+                $this->db->table('version')->insert(array('version' => trim(($this->config->product_version ?? null)), 'current' => '1', 'date' => date('Y-m-d H:i:s')));
 
                 //generating hash password for admin and updaing database
                 $app_password = md5($app_password);
@@ -1159,8 +1159,11 @@ class Home extends BaseController
         $data['basic'] = $this->basic; // Pass basic library
         $data['APP_VERSION'] = $this->config->product_version ?? '1.0.0';
 
-        if (isset($data['iframe']) && $data['iframe'] == '1') return view('admin/theme/theme_iframe', $data);
-        else return view('admin/theme/theme', $data);
+        if (isset($data['iframe']) && $data['iframe'] == '1') {
+            echo view('admin/theme/theme_iframe', $data);
+        } else {
+            echo view('admin/theme/theme', $data);
+        }
     }
 
 
@@ -2614,14 +2617,15 @@ class Home extends BaseController
         }
 
         $sql_part = "";
-        if ($load_label == '0') {
-            if (count($label_ids) > 0) $this->db->where_in('messenger_bot_subscribers_label.contact_group_id', $label_ids);
-            if (count($excluded_label_ids) > 0) $this->db->where_not_in('messenger_bot_subscribers_label.contact_group_id', $excluded_label_ids);
-        }
-
-        if (!empty($otn_postback_ids)) {
-            $this->db->where_in('otn_optin_subscriber.otn_id', $otn_postback_ids);
-        }
+        // NOTE: CI4 doesn't support modifying global query state. These conditions should be handled through get_data() where parameter
+        // if ($load_label == '0') {
+        //     if (count($label_ids) > 0) $this->db->where_in('messenger_bot_subscribers_label.contact_group_id', $label_ids);
+        //     if (count($excluded_label_ids) > 0) $this->db->where_not_in('messenger_bot_subscribers_label.contact_group_id', $excluded_label_ids);
+        // }
+        // if (!empty($otn_postback_ids)) {
+        //     $this->db->where_in('otn_optin_subscriber.otn_id', $otn_postback_ids);
+        // }
+        // TODO: Convert these to where_in conditions in $where2 array for get_data() method
 
         $where_simple2['otn_optin_subscriber.is_sent'] = '0';
         $where2 = array('where' => $where_simple2);
@@ -2746,14 +2750,15 @@ class Home extends BaseController
         }
 
         $sql_part = "";
-        if ($load_label == '0') {
-            if (count($label_ids) > 0) $this->db->where_in('messenger_bot_subscribers_label.contact_group_id', $label_ids);
-            if (count($excluded_label_ids) > 0) $this->db->where_not_in('messenger_bot_subscribers_label.contact_group_id', $excluded_label_ids);
-        }
-
-        if (!empty($otn_postback_ids)) {
-            $this->db->where_in('otn_optin_subscriber.otn_id', $otn_postback_ids);
-        }
+        // NOTE: CI4 doesn't support modifying global query state. These conditions should be handled through get_data() where parameter
+        // if ($load_label == '0') {
+        //     if (count($label_ids) > 0) $this->db->where_in('messenger_bot_subscribers_label.contact_group_id', $label_ids);
+        //     if (count($excluded_label_ids) > 0) $this->db->where_not_in('messenger_bot_subscribers_label.contact_group_id', $excluded_label_ids);
+        // }
+        // if (!empty($otn_postback_ids)) {
+        //     $this->db->where_in('otn_optin_subscriber.otn_id', $otn_postback_ids);
+        // }
+        // TODO: Convert these to where_in conditions in $where2 array for get_data() method
 
         // $where_simple2['otn_optin_subscriber.is_sent'] = '0';
         $where2 = array('where' => $where_simple2);
@@ -3805,9 +3810,10 @@ class Home extends BaseController
         $insert_data = array("module_id" => $module_id, "user_id" => $user_id, "usage_month" => $usage_month, "usage_year" => $usage_year, "usage_count" => $usage_count);
 
         if ($this->basic->is_exist("usage_log", $where)) {
-            $this->db->set('usage_count', 'usage_count+' . $usage_count, FALSE);
-            $this->db->where($where);
-            $this->db->update('usage_log');
+            $builder = $this->db->table('usage_log');
+            $builder->set('usage_count', 'usage_count+' . $usage_count, false);
+            $builder->where($where);
+            $builder->update();
         } else $this->basic->insert_data("usage_log", $insert_data);
 
         return true;
@@ -3826,18 +3832,20 @@ class Home extends BaseController
             $existing_info = $this->basic->get_data('usage_log', array('where' => array('module_id' => $module_id, 'usage_count >=' => 1, 'user_id' => $user_id)));
             if (!empty($existing_info)) {
                 $where = array("id" => $existing_info[0]['id'], "user_id" => $user_id);
-                $this->db->set('usage_count', 'usage_count-' . $usage_count, FALSE);
-                $this->db->where($where);
-                $this->db->update('usage_log');
+                $builder = $this->db->table('usage_log');
+                $builder->set('usage_count', 'usage_count-' . $usage_count, false);
+                $builder->where($where);
+                $builder->update();
             }
         } else {
             $where = array("module_id" => $module_id, "user_id" => $user_id, "usage_month" => $usage_month, "usage_year" => $usage_year);
             $insert_data = array("module_id" => $module_id, "user_id" => $user_id, "usage_month" => $usage_month, "usage_year" => $usage_year, "usage_count" => $usage_count);
 
             if ($this->basic->is_exist("usage_log", $where)) {
-                $this->db->set('usage_count', 'usage_count-' . $usage_count, FALSE);
-                $this->db->where($where);
-                $this->db->update('usage_log');
+                $builder = $this->db->table('usage_log');
+                $builder->set('usage_count', 'usage_count-' . $usage_count, false);
+                $builder->where($where);
+                $builder->update();
             }
         }
 
@@ -3852,8 +3860,8 @@ class Home extends BaseController
 
         if ($this->basic->is_exist("modules", array("id" => $module_id, "extra_text" => ""), "id")) // not monthly limit modules
         {
-            $this->db->select_sum('usage_count');
             $info = $this->db->table('usage_log')
+                ->selectSum('usage_count')
                 ->where('user_id', $user_id)
                 ->where('module_id', $module_id)
                 ->get()
@@ -4983,11 +4991,12 @@ class Home extends BaseController
                     'user_agent' => $this->input->user_agent(),
                     'updated_at' => date('Y-m-d H:i:s')
                 );
-                $this->db->where('confirmation_code', $confirmation_code);
-                $this->db->update('data_deletion_logs', $update_data);
+                $this->db->table('data_deletion_logs')
+                    ->where('confirmation_code', $confirmation_code)
+                    ->update($update_data);
             } else {
                 // Insert new record
-                $this->db->insert('data_deletion_logs', $log_data);
+                $this->db->table('data_deletion_logs')->insert($log_data);
             }
         } catch (Exception $e) {
             log_message('error', 'Error logging deletion request: ' . $e->getMessage());
@@ -5654,7 +5663,7 @@ class Home extends BaseController
 
     protected function ultrapost_exist()
     {
-        if ($this->session->get('user_type') == 'Admin'  && $this->db->table_exists('facebook_rx_auto_post')) return true;
+        if ($this->session->get('user_type') == 'Admin'  && $this->db->tableExists('facebook_rx_auto_post')) return true;
         if ($this->session->get('user_type') == 'Member' && in_array(223, $this->module_access)) return true;
         return false;
     }
@@ -6483,11 +6492,11 @@ class Home extends BaseController
                         $this->_delete_usage_log($module_id = 200, $request = 1);
                 }
 
-                if ($this->db->table_exists($value['table_name']))
+                if ($this->db->tableExists($value['table_name']))
                     $this->basic->delete_data($value['table_name'], array("{$value['column_name']}" => $table_id));
             } else if (isset($value['has_dependent_table']) && $value['has_dependent_table'] == 'yes') {
                 $table_ids_array = array();
-                if ($this->db->table_exists($value['table_name'])) {
+                if ($this->db->tableExists($value['table_name'])) {
                     if (isset($value['is_facebook_page_id']) && $value['is_facebook_page_id'] == 'yes') {
                         $facebook_page_id = $page_information[0]['page_id'];
                         $table_ids_info = $this->basic->get_data($value['table_name'], array('where' => array("{$value['column_name']}" => $facebook_page_id)), 'id');
@@ -6498,7 +6507,7 @@ class Home extends BaseController
                 foreach ($table_ids_info as $info)
                     array_push($table_ids_array, $info['id']);
 
-                if ($this->db->table_exists($value['table_name'])) {
+                if ($this->db->tableExists($value['table_name'])) {
                     if (isset($value['is_facebook_page_id']) && $value['is_facebook_page_id'] == 'yes')
                         $this->basic->delete_data($value['table_name'], array("{$value['column_name']}" => $facebook_page_id));
                     else
@@ -6509,19 +6518,20 @@ class Home extends BaseController
                 $dependent_table_column = explode(',', $value['dependent_table_column']);
                 if (!empty($table_ids_array) && !empty($dependent_table_names)) {
                     for ($i = 0; $i < count($dependent_table_names); $i++) {
-                        if ($this->db->table_exists($dependent_table_names[$i])) {
-                            $this->db->where_in($dependent_table_column[$i], $table_ids_array);
-                            $this->db->delete($dependent_table_names[$i]);
+                        if ($this->db->tableExists($dependent_table_names[$i])) {
+                            $this->db->table($dependent_table_names[$i])
+                                ->whereIn($dependent_table_column[$i], $table_ids_array)
+                                ->delete();
                         }
                     }
                 }
             } else if (isset($value['comma_separated']) && $value['comma_separated'] == 'yes') {
                 $str = "FIND_IN_SET('" . $table_id . "', " . $value['column_name'] . ") !=";
                 $where = array($str => 0);
-                if ($this->db->table_exists($value['table_name']))
+                if ($this->db->tableExists($value['table_name']))
                     $this->basic->delete_data($value['table_name'], $where);
             } else {
-                if ($this->db->table_exists($value['table_name']))
+                if ($this->db->tableExists($value['table_name']))
                     $this->basic->delete_data($value['table_name'], array("{$value['column_name']}" => $table_id));
             }
         }
@@ -6544,7 +6554,7 @@ class Home extends BaseController
         $this->db->transStart();
         $table_names = $this->table_names_array_foraccount();
         foreach ($table_names as $value) {
-            if ($this->db->table_exists($value['table_name']))
+            if ($this->db->tableExists($value['table_name']))
                 $this->basic->delete_data($value['table_name'], array("{$value['column_name']}" => $fb_user_id));
         }
         $this->db->transComplete();
@@ -6599,7 +6609,7 @@ class Home extends BaseController
         $this->db->transStart();
         $table_names = $this->table_names_array_foruser();
         foreach ($table_names as $value) {
-            if ($this->db->table_exists($value['table_name'])) {
+            if ($this->db->tableExists($value['table_name'])) {
                 if (isset($value['has_dependent_table']) && $value['has_dependent_table'] == 'yes') {
                     $table_ids_array = array();
                     $table_ids_info = $this->basic->get_data($value['table_name'], array('where' => array("{$value['column_name']}" => $user_id)), 'id');
@@ -6612,9 +6622,10 @@ class Home extends BaseController
                     $dependent_table_column = explode(',', $value['dependent_table_column']);
                     if (!empty($table_ids_array) && !empty($dependent_table_names)) {
                         for ($i = 0; $i < count($dependent_table_names); $i++) {
-                            if ($this->db->table_exists($dependent_table_names[$i])) {
-                                $this->db->where_in($dependent_table_column[$i], $table_ids_array);
-                                $this->db->delete($dependent_table_names[$i]);
+                            if ($this->db->tableExists($dependent_table_names[$i])) {
+                                $this->db->table($dependent_table_names[$i])
+                                    ->whereIn($dependent_table_column[$i], $table_ids_array)
+                                    ->delete();
                             }
                         }
                     }
@@ -8031,7 +8042,7 @@ class Home extends BaseController
                             ]);
                     } else {
                         $row["assaign_time"] = $curtime;
-                        $this->db->insert($custom_field_map_table_name, $row);
+                        $this->db->table($custom_field_map_table_name)->insert($row);
                     }
                 }
             }
@@ -8050,7 +8061,7 @@ class Home extends BaseController
                 "created_at" => $curtime,
                 "success" => empty($data_error) ? "1" : "0",
             ];
-            $this->db->insert("settings_http_api_calls", $update_settings_http_api_call_data);
+            $this->db->table("settings_http_api_calls")->insert($update_settings_http_api_call_data);
 
             $update_settings_http_api_data = [
                 "last_call_data" => json_encode($last_call_data_mapped),
@@ -8058,12 +8069,14 @@ class Home extends BaseController
                 "total_call" => 'total_call + 1',
                 "last_error_message" => $data_error,
             ];
+            $builder = $this->db->table("settings_http_apis");
             if (empty($data_error)) {
-                $this->db->set("total_success", "total_success + 1", FALSE);
+                $builder->set("total_success", "total_success + 1", false);
             } else {
-                $this->db->set("total_error", "total_error + 1", FALSE);
+                $builder->set("total_error", "total_error + 1", false);
             }
-            $this->db->where("id", $settings_http_api_id)->update("settings_http_apis", $update_settings_http_api_data);
+            $builder->where("id", $settings_http_api_id);
+            $builder->update($update_settings_http_api_data);
 
             $this->db->transComplete();
 
@@ -8071,7 +8084,7 @@ class Home extends BaseController
         } catch (Exception $e) {
             $this->db->transRollback(); // Rollback transaction in case of an error
             $error_message = $e->getMessage();
-            $this->db->insert($error_log_table_name, [
+            $this->db->table($error_log_table_name)->insert([
                 $custom_field_map_bot_id_field => $bot_id,
                 "user_id" => $user_id,
                 "error_message" => $error_message,

@@ -1,23 +1,38 @@
 <?php
 
-require_once("Home.php"); // loading home controller
+namespace App\Controllers;
 
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
+/**
+ * class Social_accounts
+ * @category controller
+ */
 class Social_accounts extends Home
 { 
     
-    public function __construct()
+    /**
+     * Initialize controller
+     * @access public
+     * @return void
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
-
+        parent::initController($request, $response, $logger);
+        
         check_module_access($module_id=65);
+       
 
-        if($this->session->userdata("facebook_rx_fb_user_info")==0 && $this->config->item("backup_mode")==1 && $this->uri->segment(2)!="app_delete_action")
-        redirect('social_apps/index','refresh');
+        if(session()->get("facebook_rx_fb_user_info")==0 && ($this->config->backup_mode ?? 0)==1 && $this->uri->segment(2)!="app_delete_action")
+        redirect()->to('social_apps/index')->send();
 
         $this->important_feature();
         $this->member_validity();
         
-        $this->load->library("fb_rx_login");       
+        $this->load->library("fb_rx_login");     
+       
     }
 
 
@@ -28,20 +43,20 @@ class Social_accounts extends Home
   
     public function account_import()
     {
-        if ($this->session->userdata('logged_in')!= 1) {
-            redirect('home/login', 'location');         
+        if (session()->get('logged_in')!= 1) {
+            
+            redirect()->to('home/login')->send();         
         }
 
         $data['body'] = 'facebook_rx/account_import';
-        $data['page_title'] = $this->lang->line('Facebook Account Import');
+        $data['page_title'] = lang('Facebook Account Import');
 
         $redirect_url = base_url()."social_accounts/manual_renew_account";
         $fb_login_button = $this->fb_rx_login->login_for_user_access_token($redirect_url);
         $data['fb_login_button'] = check_module_action_access($module_id=200,$actions=[1,2],$response_type='check') ? $fb_login_button : '';
 
-        $where['where'] = array('id'=>$this->session->userdata("facebook_rx_fb_user_info"));
+        $where['where'] = array('id'=>session()->get("facebook_rx_fb_user_info"));
         $existing_accounts = $this->basic->get_data('facebook_rx_fb_user_info',$where);
-
         $show_import_account_box = 1;
         $data['show_import_account_box'] = 1;
         if(!empty($existing_accounts))
@@ -103,9 +118,7 @@ class Social_accounts extends Home
         }
         else
             $data['existing_accounts'] = '0';
-
-
-        $this->_viewcontroller($data);
+         $this->_viewcontroller($data);
     }
 
 
@@ -114,7 +127,7 @@ class Social_accounts extends Home
     {
         if($this->is_demo == '1')
         {
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
             {
                 $response['status'] = 0;
                 $response['message'] = "You can not delete anything from admin account!!";
@@ -123,17 +136,17 @@ class Social_accounts extends Home
             }
         }
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(200,$this->module_access)){
-            echo json_encode(['status'=>0,'message'=>$this->lang->line("You do not have permisison to access this feature.")]);
+        if(session()->get('user_type') != 'Admin' && !in_array(200,$this->module_access)){
+            echo json_encode(['status'=>0,'message'=>lang("You do not have permisison to access this feature.")]);
             exit();
         }
 
         check_module_action_access($module_id=200,$actions=3,$response_type='json1');
 
-        $table_id = $this->input->post("group_table_id");
+        $table_id = $this->request->getPost("group_table_id");
         $data = array('deleted' => '1');
         $this->basic->delete_data('facebook_rx_fb_group_info',array('id'=>$table_id,'user_id'=>$this->user_id));
-        echo json_encode(array('status'=>1,'message'=>$this->lang->line('Group has been deleted successfully.')));
+        echo json_encode(array('status'=>1,'message'=>lang('Group has been deleted successfully.')));
     }
 
 
@@ -143,7 +156,7 @@ class Social_accounts extends Home
         $response = array();
         if($this->is_demo == '1')
         {
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
             {
                 $response['status'] = 0;
                 $response['message'] = "You can not delete anything from admin account!!";
@@ -152,16 +165,16 @@ class Social_accounts extends Home
             }
         }
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(200,$this->module_access)){
-            echo json_encode(['status'=>0,'message'=>$this->lang->line("You do not have permisison to access this feature.")]);
+        if(session()->get('user_type') != 'Admin' && !in_array(200,$this->module_access)){
+            echo json_encode(['status'=>0,'message'=>lang("You do not have permisison to access this feature.")]);
             exit();
         }
         check_module_action_access($module_id=200,$actions=3,$response_type='json1');
 
 
-        $table_id = $this->input->post("page_table_id",true);
+        $table_id = $this->request->getPost("page_table_id");
         if(!empty($this->team_allowed_pages) && !in_array($table_id, $this->team_allowed_pages)){
-            echo json_encode(['status'=>0,'message'=>$this->lang->line("You do not have permisison to delete this page.")]);
+            echo json_encode(['status'=>0,'message'=>lang("You do not have permisison to delete this page.")]);
             exit();
         }
         $response = $this->delete_data_basedon_page($table_id);
@@ -175,7 +188,7 @@ class Social_accounts extends Home
         $response = array();
         if($this->is_demo == '1')
         {
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
             {
                 $response['status'] = 0;
                 $response['message'] = "You can not delete anything from admin account!!";
@@ -184,26 +197,26 @@ class Social_accounts extends Home
             }
         }
 
-        $location_table_id = $this->input->post("location_table_id",true);
+        $location_table_id = $this->request->getPost("location_table_id");
 
-        $this->db->trans_start();
+        $this->db->transStart();
 
         $this->basic->delete_data('google_business_locations',['id'=>$location_table_id]);
         $this->basic->delete_data('google_posts_campaign',['user_id'=>$this->user_id,'location_table_id'=>$location_table_id]);
         $this->basic->delete_data('google_review_reply_report',['user_id'=>$this->user_id,'location_id'=>$location_table_id]);
         $this->basic->delete_data('google_review_reply_settings',['user_id'=>$this->user_id,'location_id'=>$location_table_id]);
 
-        $this->db->trans_complete();
+        $this->db->transComplete();
 
-        if ($this->db->trans_status() === FALSE) 
+        if ($this->db->transStatus() === FALSE) 
         {    
             $response['status'] = 0;
-            $response['message'] = $this->lang->line('Something went wrong, please try again.');         
+            $response['message'] = lang('Something went wrong, please try again.');         
         }
         else
         {
             $response['status'] = 1;
-            $response['message'] = $this->lang->line("Your location and all of it's corresponding campaigns have been deleted successfully.");      
+            $response['message'] = lang("Your location and all of it's corresponding campaigns have been deleted successfully.");      
         }
 
         
@@ -217,7 +230,7 @@ class Social_accounts extends Home
         $response = array();
         if($this->is_demo == '1')
         {
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
             {
                 $response['status'] = 0;
                 $response['message'] = "You can't delete anything from admin account!!";
@@ -227,11 +240,11 @@ class Social_accounts extends Home
         }
         check_module_action_access($module_id=65,$actions=3,$response_type='json1');
         
-        $facebook_rx_fb_user_info_id = $this->input->post("user_table_id");
+        $facebook_rx_fb_user_info_id = $this->request->getPost("user_table_id");
 
         $account_information = $this->basic->get_data('facebook_rx_fb_user_info',array('where'=>array('id'=>$facebook_rx_fb_user_info_id,'user_id'=>$this->user_id)));
         if(empty($account_information)){
-            echo json_encode(array('success'=>0,'message'=>$this->lang->line("Account is not found for this user. Something is wrong.")));
+            echo json_encode(array('success'=>0,'message'=>lang("Account is not found for this user. Something is wrong.")));
             exit();
         }
 
@@ -267,12 +280,12 @@ class Social_accounts extends Home
 
       $this->ajax_check();
       $this->csrf_token_check();
-      $app_table_id = $this->input->post('app_table_id',true);
+      $app_table_id = $this->request->getPost('app_table_id');
       $app_info = $this->basic->get_data('facebook_rx_config',array('where'=>array('id'=>$app_table_id,'user_id'=>$this->user_id)));
       if(empty($app_info))
       {
         $response['status'] = 0;
-        $response['message'] = $this->lang->line('We could not find any APP with this ID for this account.');  
+        $response['message'] = lang('We could not find any APP with this ID for this account.');  
         echo json_encode($response);
         exit;
       }
@@ -289,9 +302,9 @@ class Social_accounts extends Home
       }
 
       $this->basic->delete_data('facebook_rx_config',array('id'=>$app_table_id,'user_id'=>$this->user_id));
-      $this->session->sess_destroy(); 
+      session()->destroy(); 
       $response['status'] = 1;
-      $response['message'] = $this->lang->line("APP and all the data corresponding to this APP has been deleted successfully. Now you'll be redirected to the login page.");  
+      $response['message'] = lang("APP and all the data corresponding to this APP has been deleted successfully. Now you'll be redirected to the login page.");  
       echo json_encode($response);
     }
 
@@ -299,8 +312,8 @@ class Social_accounts extends Home
 
     public function enable_disable_webhook()
     {
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(200,$this->module_access)){
-            echo json_encode(['status'=>0,'message'=>$this->lang->line("You do not have permisison to access this feature.")]);
+        if(session()->get('user_type') != 'Admin' && !in_array(200,$this->module_access)){
+            echo json_encode(['status'=>0,'message'=>lang("You do not have permisison to access this feature.")]);
             exit();
         }
 
@@ -311,7 +324,7 @@ class Social_accounts extends Home
         $response = array();
         if($this->is_demo == '1')
         {
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
             {
                 $response['status'] = 0;
                 $response['message'] = "This function is disabled from admin account in this demo!!";
@@ -321,12 +334,12 @@ class Social_accounts extends Home
         }
 
         $user_id = $this->user_id;
-        $page_id=$this->input->post('page_id');
-        $restart=$this->input->post('restart');
-        $enable_disable=$this->input->post('enable_disable');
+        $page_id=$this->request->getPost('page_id');
+        $restart=$this->request->getPost('restart');
+        $enable_disable=$this->request->getPost('enable_disable');
 
         if(!empty($this->team_allowed_pages) && !in_array($page_id, $this->team_allowed_pages)){
-            echo json_encode(array('success'=>0,'message'=>$this->lang->line("Access Denied.")));
+            echo json_encode(array('success'=>0,'message'=>lang("Access Denied.")));
             exit();
         }
 
@@ -334,7 +347,7 @@ class Social_accounts extends Home
 
         if(empty($page_data)){
 
-            echo json_encode(array('success'=>0,'message'=>$this->lang->line("Page is not found for this user. Something is wrong.")));
+            echo json_encode(array('success'=>0,'message'=>lang("Page is not found for this user. Something is wrong.")));
             exit();
         }
 
@@ -356,10 +369,10 @@ class Social_accounts extends Home
                     $facebook_user_name = isset($facebook_user_info[0]['name']) ? $facebook_user_info[0]['name'] : '';
                     $system_user_info = $this->basic->get_data('users',array('where'=>array('id'=>$already_enabled[0]['user_id'])));
                     $system_email = isset($system_user_info[0]['email']) ? $system_user_info[0]['email'] : '';
-                    $response_message = $this->lang->line("This page is already enabled by other user.").'<br/>';
-                    $response_message .= $this->lang->line('Enabled from').':<br/>';
-                    $response_message .= $this->lang->line('Email').': '.$system_email.'<br/>';
-                    $response_message .= $this->lang->line('FB account name').': '.$facebook_user_name;
+                    $response_message = lang("This page is already enabled by other user.").'<br/>';
+                    $response_message .= lang('Enabled from').':<br/>';
+                    $response_message .= lang('Email').': '.$system_email.'<br/>';
+                    $response_message .= lang('FB account name').': '.$facebook_user_name;
                     echo json_encode(array('success'=>0,'message'=>$response_message));
                     exit();
                 }
@@ -370,12 +383,12 @@ class Social_accounts extends Home
                 $status=$this->_check_usage($module_id=200,$request=1);
                 if($status=="2") 
                 {
-                    echo json_encode(array('success'=>0,'message'=>$this->lang->line("Module limit is over.")));
+                    echo json_encode(array('success'=>0,'message'=>lang("Module limit is over.")));
                     exit();
                 }
                 else if($status=="3") 
                 {
-                    echo json_encode(array('success'=>0,'message'=>$this->lang->line("Module limit is over.")));
+                    echo json_encode(array('success'=>0,'message'=>lang("Module limit is over.")));
                     exit();
                 }
             }
@@ -403,7 +416,7 @@ class Social_accounts extends Home
                 if($restart != '1')                    
                     $this->_insert_usage_log($module_id=200,$request=1);
                 $response['status'] = 1; 
-                $response['message'] = $this->lang->line('Bot Connection has been enabled successfully.');              
+                $response['message'] = lang('Bot Connection has been enabled successfully.');              
             }
             else
             {
@@ -431,7 +444,7 @@ class Social_accounts extends Home
                 $this->getstarted_enable_disable_onpage($page_id,$started_button_enabled='0',$page_access_token,$fb_user_info[0]['facebook_rx_config_id']);
                 // $this->_delete_usage_log($module_id=200,$request=1);
                 $response['status'] = 1; 
-                $response['message'] = $this->lang->line('Bot Connection has been disabled successfully.');
+                $response['message'] = lang('Bot Connection has been disabled successfully.');
             }
             else
             {
@@ -445,12 +458,12 @@ class Social_accounts extends Home
     public function reset_action_settings()
     {
         $this->ajax_check();
-        $page_id = $this->input->post('page_table_id');
+        $page_id = $this->request->getPost('page_table_id');
         $page_data=$this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("id"=>$page_id,"user_id"=>$this->user_id)));
 
         if(empty($page_data)){
 
-            echo json_encode(array('status' => 0,'message' => $this->lang->line("Page is not found for this user. Something is wrong.")));
+            echo json_encode(array('status' => 0,'message' => lang("Page is not found for this user. Something is wrong.")));
             exit();
         }
         $fb_page_id=isset($page_data[0]["page_id"]) ? $page_data[0]["page_id"] : "";
@@ -467,22 +480,29 @@ class Social_accounts extends Home
             array_push($visual_flow_campaign_ids, $value['id']);
         }
 
-        $this->db->trans_start();
+        $this->db->transStart();
 
         if(!empty($visual_flow_campaign_ids))
         {
             $this->basic->delete_data('visual_flow_builder_campaign',['user_id'=>$this->user_id,'page_id'=>$page_id,'is_system'=>'1','media_type'=>$this->using_media_type]);
 
-            $this->db->where('user_id',$this->user_id);
-            $this->db->where_in('visual_flow_campaign_id',$visual_flow_campaign_ids);
-            $this->db->delete(['messenger_bot','messenger_bot_postback']);
-            $this->db->reset_query();
+            // Delete from messenger_bot table
+            $this->db->table('messenger_bot')
+                ->where('user_id', $this->user_id)
+                ->whereIn('visual_flow_campaign_id', $visual_flow_campaign_ids)
+                ->delete();
+            
+            // Delete from messenger_bot_postback table
+            $this->db->table('messenger_bot_postback')
+                ->where('user_id', $this->user_id)
+                ->whereIn('visual_flow_campaign_id', $visual_flow_campaign_ids)
+                ->delete();
         }
 
-        $this->db->trans_complete();
-        if ($this->db->trans_status() === FALSE)
+        $this->db->transComplete();
+        if ($this->db->transStatus() === FALSE)
         {
-            echo json_encode(array('status' => 0,'message' => $this->lang->line("Something went wrong during delete operation.")));
+            echo json_encode(array('status' => 0,'message' => lang("Something went wrong during delete operation.")));
             exit;
         }
         else
@@ -498,21 +518,21 @@ class Social_accounts extends Home
             $this->add_system_story_mention_reply_entry($page_id,$fb_page_id);
             $this->add_system_story_private_reply_entry($page_id,$fb_page_id);
             $this->add_system_message_unsend_reply_entry($page_id,$fb_page_id);
-            echo json_encode(array('status' => 1,'message' => $this->lang->line("All action button settings are reverted to default state.")));
+            echo json_encode(array('status' => 1,'message' => lang("All action button settings are reverted to default state.")));
         }
 
     }
 
     public function enable_disable_insta_autoreply()
     {
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(207,$this->module_access))
+        if(session()->get('user_type') != 'Admin' && !in_array(207,$this->module_access))
         exit();
         $this->ajax_check();
 
         $response = array();
         if($this->is_demo == '1')
         {
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
             {
                 $response['status'] = 0;
                 $response['message'] = "This function is disabled from admin account in this demo!!";
@@ -522,14 +542,14 @@ class Social_accounts extends Home
         }
 
         $user_id = $this->user_id;
-        $table_id=$this->input->post('table_id');
-        $restart=$this->input->post('restart');
-        $enable_disable=$this->input->post('enable_disable');
+        $table_id=$this->request->getPost('table_id');
+        $restart=$this->request->getPost('restart');
+        $enable_disable=$this->request->getPost('enable_disable');
         $page_data=$this->basic->get_data("instagram_reply_page_info",array("where"=>array("id"=>$table_id,"user_id"=>$this->user_id)));
 
         if(empty($page_data)){
 
-            echo json_encode(array('success'=>0,'message'=>$this->lang->line("Page is not found for this user. Something is wrong.")));
+            echo json_encode(array('success'=>0,'message'=>lang("Page is not found for this user. Something is wrong.")));
             exit();
         }
 
@@ -551,10 +571,10 @@ class Social_accounts extends Home
                     $facebook_user_name = isset($facebook_user_info[0]['name']) ? $facebook_user_info[0]['name'] : '';
                     $system_user_info = $this->basic->get_data('users',array('where'=>array('id'=>$already_enabled[0]['user_id'])));
                     $system_email = isset($system_user_info[0]['email']) ? $system_user_info[0]['email'] : '';
-                    $response_message = $this->lang->line("This account is already enabled for auto-reply by other user.").'<br/>';
-                    $response_message .= $this->lang->line('Enabled from').':<br/>';
-                    $response_message .= $this->lang->line('Email').': '.$system_email.'<br/>';
-                    $response_message .= $this->lang->line('FB account name').': '.$facebook_user_name;
+                    $response_message = lang("This account is already enabled for auto-reply by other user.").'<br/>';
+                    $response_message .= lang('Enabled from').':<br/>';
+                    $response_message .= lang('Email').': '.$system_email.'<br/>';
+                    $response_message .= lang('FB account name').': '.$facebook_user_name;
                     echo json_encode(array('success'=>0,'message'=>$response_message));
                     exit();
                 }
@@ -565,12 +585,12 @@ class Social_accounts extends Home
                 $status=$this->_check_usage($module_id=207,$request=1);
                 if($status=="2") 
                 {
-                    echo json_encode(array('success'=>0,'message'=>$this->lang->line("Module limit is over.")));
+                    echo json_encode(array('success'=>0,'message'=>lang("Module limit is over.")));
                     exit();
                 }
                 else if($status=="3") 
                 {
-                    echo json_encode(array('success'=>0,'message'=>$this->lang->line("Module limit is over.")));
+                    echo json_encode(array('success'=>0,'message'=>lang("Module limit is over.")));
                     exit();
                 }
             }
@@ -585,7 +605,7 @@ class Social_accounts extends Home
                 if($restart != '1')                    
                     $this->_insert_usage_log($module_id=207,$request=1);
                 $response['status'] = 1; 
-                $response['message'] = $this->lang->line('Auto Reply has been enabled successfully.');              
+                $response['message'] = lang('Auto Reply has been enabled successfully.');              
             }
             else
             {
@@ -603,7 +623,7 @@ class Social_accounts extends Home
             {
                 $this->basic->update_data("instagram_reply_page_info",array("id"=>$table_id,'user_id'=>$this->user_id),$updateData);
                 $response['status'] = 1; 
-                $response['message'] = $this->lang->line('Auto Reply has been disabled successfully.');
+                $response['message'] = lang('Auto Reply has been disabled successfully.');
             }
             else
             {
@@ -652,7 +672,7 @@ class Social_accounts extends Home
         //DEPRECATED FUNCTION FOR QUICK BROADCAST
         //$existing_labels=$this->fb_rx_login->retrieve_label($access_token);
         $existing_labels = [];
-        if(isset($existing_labels['error']['message'])) $error=$this->lang->line("During the review status check process system also tries to create default unsubscribe label and retrieve the existing labels as well. We got this error : ")." ".$existing_labels["error"]["message"];
+        if(isset($existing_labels['error']['message'])) $error=lang("During the review status check process system also tries to create default unsubscribe label and retrieve the existing labels as well. We got this error : ")." ".$existing_labels["error"]["message"];
 
         $group_name="Unsubscribe";
         $group_name2="SystemInvisible01";
@@ -737,13 +757,13 @@ class Social_accounts extends Home
                 'action_type' => 'UNSUBSCRIBE_QUICK_BOXER'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $sql='INSERT INTO messenger_bot (user_id,page_id,fb_page_id,template_type,bot_type,keyword_type,keywords,message,buttons,images,audio,video,file,status,bot_name,postback_id,last_replied_at,is_template,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "post-back","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text_with_buttons","attachment":{"type":"template","payload":{"template_type":"button","text":"You have been successfully unsubscribed from our list. It is sad to see you go. It is not the same without you! You can join back by clicking the button below.","buttons":[{"type":"postback","payload":"RESUBSCRIBE_QUICK_BOXER","title":"Resubscribe"}]}}}}}\', "", "", "", "", "", "1", "UNSUBSCRIBE BOT", "UNSUBSCRIBE_QUICK_BOXER", "", "1","flow","fb","'.$visual_flow_campaign_id.'");';
 
             $this->db->query($sql);
-            $insert_id=$this->db->insert_id();
+            $insert_id=$this->db->insertID();
             $sql='INSERT INTO messenger_bot_postback(user_id,postback_id,page_id,use_status,status,messenger_bot_table_id,bot_name,is_template,template_jsoncode,template_name,template_for,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'","UNSUBSCRIBE_QUICK_BOXER","'.$auto_id.'","0","1","'.$insert_id.'","UNSUBSCRIBE BOT","1",\'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text_with_buttons","attachment":{"type":"template","payload":{"template_type":"button","text":"You have been successfully unsubscribed from our list. It is sad to see you go. It is not the same without you! You can join back by clicking the button below.","buttons":[{"type":"postback","payload":"RESUBSCRIBE_QUICK_BOXER","title":"Resubscribe"}]}}}}}\',"UNSUBSCRIBE TEMPLATE","unsubscribe","flow","fb","'.$visual_flow_campaign_id.'")';
             $this->db->query($sql);
@@ -766,12 +786,12 @@ class Social_accounts extends Home
                 'action_type' => 'RESUBSCRIBE_QUICK_BOXER'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $sql='INSERT INTO messenger_bot (user_id,page_id,fb_page_id,template_type,bot_type,keyword_type,keywords,message,buttons,images,audio,video,file,status,bot_name,postback_id,last_replied_at,is_template,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "post-back","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text_with_buttons","attachment":{"type":"template","payload":{"template_type":"button","text":"Welcome back! We have not seen you for a while. You will no longer miss our important updates.","buttons":[{"type":"postback","payload":"UNSUBSCRIBE_QUICK_BOXER","title":"Unsubscribe"}]}}}}}\', "", "", "", "", "", "1", "RESUBSCRIBE BOT", "RESUBSCRIBE_QUICK_BOXER", "", "1","flow","fb","'.$visual_flow_campaign_id.'");';
             $this->db->query($sql);
-            $insert_id=$this->db->insert_id();
+            $insert_id=$this->db->insertID();
             $sql='INSERT INTO messenger_bot_postback(user_id,postback_id,page_id,use_status,status,messenger_bot_table_id,bot_name,is_template,template_jsoncode,template_name,template_for,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'","RESUBSCRIBE_QUICK_BOXER","'.$auto_id.'","0","1","'.$insert_id.'","RESUBSCRIBE BOT","1",\'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text_with_buttons","attachment":{"type":"template","payload":{"template_type":"button","text":"Welcome back! We have not seen you for a while. You will no longer miss our important updates.","buttons":[{"type":"postback","payload":"UNSUBSCRIBE_QUICK_BOXER","title":"Unsubscribe"}]}}}}}\',"RESUBSCRIBE TEMPLATE","resubscribe","flow","fb","'.$visual_flow_campaign_id.'")';
             $this->db->query($sql);
@@ -801,13 +821,13 @@ class Social_accounts extends Home
                 'action_type' => 'QUICK_REPLY_EMAIL_REPLY_BOT'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $user_id=$this->user_id;
             $sql='INSERT INTO `messenger_bot` ( `user_id`, `page_id`, `fb_page_id`, `template_type`, `bot_type`, `keyword_type`, `keywords`, `message`, `buttons`, `images`, `audio`, `video`, `file`, `status`, `bot_name`, `postback_id`, `last_replied_at`, `is_template`, `visual_flow_type` , `media_type` , `visual_flow_campaign_id`) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "email-quick-reply","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text","text":"Thanks, we have received your email. We will keep you updated. Thank you for being with us."}}}\', "", "", "", "", "", "1", "QUICK REPLY EMAIL REPLY", "QUICK_REPLY_EMAIL_REPLY_BOT", "0000-00-00 00:00:00", "0", "flow", "fb", "'.$visual_flow_campaign_id.'");';
             $this->db->query($sql);
-            $insert_id=$this->db->insert_id();
+            $insert_id=$this->db->insertID();
             $sql='INSERT INTO messenger_bot_postback(user_id,postback_id,page_id,use_status,status,messenger_bot_table_id,bot_name,is_template,template_jsoncode,template_name,template_for,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'","QUICK_REPLY_EMAIL_REPLY_BOT","'.$auto_id.'","0","1","'.$insert_id.'","QUICK REPLY EMAIL REPLY","1",\'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text","text":"Thanks, we have received your email. We will keep you updated. Thank you for being with us."}}}\',"QUICK REPLY EMAIL REPLY","email-quick-reply","flow","fb","'.$visual_flow_campaign_id.'")';
             $this->db->query($sql);
@@ -834,13 +854,13 @@ class Social_accounts extends Home
                 'action_type' => 'QUICK_REPLY_PHONE_REPLY_BOT'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $user_id=$this->user_id;
             $sql='INSERT INTO `messenger_bot` ( `user_id`, `page_id`, `fb_page_id`, `template_type`, `bot_type`, `keyword_type`, `keywords`, `message`, `buttons`, `images`, `audio`, `video`, `file`, `status`, `bot_name`, `postback_id`, `last_replied_at`, `is_template`, `visual_flow_type` , `media_type` , `visual_flow_campaign_id`) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "phone-quick-reply","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text","text":"Thanks, we have received your phone number. We will keep you updated. Thank you for being with us."}}}\', "", "", "", "", "", "1", "QUICK REPLY PHONE REPLY", "QUICK_REPLY_PHONE_REPLY_BOT", "0000-00-00 00:00:00", "0","flow","fb","'.$visual_flow_campaign_id.'");';
             $this->db->query($sql);
-            $insert_id=$this->db->insert_id();
+            $insert_id=$this->db->insertID();
             $sql='INSERT INTO messenger_bot_postback(user_id,postback_id,page_id,use_status,status,messenger_bot_table_id,bot_name,is_template,template_jsoncode,template_name,template_for,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'","QUICK_REPLY_PHONE_REPLY_BOT","'.$auto_id.'","0","1","'.$insert_id.'","QUICK REPLY PHONE REPLY","1",\'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text","text":"Thanks, we have received your phone number. We will keep you updated. Thank you for being with us."}}}\',"QUICK REPLY PHONE REPLY","phone-quick-reply","flow","fb","'.$visual_flow_campaign_id.'")';
             $this->db->query($sql);
@@ -867,13 +887,13 @@ class Social_accounts extends Home
                 'action_type' => 'QUICK_REPLY_LOCATION_REPLY_BOT'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $user_id=$this->user_id;
             $sql='INSERT INTO `messenger_bot` ( `user_id`, `page_id`, `fb_page_id`, `template_type`, `bot_type`, `keyword_type`, `keywords`, `message`, `buttons`, `images`, `audio`, `video`, `file`, `status`, `bot_name`, `postback_id`, `last_replied_at`, `is_template`, `visual_flow_type` , `media_type` , `visual_flow_campaign_id`) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "location-quick-reply","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text","text":"Thanks, we have received your location. Thank you for being with us."}}}\', "", "", "", "", "", "1", "QUICK REPLY LOCATION REPLY", "QUICK_REPLY_LOCATION_REPLY_BOT", "0000-00-00 00:00:00", "0","flow","fb","'.$visual_flow_campaign_id.'");';
             $this->db->query($sql);
-            $insert_id=$this->db->insert_id();
+            $insert_id=$this->db->insertID();
             $sql='INSERT INTO messenger_bot_postback(user_id,postback_id,page_id,use_status,status,messenger_bot_table_id,bot_name,is_template,template_jsoncode,template_name,template_for,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'","QUICK_REPLY_LOCATION_REPLY_BOT","'.$auto_id.'","0","1","'.$insert_id.'","QUICK REPLY LOCATION REPLY","1",\'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text","text":"Thanks, we have received your location. Thank you for being with us."}}}\',"QUICK REPLY LOCATION REPLY","location-quick-reply","flow","fb","'.$visual_flow_campaign_id.'")';
             $this->db->query($sql);
@@ -900,13 +920,13 @@ class Social_accounts extends Home
                 'action_type' => 'QUICK_REPLY_BIRTHDAY_REPLY_BOT'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $user_id=$this->user_id;
             $sql='INSERT INTO `messenger_bot` ( `user_id`, `page_id`, `fb_page_id`, `template_type`, `bot_type`, `keyword_type`, `keywords`, `message`, `buttons`, `images`, `audio`, `video`, `file`, `status`, `bot_name`, `postback_id`, `last_replied_at`, `is_template`, `visual_flow_type` , `media_type` , `visual_flow_campaign_id`) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "birthday-quick-reply","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text","text":"Thanks, we have received your birthday. Thank you for being with us."}}}\', "", "", "", "", "", "1", "QUICK REPLY BIRTHDAY REPLY", "QUICK_REPLY_BIRTHDAY_REPLY_BOT", "0000-00-00 00:00:00", "0","flow","fb","'.$visual_flow_campaign_id.'");';
             $this->db->query($sql);
-            $insert_id=$this->db->insert_id();
+            $insert_id=$this->db->insertID();
             $sql='INSERT INTO messenger_bot_postback(user_id,postback_id,page_id,use_status,status,messenger_bot_table_id,bot_name,is_template,template_jsoncode,template_name,template_for,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'","QUICK_REPLY_BIRTHDAY_REPLY_BOT","'.$auto_id.'","0","1","'.$insert_id.'","QUICK REPLY BIRTHDAY REPLY","1",\'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text","text":"Thanks, we have received your birthday. Thank you for being with us."}}}\',"QUICK REPLY BIRTHDAY REPLY","birthday-quick-reply","flow","fb","'.$visual_flow_campaign_id.'")';
             $this->db->query($sql);
@@ -936,12 +956,12 @@ class Social_accounts extends Home
                 'action_type' => 'YES_START_CHAT_WITH_HUMAN'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $sql='INSERT INTO messenger_bot (user_id,page_id,fb_page_id,template_type,bot_type,keyword_type,keywords,message,buttons,images,audio,video,file,status,bot_name,postback_id,last_replied_at,is_template,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "post-back","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text_with_buttons","attachment":{"type":"template","payload":{"template_type":"button","text":"Thanks! It is a pleasure talking to you. One of our team members will reply to you soon. If you want to chat with me again, just click the button below.","buttons":[{"type":"postback","payload":"YES_START_CHAT_WITH_BOT","title":"Resume Chat with Bot"}]}}}}}\', "", "", "", "", "", "1", "CHAT WITH HUMAN", "YES_START_CHAT_WITH_HUMAN", "", "1","flow","fb","'.$visual_flow_campaign_id.'");';
             $this->db->query($sql);
-            $insert_id=$this->db->insert_id();
+            $insert_id=$this->db->insertID();
             $sql='INSERT INTO messenger_bot_postback(user_id,postback_id,page_id,use_status,status,messenger_bot_table_id,bot_name,is_template,template_jsoncode,template_name,template_for,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'","YES_START_CHAT_WITH_HUMAN","'.$auto_id.'","0","1","'.$insert_id.'","CHAT WITH HUMAN","1",\'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text_with_buttons","attachment":{"type":"template","payload":{"template_type":"button","text":"Thanks! It is a pleasure talking to you. One of our team members will reply to you soon. If you want to chat with me again, just click the button below.","buttons":[{"type":"postback","payload":"YES_START_CHAT_WITH_BOT","title":"Resume Chat with Bot"}]}}}}}\',"CHAT WITH HUMAN TEMPLATE","chat-with-human","flow","fb","'.$visual_flow_campaign_id.'")';
             $this->db->query($sql);
@@ -964,12 +984,12 @@ class Social_accounts extends Home
                 'action_type' => 'YES_START_CHAT_WITH_BOT'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $sql='INSERT INTO messenger_bot (user_id,page_id,fb_page_id,template_type,bot_type,keyword_type,keywords,message,buttons,images,audio,video,file,status,bot_name,postback_id,last_replied_at,is_template,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "post-back","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text_with_buttons","attachment":{"type":"template","payload":{"template_type":"button","text":"I am glad to have you back. I will try my best to answer all questions. If you want to start chatting with humans again you can simply click the button below.","buttons":[{"type":"postback","payload":"YES_START_CHAT_WITH_HUMAN","title":"Chat with human"}]}}}}}\', "", "", "", "", "", "1", "CHAT WITH BOT", "YES_START_CHAT_WITH_BOT", "", "1","flow","fb","'.$visual_flow_campaign_id.'");';
             $this->db->query($sql);
-            $insert_id=$this->db->insert_id();
+            $insert_id=$this->db->insertID();
             $sql='INSERT INTO messenger_bot_postback(user_id,postback_id,page_id,use_status,status,messenger_bot_table_id,bot_name,is_template,template_jsoncode,template_name,template_for,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'","YES_START_CHAT_WITH_BOT","'.$auto_id.'","0","1","'.$insert_id.'","RESUBSCRIBE BOT","1",\'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text_with_buttons","attachment":{"type":"template","payload":{"template_type":"button","text":"I am glad to have you back. I will try my best to answer all questions. If you want to start chatting with humans again you can simply click the button below.","buttons":[{"type":"postback","payload":"YES_START_CHAT_WITH_HUMAN","title":"Chat with human"}]}}}}}\',"CHAT WITH BOT TEMPLATE","chat-with-bot","flow","fb","'.$visual_flow_campaign_id.'")';
             $this->db->query($sql);
@@ -998,7 +1018,7 @@ class Social_accounts extends Home
                 'action_type' => 'get-started'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $sql='INSERT INTO messenger_bot (user_id,page_id,fb_page_id,template_type,bot_type,keyword_type,keywords,message,buttons,images,audio,video,file,status,bot_name,postback_id,last_replied_at,is_template,visual_flow_type,media_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "get-started","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":"0","text_reply_unique_id":"EKp6WxW7lHlVDBK","template_type":"text","text":"Hi #LEAD_USER_FIRST_NAME#, Welcome to our page."}}}\', "", "", "", "", "", "1", "GET STARTED", "", "", "0","flow","fb","'.$visual_flow_campaign_id.'");';
@@ -1025,7 +1045,7 @@ class Social_accounts extends Home
            'action_type' => 'no match'
        ];
        $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-       $fb_visual_flow_campaign_id = $this->db->insert_id();
+       $fb_visual_flow_campaign_id = $this->db->insertID();
         
        if(!$this->basic->is_exist("messenger_bot",array("keyword_type"=>"no match","page_id"=>$auto_id,"media_type"=>"fb")))
        {
@@ -1048,7 +1068,7 @@ class Social_accounts extends Home
            'action_type' => 'no match'
        ];
        $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-       $ig_visual_flow_campaign_id = $this->db->insert_id();
+       $ig_visual_flow_campaign_id = $this->db->insertID();
 
        if(!$this->basic->is_exist("messenger_bot",array("keyword_type"=>"no match","page_id"=>$auto_id,"media_type"=>"ig")))
        {
@@ -1080,7 +1100,7 @@ class Social_accounts extends Home
                 'action_type' => 'STORY_MENTION'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $sql='INSERT INTO messenger_bot (user_id,page_id,fb_page_id,template_type,bot_type,keyword_type,keywords,message,buttons,images,audio,video,file,status,bot_name,postback_id,last_replied_at,is_template,media_type,visual_flow_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "story-mention","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":0,"text_reply_unique_id":"HjKksxHRQtGc7hq","template_type":"text","text":"Thanks for mentioning me."}}}\', "", "", "", "", "", "1", "STORY MENTION", "STORY_MENTION", "", "0", "ig","flow","'.$visual_flow_campaign_id.'");';
@@ -1110,7 +1130,7 @@ class Social_accounts extends Home
                 'action_type' => 'STORY_PRIVATE_REPLY'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $sql='INSERT INTO messenger_bot (user_id,page_id,fb_page_id,template_type,bot_type,keyword_type,keywords,message,buttons,images,audio,video,file,status,bot_name,postback_id,last_replied_at,is_template,media_type,visual_flow_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "story-private-reply","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":0,"text_reply_unique_id":"HjKksxHRQtGc7hq","template_type":"text","text":"Thanks for your comment on my story."}}}\', "", "", "", "", "", "1", "STORY PRIVATE REPLY", "STORY_PRIVATE_REPLY", "", "0", "ig","flow","'.$visual_flow_campaign_id.'");';
@@ -1141,7 +1161,7 @@ class Social_accounts extends Home
                 'action_type' => 'MESSAGE_UNSEND_PRIVATE_REPLY'
             ];
             $this->basic->insert_data('visual_flow_builder_campaign',$flow_insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
 
             $sql='INSERT INTO messenger_bot (user_id,page_id,fb_page_id,template_type,bot_type,keyword_type,keywords,message,buttons,images,audio,video,file,status,bot_name,postback_id,last_replied_at,is_template,media_type,visual_flow_type,visual_flow_campaign_id) VALUES
             ("'.$user_id.'", "'.$auto_id.'", "'.$page_id.'", "text", "generic", "message-unsend-private-reply","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"typing_on_settings":"off","delay_in_reply":0,"text_reply_unique_id":"HjKksxHRQtGc7hq","template_type":"text","text":"As you have deleted your message, we want to ensure you that our bot does not save any of your messages. So it will not be saved in our bot. Thanks"}}}\', "", "", "", "", "", "1", "MESSAGE UNSEND PRIVATE REPLY", "MESSAGE_UNSEND_PRIVATE_REPLY", "", "0", "ig","flow","'.$visual_flow_campaign_id.'");';
@@ -1154,8 +1174,8 @@ class Social_accounts extends Home
 
     public function delete_full_bot()
     {
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(200,$this->module_access)){
-            echo json_encode(['status'=>0,'message'=>$this->lang->line("You do not have permisison to access this feature.")]);
+        if(session()->get('user_type') != 'Admin' && !in_array(200,$this->module_access)){
+            echo json_encode(['status'=>0,'message'=>lang("You do not have permisison to access this feature.")]);
             exit();
         }
         
@@ -1164,7 +1184,7 @@ class Social_accounts extends Home
         $response = array();
         if($this->is_demo == '1')
         {
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
             {
                 $response['status'] = 0;
                 $response['message'] = "This function is disabled from admin account in this demo!!";
@@ -1174,13 +1194,13 @@ class Social_accounts extends Home
         }
 
         $user_id = $this->user_id;
-        $page_id=$this->input->post('page_id');
-        $already_disabled=$this->input->post('already_disabled');       
+        $page_id=$this->request->getPost('page_id');
+        $already_disabled=$this->request->getPost('already_disabled');       
 
         $page_data=$this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("id"=>$page_id,"user_id"=>$this->user_id)));
 
         if(empty($page_data)){
-            echo json_encode(array('success'=>0,'message'=>$this->lang->line("Page is not found for this user. Something is wrong.")));
+            echo json_encode(array('success'=>0,'message'=>lang("Page is not found for this user. Something is wrong.")));
             exit();
         }
 
@@ -1224,7 +1244,7 @@ class Social_accounts extends Home
         $this->delete_bot_data($page_id,$fb_page_id);
 
         $response['status'] = 1;
-        $response['message'] = $this->lang->line("Bot Connection and all of the settings and campaigns of this page has been deleted successfully.");
+        $response['message'] = lang("Bot Connection and all of the settings and campaigns of this page has been deleted successfully.");
 
         echo json_encode($response);
 
@@ -1239,7 +1259,7 @@ class Social_accounts extends Home
             return false;
         }
 
-        if($this->db->table_exists('messenger_bot_engagement_checkbox'))
+        if($this->db->tableExists('messenger_bot_engagement_checkbox'))
         {            
             $get_checkbox=$this->basic->get_data("messenger_bot_engagement_checkbox",array("where"=>array("page_id"=>$page_id)));
             $checkbox_ids=array();
@@ -1252,8 +1272,9 @@ class Social_accounts extends Home
         
             if(!empty($checkbox_ids))
             {
-                $this->db->where_in('checkbox_plugin_id', $checkbox_ids);
-                $this->db->delete('messenger_bot_engagement_checkbox_reply');
+                $this->db->table('messenger_bot_engagement_checkbox_reply')
+                    ->whereIn('checkbox_plugin_id', $checkbox_ids)
+                    ->delete();
             }
         }
 
@@ -1290,14 +1311,14 @@ class Social_accounts extends Home
 
             if($value['table_name'] != 'facebook_rx_fb_page_info') // need not to delete from page table while disabling bot
             {
-                if($this->db->table_exists($value['table_name']))
+                if($this->db->tableExists($value['table_name']))
                   $this->basic->delete_data($value['table_name'],array("{$value['column_name']}"=>$table_id));
             }
           }
           else if(isset($value['has_dependent_table']) && $value['has_dependent_table'] == 'yes')
           {
             $table_ids_array = array();   
-            if($this->db->table_exists($value['table_name']))
+            if($this->db->tableExists($value['table_name']))
             {
               if(isset($value['is_facebook_page_id']) && $value['is_facebook_page_id'] == 'yes')
               {
@@ -1314,7 +1335,7 @@ class Social_accounts extends Home
               array_push($table_ids_array, $info['id']);
 
 
-            if($this->db->table_exists($value['table_name']))
+            if($this->db->tableExists($value['table_name']))
             {
               if(isset($value['is_facebook_page_id']) && $value['is_facebook_page_id'] == 'yes')
                 $this->basic->delete_data($value['table_name'],array("{$value['column_name']}"=>$facebook_page_id));
@@ -1328,10 +1349,11 @@ class Social_accounts extends Home
             {            
               for($i=0;$i<count($dependent_table_names);$i++)
               {
-                if($this->db->table_exists($dependent_table_names[$i]))
+                if($this->db->tableExists($dependent_table_names[$i]))
                 {
-                  $this->db->where_in($dependent_table_column[$i], $table_ids_array);
-                  $this->db->delete($dependent_table_names[$i]);
+                  $this->db->table($dependent_table_names[$i])
+                      ->whereIn($dependent_table_column[$i], $table_ids_array)
+                      ->delete();
                 }
               }
             }
@@ -1340,12 +1362,12 @@ class Social_accounts extends Home
           {
             $str = "FIND_IN_SET('".$table_id."', ".$value['column_name'].") !=";
             $where = array($str=>0);
-            if($this->db->table_exists($value['table_name']))
+            if($this->db->tableExists($value['table_name']))
               $this->basic->delete_data($value['table_name'],$where);
           }
           else
           {
-            if($this->db->table_exists($value['table_name']))
+            if($this->db->tableExists($value['table_name']))
               $this->basic->delete_data($value['table_name'],array("{$value['column_name']}"=>$table_id));
           }
         }
@@ -1357,7 +1379,7 @@ class Social_accounts extends Home
 
     public function manual_renew_account()
     {
-        $id = $this->session->userdata('fb_rx_login_database_id');
+        $id = session()->get('fb_rx_login_database_id');
         $redirect_url = base_url()."social_accounts/manual_renew_account";
 
         $user_info = array();
@@ -1366,9 +1388,9 @@ class Social_accounts extends Home
         if( isset($user_info['status']) && $user_info['status'] == '0')
         {
             $data['error'] = 1;
-            $data['message'] = $this->lang->line("something went wrong in profile access")." : ".$user_info['message'];
+            $data['message'] = lang("something went wrong in profile access")." : ".$user_info['message'];
             $data['body'] = "facebook_rx/user_login";
-            $this->_viewcontroller($data);
+            return $this->_viewcontroller($data);
         } 
         else 
         {
@@ -1387,9 +1409,9 @@ class Social_accounts extends Home
                 if(empty($permission_checking))
                 {
                     $documentation_link = base_url('documentation/#!/sm_import_account');
-                    $text = $this->lang->line("All needed permissions are not approved for your app")." [".implode(',', $needed_permission)."]";
-                    $this->session->set_userdata('limit_cross', $text);
-                    redirect('social_accounts/index','location');                
+                    $text = lang("All needed permissions are not approved for your app")." [".implode(',', $needed_permission)."]";
+                    session()->set('limit_cross', $text);
+                    redirect()->to('social_accounts/index')->send();                
                     exit();
                 }
             }
@@ -1417,19 +1439,19 @@ class Social_accounts extends Home
                     $status=$this->_check_usage($module_id=65,$request=1);
                     if($status=="2") 
                     {
-                        $this->session->set_userdata('limit_cross', $this->lang->line("Module limit is over."));
-                        redirect('social_accounts/index','location');                
+                        session()->set('limit_cross', lang("Module limit is over."));
+                        redirect()->to('social_accounts/index')->send();                
                         exit();
                     }
                     else if($status=="3") 
                     {
-                        $this->session->set_userdata('limit_cross', $this->lang->line("Module limit is over."));
-                        redirect('social_accounts/index','location');                
+                        session()->set('limit_cross', lang("Module limit is over."));
+                        redirect()->to('social_accounts/index')->send();                
                         exit();
                     }
                     //************************************************//
                     $this->basic->insert_data('facebook_rx_fb_user_info',$data);
-                    $facebook_table_id = $this->db->insert_id();
+                    $facebook_table_id = $this->db->insertID();
 
                     //insert data to useges log table
                     $this->_insert_usage_log($module_id=65,$request=1);
@@ -1441,7 +1463,7 @@ class Social_accounts extends Home
                     $this->basic->update_data('facebook_rx_fb_user_info',$where,$data);
                 }
 
-                $this->session->set_userdata("facebook_rx_fb_user_info",$facebook_table_id);  
+                session()->set("facebook_rx_fb_user_info",$facebook_table_id);  
 
                 $page_list = array();
                 $page_list = $this->fb_rx_login->get_page_list($access_token);
@@ -1449,7 +1471,7 @@ class Social_accounts extends Home
                 if(isset($page_list['error']) && $page_list['error'] == '1')
                 {
                     $data['error'] = 1;
-                    $data['message'] = $this->lang->line("Something went wrong in page access")." : ".$page_list['message'];
+                    $data['message'] = lang("Something went wrong in page access")." : ".$page_list['message'];
                     $data['body'] = "facebook_rx/user_login";
                     return $this->_viewcontroller($data);                    
                 }
@@ -1489,7 +1511,7 @@ class Social_accounts extends Home
 
                         // instagram section
                         $instagram_account_exist_or_not = '';
-                        if($this->config->item('instagram_reply_enable_disable') == '1')
+                        if(($this->config->instagram_reply_enable_disable ?? 0) == '1')
 	                      //  $instagram_account_exist_or_not = $this->fb_rx_login->instagram_account_check_by_id($page['id'], $page['access_token']);
                             $instagram_account_exist_or_not = $this->fb_rx_login->instagram_account_check_by_id($page['id'], $access_token);
                         
@@ -1526,16 +1548,16 @@ class Social_accounts extends Home
                     }
                 }
 
-                $this->session->set_userdata('success_message', 'success');
-                redirect('social_accounts/index','location');                
+                session()->set('success_message', 'success');
+                redirect()->to('social_accounts/index')->send();                
                 exit();
             }
             else
             {
                 $data['error'] = 1;
-                $data['message'] = "'".$this->lang->line("something went wrong,please")."' <a href='".base_url("social_accounts/account_import")."'>'".$this->lang->line("try again")."'</a>";
+                $data['message'] = "'".lang("something went wrong,please")."' <a href='".base_url("social_accounts/account_import")."'>'".lang("try again")."'</a>";
                 $data['body'] = "facebook_rx/user_login";
-                $this->_viewcontroller($data);
+                return $this->_viewcontroller($data);
             }
         }
     }
@@ -1543,28 +1565,28 @@ class Social_accounts extends Home
     public function fb_rx_account_switch()
     {
         $this->ajax_check();
-        $id=$this->input->post("id");
+        $id=$this->request->getPost("id");
         
-        $this->session->set_userdata("facebook_rx_fb_user_info",$id); 
+        session()->set("facebook_rx_fb_user_info",$id); 
 
         $get_user_data = $this->basic->get_data("facebook_rx_fb_user_info",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
         $config_id = isset($get_user_data[0]["facebook_rx_config_id"]) ? $get_user_data[0]["facebook_rx_config_id"] : 0;
-        $this->session->set_userdata("fb_rx_login_database_id",$config_id);
+        session()->set("fb_rx_login_database_id",$config_id);
 
-        $this->session->unset_userdata("bot_list_get_page_details_page_table_id");
-        $this->session->unset_userdata("sync_subscribers_get_page_details_page_table_id");
-        $this->session->unset_userdata("get_page_details_page_table_id");
+        session()->remove("bot_list_get_page_details_page_table_id");
+        session()->remove("sync_subscribers_get_page_details_page_table_id");
+        session()->remove("get_page_details_page_table_id");
     }
 
     public function pages_messaging()
     {
-        $page_info = $this->basic->get_data('facebook_rx_fb_page_info', array('where' => array('user_id' => $this->user_id,'facebook_rx_fb_user_info_id'=>$this->session->userdata('facebook_rx_fb_user_info'))), array('id', 'page_id', 'page_name', 'webhook_enabled'));
+        $page_info = $this->basic->get_data('facebook_rx_fb_page_info', array('where' => array('user_id' => $this->user_id,'facebook_rx_fb_user_info_id'=>session()->get('facebook_rx_fb_user_info'))), array('id', 'page_id', 'page_name', 'webhook_enabled'));
 
         $page_dropdown = array();
         $is_any_page_enabled = false;
         $enabled_page = '';
 
-        $page_dropdown[-1] = $this->lang->line('Please select a page');
+        $page_dropdown[-1] = lang('Please select a page');
         foreach ($page_info as $key => $single_page) {
             
             if(!empty($this->team_allowed_pages) && !in_array($single_page['id'], $this->team_allowed_pages)) continue;
@@ -1582,7 +1604,7 @@ class Social_accounts extends Home
         $data['enabled_page'] = $enabled_page;
         $data['page_info'] = $page_info;
 
-        if($this->db->table_exists('messenger_bot'))
+        if($this->db->tableExists('messenger_bot'))
             $data['has_messenger_bot'] = 'yes';
         else
             $data['has_messenger_bot'] = 'no';
@@ -1600,9 +1622,9 @@ class Social_accounts extends Home
     {
         if (!isset($_POST)) exit;
 
-        $page_id = $this->input->post('page_id');
+        $page_id = $this->request->getPost('page_id');
         $page_table_id = $page_id;
-        $enable_or_disable = $this->input->post('enable_or_disable');
+        $enable_or_disable = $this->request->getPost('enable_or_disable');
 
         if ($enable_or_disable == "disabled")
             $webhook_enabled = '1';
@@ -1614,7 +1636,7 @@ class Social_accounts extends Home
         $page_id = $page_info[0]['page_id'];
 
         $this->load->library('fb_rx_login');
-        $this->fb_rx_login->app_initialize($this->session->userdata('fb_rx_login_database_id'));
+        $this->fb_rx_login->app_initialize(session()->get('fb_rx_login_database_id'));
 
         if($webhook_enabled == '1')
             $response = $this->fb_rx_login->enable_webhook($page_id,$page_access_token);

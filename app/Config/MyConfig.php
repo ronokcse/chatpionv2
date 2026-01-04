@@ -41,6 +41,8 @@ class MyConfig extends BaseConfig
     public string $instagram_reply_enable_disable = '1';
     public string $enable_signup_activation = '0';
     public string $enable_support = '1';
+    public string $developer_access = '0';
+    public string $backup_mode = '0';
 
     public string $master_password = '';
 

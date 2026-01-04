@@ -232,7 +232,7 @@
 								<?php endif; ?>
 						      </div>
 						    </div>
-						  </div>Sheet Title
+						  </div>
 						</div>
 
 

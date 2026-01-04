@@ -1133,27 +1133,39 @@ function check_module_action_access($module_id='',$actions=[],$response_type='js
 
 
 function check_module_access($module_id='',$return_boolen=false){
-    $ci = &get_instance();
-    $logged_in  = $ci->session->userdata('logged_in');
+    $session = \Config\Services::session();
+    $request = \Config\Services::request();
+    
+    $logged_in = $session->get('logged_in');
+   
     if(empty($logged_in)){
+      
         if($return_boolen) return false;
         else {
-            redirect('home/login', 'location');
+            redirect()->to('home/login_page')->send();
             exit();
         }   
     }
 
-    $user_type = $ci->session->userdata('user_type');
-    $module_access = $ci->session->userdata('module_access');
-    $logged_in = $ci->session->userdata('logged_in');
-    $error = $ci->lang->line('Access Denied');
+    $user_type = $session->get('user_type');
+    $module_access = $session->get('module_access');
+    $logged_in = $session->get('logged_in');
+    $error = lang('Access Denied');
+    
+    // Ensure module_access is an array before using in_array
+    $module_access = is_array($module_access) ? $module_access : [];
+    
     if($user_type!='Admin' && !in_array($module_id,$module_access)) {
         if($return_boolen) return false;
 
-        if($ci->input->is_ajax_request()) echo json_encode(['status'=>'0','message'=>$error,'error'=>$error]);
-        else {
-            if($logged_in!=1) redirect('home/login', 'location');
-            else redirect('home/access_forbidden', 'location');
+        if($request->isAJAX()) {
+            echo json_encode(['status'=>'0','message'=>$error,'error'=>$error]);
+        } else {
+            if($logged_in!=1) {
+                redirect()->to('home/login_page')->send();
+            } else {
+                redirect()->to('home/access_forbidden')->send();
+            }
         }
         exit();
     }
