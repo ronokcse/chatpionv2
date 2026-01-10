@@ -4324,8 +4324,8 @@ class Home extends BaseController
             exit();
         }
 
-        $path = ROOTPATH . "app/modules/" . strtolower($addon_controller_name) . "/controllers/" . $addon_controller_name . ".php"; // path of addon controller
-        $install_txt_path = ROOTPATH . "app/modules/" . strtolower($addon_controller_name) . "/install.txt"; // path of install.txt
+        $path = APPPATH . "modules/" . strtolower($addon_controller_name) . "/controllers/" . $addon_controller_name . ".php"; // path of addon controller
+        $install_txt_path = APPPATH . "modules/" . strtolower($addon_controller_name) . "/install.txt"; // path of install.txt
         if (!file_exists($path)) {
             echo json_encode(array('status' => '0', 'message' => lang('Add-on controller not found.')));
             exit();
@@ -4474,8 +4474,8 @@ class Home extends BaseController
             exit();
         }
 
-        $path = ROOTPATH . "app/modules/" . strtolower($addon_controller_name) . "/controllers/" . $addon_controller_name . ".php"; // path of addon controller
-        $install_txt_path = ROOTPATH . "app/modules/" . strtolower($addon_controller_name) . "/install.txt"; // path of install.txt
+        $path = APPPATH . "modules/" . strtolower($addon_controller_name) . "/controllers/" . $addon_controller_name . ".php"; // path of addon controller
+        $install_txt_path = APPPATH . "modules/" . strtolower($addon_controller_name) . "/install.txt"; // path of install.txt
         if (!file_exists($path)) {
             echo json_encode(array('status' => '0', 'message' => lang('Add-on controller not found.')));
             exit();
@@ -4561,8 +4561,8 @@ class Home extends BaseController
             exit();
         }
 
-        $path = ROOTPATH . "app/modules/" . strtolower($addon_controller_name) . "/controllers/" . $addon_controller_name . ".php"; // path of addon controller
-        $addon_path = ROOTPATH . "app/modules/" . strtolower($addon_controller_name); // path of module folder
+        $path = APPPATH . "modules/" . strtolower($addon_controller_name) . "/controllers/" . $addon_controller_name . ".php"; // path of addon controller
+        $addon_path = APPPATH . "modules/" . strtolower($addon_controller_name); // path of module folder
         if (!file_exists($path)) {
             echo json_encode(array('status' => '0', 'message' => lang('Add-on controller not found.')));
             exit();

@@ -34,7 +34,7 @@
 
             <a class="list-group-item list-group-item-action d-inline" href="#list-email-list"><?php echo lang('Email API'); ?></a>
 
-            <?php if($this->basic->is_exist("modules",array("id"=>266)) || $this->basic->is_exist("modules",array("id"=>293))) { ?>
+            <?php if(isset($basic) && $basic->is_exist("modules",array("id"=>266)) || (isset($basic) && $basic->is_exist("modules",array("id"=>293)))) { ?>
             <a class="list-group-item list-group-item-action d-inline" href="#list-woocommerce-list"><?php echo lang('WooCommerce'); ?></a>
             <?php } ?>
             <?php if(ai_reply_exist()){ ?>
@@ -113,7 +113,7 @@
       <?php $i++; endforeach; ?>
 
       <!-- For google sheet -->
-      <?php if ( $this->basic->is_exist("add_ons",array("project_id"=>70)) && (session()->get('user_type') == 'Admin' || in_array(351, $this->module_access))){ ?>
+      <?php if ( (isset($basic) && $basic->is_exist("add_ons",array("project_id"=>70))) && (session()->get('user_type') == 'Admin' || (isset($module_access) && is_array($module_access) && in_array(351, $module_access)))){ ?>
         <div class="col-4 col-lg-2 social_media_tag" div_count='<?php echo $i; ?>'>
           <a href="<?php echo base_url('google_sheet'); ?>" class="text-dark action_tag">
             <div class="wizard-steps mb-3">
@@ -137,7 +137,7 @@
       
 
         <!-- For google sheet -->
-      <?php if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && (session()->get('user_type') == 'Admin' || in_array(353, $this->module_access))){ ?>
+      <?php if ( (isset($basic) && $basic->is_exist("add_ons",array("project_id"=>72))) && (session()->get('user_type') == 'Admin' || (isset($module_access) && is_array($module_access) && in_array(353, $module_access)))){ ?>
       <div class="col-4 col-lg-2 social_media_tag" div_count='<?php echo $i; ?>'>
         <a href="<?php echo base_url('google_contacts'); ?>" class="text-dark action_tag">
           <div class="wizard-steps mb-3">
@@ -315,7 +315,7 @@
     <?php } ?>
 
     <?php 
-    if($this->basic->is_exist("modules",array("id"=>266)) || $this->basic->is_exist("modules",array("id"=>293))) : ?>
+    if((isset($basic) && $basic->is_exist("modules",array("id"=>266))) || (isset($basic) && $basic->is_exist("modules",array("id"=>293)))) : ?>
     
       <div class="row mt-3" id="list-woocommerce-list">
         <div class="col-12">
@@ -324,7 +324,7 @@
             <?php echo lang('WooCommerce abandoned cart recovery plugin & import WooCommerce product data.'); ?>
           </p>
         </div>
-        <?php if($user_type == 'Admin' || in_array(266,$this->module_access)) : ?>
+        <?php if($user_type == 'Admin' || (isset($module_access) && is_array($module_access) && in_array(266,$module_access))) : ?>
           <div class="col-12 col-lg-2">
             <a href="<?php echo base_url('woocommerce_abandoned_cart'); ?>" class="text-dark action_tag">
               <div class="wizard-steps mb-3">
@@ -338,7 +338,7 @@
             </a>
           </div>
         <?php endif; ?>
-        <?php if($user_type == 'Admin' || in_array(293,$this->module_access)) : ?>
+        <?php if($user_type == 'Admin' || (isset($module_access) && is_array($module_access) && in_array(293,$module_access))) : ?>
           <div class="col-12 col-lg-2">
             <a href="<?php echo base_url('woocommerce_integration'); ?>" class="text-dark action_tag">
               <div class="wizard-steps mb-3">

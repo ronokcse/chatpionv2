@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Ecommerce Related Products | Docs | XeroChat</title>
+    <!-- Meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">    
+    <link rel="shortcut icon" href="favicon.png">  
+    <link rel="stylesheet" href="assets/css/google.css"> 
+    <!-- FontAwesome JS -->
+    <link rel="stylesheet" href="assets/plugins/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="assets/plugins/fontawesome/css/v4-shims.min.css">
+    <!-- <script defer src="https://use.fontawesome.com/releases/v5.8.1/js/all.js" integrity="sha384-DJ25uNYET2XCl5ZF++U8eNxPWqcKohUUBUpKGlNLMchM7q4Wjg2CUpjHLaL8yYPH" crossorigin="anonymous"></script> -->
+    
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="assets/plugins/bootstrap/css/bootstrap.min.css">   
+    <!-- Plugins CSS --> 
+    <link rel="stylesheet" href="assets/plugins/prism/prism.css">
+    <link rel="stylesheet" href="assets/plugins/lightbox/dist/ekko-lightbox.css">
+    <link rel="stylesheet" href="assets/plugins/elegant_font/css/style.css">    
+    <!-- Theme CSS -->
+    <link id="theme-style" rel="stylesheet" href="assets/css/styles.css">
+    <link id="theme-style" rel="stylesheet" href="assets/css/custom.css">
+
+</head> 
+
+<body class="body-orange">
+    <div class="page-wrapper">
+        <!-- ******Header****** -->
+        <header id="header" class="header">
+            <div class="container">
+                <div class="branding">
+                    <h1 class="logo">
+                        <a href="index.html">
+                            <span aria-hidden="true" class="fas fa-book-open white"></span>
+                            <span class="text-highlight">Ecommerce Related Products</span> <span class="text-bold">Docs</span>
+                        </a>
+                    </h1>
+                    
+                </div><!--//branding-->
+                
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                    <li class="breadcrumb-item active">Quick Start</li>
+                </ol>               
+                
+                
+            </div><!--//container-->
+        </header><!--//header-->
+        <div class="doc-wrapper">
+            <div class="container">
+                
+                <div class="doc-body row">
+                    <div class="doc-sidebar col-md-3 col-12 order-1 d-none d-md-flex">
+                        <div id="doc-nav" class="doc-nav">
+                            
+                                <nav id="doc-menu" class="nav doc-menu flex-column sticky">
+                                    <a class="nav-link scrollto" href="#installation">Installation</a>
+                                    <nav class="doc-sub-menu nav flex-column">
+                                        <a class="nav-link scrollto" href="#step1">Upload</a>
+                                        <a class="nav-link scrollto" href="#step2">Activate</a>
+                                    </nav><!--//nav-->                                  
+                                </nav><!--//doc-menu-->
+                            
+                        </div>
+                    </div><!--//doc-sidebar-->
+                    <div class="doc-content col-md-9 col-12 order-0">
+                        <div class="content-inner">
+
+                            <section id="installation" class="doc-section">
+                                <h2 class="section-title">Installation</h2>
+                                
+                                <div id="step1"  class="section-block">
+                                    <h3 class="block-title">Upload Add-on Zip Package</h3><br>
+                                    <p>Login as admin and go to <span class="text-primary">System > Add-on Manager</span> menu
+                                    </p>
+                                    <img class="img-fluid" src="assets/images/quick1.png" width="250"/>
+
+                                    <p>&nbsp;</p>
+                                    <p>This page shows all available (activated/deactivated) add-ons that have been uploaded. Click <span class="text-primary">Install add-on</span> button to start installation process.
+                                    </p>
+                                    <img class="img-fluid" src="assets/images/quick2.png"/>
+
+                                    <p>&nbsp;</p>
+                                    <p>It's time to upload the add-on zip package. Click <span class="text-primary">Upload</span> button to browse and upload the zip package. After you upload add-on file you will be taken to add-on manager page, you need to active the add-on there.</p>
+
+                                    <div class="callout-block callout-danger">
+                                        <div class="icon-holder">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </div><!--//icon-holder-->
+                                        <div class="content">
+                                            <h4 class="callout-title">SERVER SETUP</h4>
+                                            <p> Before uploading file, make sure <b>application/modules</b> folder have write permission (755), <b>mkdir + ZipArchive</b> functions are enabled in your server and also make sure php settings for uploading files are large enough to upload the add-on zip file, otherwise it may generate errors. You can contact your hosting provider for help.</p>
+                                        </div><!--//content-->
+                                    </div>
+
+                                    <p>If you are having trouble uploading using our uploader, then you can simply upload add-on zip file in <b>application/modules</b> folder manually using cpanel file manager & extract it there. Make sure you delete the zip file after extracting and also make sure there is no extra files in the application/modules folder except the add-on folders, otherwise it will generate errors.
+                                    </p>
+                                    <img class="img-fluid" src="assets/images/quick3.png"/> 
+                                </div><!--//section-block-->
+
+
+                                <div id="step2"  class="section-block">
+                                    <h3 class="block-title">Activate Add-on</h3>
+                                    <p>Now you can see the add-on listed here but it has not been activated yet. The last step is to click the <span class="text-primary">Activate</span> button and put your purchase key to activate. You will get a success message after put your purchase code & submit. It's done, enjoy your new features.
+                                    </p>
+
+                                    <div class="row">
+                                        <div class="col-md-6 col-12">
+                                            <img class="img-fluid" src="assets/images/quick4.png"/>
+                                        </div>
+                                        <div class="col-md-6 col-12">
+                                            <img class="img-fluid" src="assets/images/quick5.png"/>
+                                        </div>
+                                    </div>                                         
+
+                                    <p>&nbsp;</p>
+                                    <h6>Some common error while activating</h6>
+                                    <div class="list-group">
+                                      <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                          <h5 class="mb-1"><i class="fas fa-exclamation-circle"></i> Something went wrong. cURL is not working.</h5>
+                                          <!-- <small>3 days ago</small> -->
+                                        </div>
+                                        <small class="text-muted">cURL extension is not installed or enabled in server. Please contact your hosting provider regarding this issue.</small>
+                                      </a>
+                                      <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                          <h5 class="mb-1"><i class="fas fa-exclamation-circle"></i> Purchase code is not valid or already used.</h5>
+                                          <!-- <small class="text-muted">3 days ago</small> -->
+                                        </div>
+                                        <small class="text-muted">Not a valid purchase code entered or it's a valid purchase code but for another item or it's a valid purchase code & also for this add-on but has been already used in another domain. You can login to your Xerone IT customer panel (https://xeroneit.net/login) and can reset your purchase code from there if you get "already used" error.</small>
+                                      </a>
+                                      <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                          <h5 class="mb-1"><i class="fas fa-exclamation-circle"></i> Add-on controller has not been provided or Add-on controller not found.</h5>
+                                          <!-- <small class="text-muted">3 days ago</small> -->
+                                        </div>
+                                        <small class="text-muted">The add-on file is corrupted or you uploaded a random zip file by mistake. Delete the corrupted or wrong file form application/modules folder manually using cpanel file manager or a ftp client and upload correctly again from <b>System > Add-on manager</b> menu.</small>
+                                      </a>
+                                      <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                          <h5 class="mb-1"><i class="fas fa-exclamation-circle"></i> Add-on is already active. Duplicate unique name found.</h5>
+                                          <!-- <small class="text-muted">3 days ago</small> -->
+                                        </div>
+                                        <small class="text-muted">System found two add-on files of same add-on. Delete the last uploaded add-on from <b>System > Add-on manager</b> menu.</small>
+                                      </a>
+                                      <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                          <h5 class="mb-1"><i class="fas fa-exclamation-circle"></i> No error, it's loading forever</h5>
+                                          <!-- <small class="text-muted">3 days ago</small> -->
+                                        </div>
+                                        <small class="text-muted">It can happen for base_url issue in ajax call. Try setting your website base url in <b>application/config/config.php</b>. Your base_url should look like <b>https://example.com/</b> or <b>https://example.com/something/</b> . Please remember that the ending <b>/</b> is a must. If setting base_url does not work then open browser inspector and see if there is any error there or contact our suport desk.
+
+                                       <div class="code-block">
+                                       	<h6>Set base_url in config.php</h6>
+										<pre><code class="language-php">$config['base_url'] = "https://example.com/";</code></pre>
+                                        </div>
+
+                                        </small>
+                                      </a>
+                                    </div>
+                                </div><!--//section-block-->
+
+                            </section><!--//doc-section-->
+
+
+                        </div><!--//content-inner-->
+                    </div><!--//doc-content-->                    
+                </div><!--//doc-body-->              
+            </div><!--//container-->
+        </div><!--//doc-wrapper-->
+
+        
+    </div><!--//page-wrapper-->
+    
+    <footer id="footer" class="footer text-center">
+        <div class="container">
+            <!--/* This template is released under the Creative Commons Attribution 3.0 License. Please keep the attribution link below when using for your own project. Thank you for your support. :) If you'd like to use the template without the attribution, you can buy the commercial license via our website: themes.3rdwavemedia.com */-->
+            <small class="copyright">Designed with <i class="fas fa-heart"></i> by <a href="https://themes.3rdwavemedia.com/" target="_blank">Xiaoying Riley</a> for developers</small>
+            
+        </div><!--//container-->
+    </footer><!--//footer-->
+    
+     
+     <!-- Main Javascript -->          
+    <script type="text/javascript" src="assets/plugins/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="assets/plugins/prism/prism.js"></script>    
+    <script type="text/javascript" src="assets/plugins/jquery-scrollTo/jquery.scrollTo.min.js"></script>
+    <script type="text/javascript" src="assets/plugins/lightbox/dist/ekko-lightbox.min.js"></script>
+    <script type="text/javascript" src="assets/plugins/stickyfill/dist/stickyfill.min.js"></script>                                                                
+    <script type="text/javascript" src="assets/js/main.js"></script>
+    
+</body>
+</html> 
+

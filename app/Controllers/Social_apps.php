@@ -1,35 +1,47 @@
 <?php
 
-require_once("Home.php"); // loading home controller
+namespace App\Controllers;
+
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 /**
 * @category controller
-* class Admin
+* class Social_apps
 */
-
 class Social_apps extends Home
 {
-    public function __construct()
+    protected $form_validation;
+    protected $fb_rx_login;
+    protected $wordpress_self_hosted;
+    
+    /**
+     * Initialize controller
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
-        if ($this->session->userdata('logged_in')!= 1) {
-            redirect('home/login', 'location');
+        if (session()->get('logged_in') != 1) {
+            redirect()->to('home/login_page')->send();
+            exit();
         }
 
-        $function_name=$this->uri->segment(2);
+        $function_name = $this->uri->segment(2);
         $pinterest_action_array = array('pinterest_settings', 'pinterest_settings_data', 'add_pinterest_settings','edit_pinterest_settings', 'pinterest_settings_update_action', 'delete_app_pinterest', 'change_app_status_pinterest','pinterest_intermediate_account_import_page','wordpress_settings_self_hosted','add_wordpress_self_hosted_settings','edit_wordpress_self_hosted_settings','wordpress_self_hosted_settings_data','delete_wordpress_self_hosted_settings','wordpress_self_hosted_settings_load_categories');
 
         if(!in_array($function_name, $pinterest_action_array)) 
         {
-            if ($this->session->userdata('user_type')== "Member" && $this->config->item("backup_mode")==0)
-            redirect('home/login', 'location');        
+            if (session()->get('user_type') == "Member" && ($this->config->backup_mode ?? 0) == 0)
+            redirect()->to('home/login_page')->send();
+            exit();
         }        
         
-        $this->load->helper('form');
+        helper('form');
         $this->load->library('upload');
         
-        $this->upload_path = realpath(APPPATH . '../upload');
+        $this->upload_path = realpath(ROOTPATH . 'upload');
         set_time_limit(0);
 
         $this->important_feature();
@@ -45,11 +57,9 @@ class Social_apps extends Home
 
     public function settings()
     {
-
-        $data['page_title'] = $this->lang->line('Social Apps');
-
+        $data['page_title'] = lang('Social Apps');
         $data['body'] = 'admin/social_apps/settings';
-        $data['title'] = $this->lang->line('Social Apps');
+        $data['title'] = lang('Social Apps');
 
         $this->_viewcontroller($data);
     }
@@ -57,9 +67,11 @@ class Social_apps extends Home
 
     public function google_settings()
     {
-
-        if ($this->session->userdata('user_type') != 'Admin')
-        redirect('home/login_page', 'location');
+        if (session()->get('user_type') != 'Admin')
+        {
+            redirect()->to('home/login_page')->send();
+            exit();
+        }
 
         $google_settings = $this->basic->get_data('login_config');
 
@@ -72,8 +84,8 @@ class Social_apps extends Home
             $google_settings['google_client_secret'] = 'XXXXXXXXXXX';
         }
         $data['google_settings'] = $google_settings;
-        $data['page_title'] = $this->lang->line('Google App Settings');
-        $data['title'] = $this->lang->line('Google App Settings');
+        $data['page_title'] = lang('Google App Settings');
+        $data['title'] = lang('Google App Settings');
         $data['body'] = 'admin/social_apps/google_settings';
 
         $this->_viewcontroller($data);
@@ -89,13 +101,16 @@ class Social_apps extends Home
             exit();
         }
 
-        if ($this->session->userdata('user_type') != 'Admin')
-        redirect('home/login_page', 'location');
+        if (session()->get('user_type') != 'Admin')
+        {
+            redirect()->to('home/login_page')->send();
+            exit();
+        }
 
         if (!isset($_POST)) exit;
 
-        $this->form_validation->set_rules('google_client_id', $this->lang->line("Client ID"), 'trim|required');
-        $this->form_validation->set_rules('google_client_secret', $this->lang->line("Client Secret"), 'trim|required');
+        $this->form_validation->set_rules('google_client_id', lang("Client ID"), 'trim|required');
+        $this->form_validation->set_rules('google_client_secret', lang("Client Secret"), 'trim|required');
 
         if ($this->form_validation->run() == FALSE) 
             $this->google_settings();
@@ -103,12 +118,12 @@ class Social_apps extends Home
 
             $this->csrf_token_check();
 
-            $insert_data['app_name'] = strip_tags($this->input->post('app_name',true));
-            $insert_data['api_key'] = strip_tags($this->input->post('api_key',true));
-            $insert_data['google_client_id'] = strip_tags($this->input->post('google_client_id',true));
-            $insert_data['google_client_secret'] = strip_tags($this->input->post('google_client_secret',true));
+            $insert_data['app_name'] = strip_tags($this->request->getPost('app_name'));
+            $insert_data['api_key'] = strip_tags($this->request->getPost('api_key'));
+            $insert_data['google_client_id'] = strip_tags($this->request->getPost('google_client_id'));
+            $insert_data['google_client_secret'] = strip_tags($this->request->getPost('google_client_secret'));
             
-            $status = $this->input->post('status');
+            $status = $this->request->getPost('status');
             if($status=='') $status='0';
             $insert_data['status'] = $status;
 
@@ -122,8 +137,8 @@ class Social_apps extends Home
             else 
                 $this->basic->insert_data('login_config', $insert_data);
 
-            $this->session->set_flashdata('success_message', '1');
-            redirect(base_url('social_apps/google_settings'),'location');
+            session()->setFlashdata('success_message', '1');
+            redirect()->to('social_apps/google_settings')->send();
         }
     }
 
@@ -131,19 +146,18 @@ class Social_apps extends Home
 
     protected function facebookTokenValidityCheck($input_token)
     {
-
         if($input_token=="") 
-        return "<span class='badge badge-status text-danger'><i class='fas fa-times-circle red'></i> ".$this->lang->line('Invalid')."</span>";
+        return "<span class='badge badge-status text-danger'><i class='fas fa-times-circle red'></i> ".lang('Invalid')."</span>";
         $this->load->library("fb_rx_login"); 
         
-        if($this->config->item('developer_access') == '1')
+        if(($this->config->developer_access ?? '0') == '1')
         {
             $valid_or_invalid = $this->fb_rx_login->access_token_validity_check_for_user($input_token);
             
             if($valid_or_invalid)
-                return "<span class='badge badge-status text-success'><i class='fa fa-check-circle green'></i> ".$this->lang->line('Valid')."</span>";
+                return "<span class='badge badge-status text-success'><i class='fa fa-check-circle green'></i> ".lang('Valid')."</span>";
             else
-                return "<span class='badge badge-status text-danger'><i class='fa fa-clock-o red'></i> ".$this->lang->line('Expired')."</span>";
+                return "<span class='badge badge-status text-danger'><i class='fa fa-clock-o red'></i> ".lang('Expired')."</span>";
         }
         else
         {
@@ -152,19 +166,18 @@ class Social_apps extends Home
             $result = json_decode($result,true);
              
             if(isset($result["data"]["is_valid"]) && $result["data"]["is_valid"])
-                return "<span class='badge badge-status text-success'><i class='fa fa-check-circle green'></i> ".$this->lang->line('Valid')."</span>";
+                return "<span class='badge badge-status text-success'><i class='fa fa-check-circle green'></i> ".lang('Valid')."</span>";
             else
-                return "<span class='badge badge-status text-danger'><i class='fa fa-clock-o red'></i> ".$this->lang->line('Expired')."</span>"; 
+                return "<span class='badge badge-status text-danger'><i class='fa fa-clock-o red'></i> ".lang('Expired')."</span>"; 
         }
-
     }
 
 
 
     public function facebook_settings()
     {
-        $data['page_title'] = $this->lang->line('Facebook App Settings');
-        $data['title'] = $this->lang->line('Facebook App Settings');
+        $data['page_title'] = lang('Facebook App Settings');
+        $data['title'] = lang('Facebook App Settings');
         $data['body'] = 'admin/social_apps/facebook_app_settings';
 
         $this->_viewcontroller($data);
@@ -214,18 +227,18 @@ class Social_apps extends Home
 
             $token_validity = $this->facebookTokenValidityCheck($value['user_access_token']);
             if($value['status'] == 1)
-                $info[$i]['status'] = "<span class='badge badge-status text-success'><i class='fa fa-check-circle green'></i> ".$this->lang->line('Active')."</span>";
+                $info[$i]['status'] = "<span class='badge badge-status text-success'><i class='fa fa-check-circle green'></i> ".lang('Active')."</span>";
             else
-                $info[$i]['status'] = "<span class='badge badge-status text-danger'><i class='fa fa-check-circle red'></i> ".$this->lang->line('Inactive')."</span>";
+                $info[$i]['status'] = "<span class='badge badge-status text-danger'><i class='fa fa-check-circle red'></i> ".lang('Inactive')."</span>";
             $info[$i]['token_validity'] = $token_validity;
 
             $info[$i]['action'] = "";
             
             if($this->is_demo != '1')
-            $info[$i]['action'] .= "<div style='min-width:130px'><a href='".base_url('social_apps/edit_facebook_settings/').$value['id']."' class='btn btn-outline-warning btn-circle' data-toggle='tooltip' data-placement='top' title='".$this->lang->line('Edit APP Settings')."'><i class='fas fa-edit'></i></a> ";
+            $info[$i]['action'] .= "<div style='min-width:130px'><a href='".base_url('social_apps/edit_facebook_settings/').$value['id']."' class='btn btn-outline-warning btn-circle' data-toggle='tooltip' data-placement='top' title='".lang('Edit APP Settings')."'><i class='fas fa-edit'></i></a> ";
             
             if($this->is_demo != '1')
-            $info[$i]['action'] .= "<a href='".base_url('social_apps/login_button/').$value['id']."' class='btn btn-outline-primary btn-circle' data-toggle='tooltip' data-placement='top' title='".$this->lang->line('Login to validate your accesstoken.')."'><i class='fab fa-facebook-square'></i></a> <a href='#' csrf_token='".$this->session->userdata('csrf_token_session')."' csrf_token='".$this->session->userdata('csrf_token_session')."' class='btn btn-outline-danger btn-circle delete_app' table_id='".$value['id']."' data-toggle='tooltip' data-placement='top' title='".$this->lang->line('Delete this APP')."'><i class='fas fa-trash-alt'></i></a></div>";
+            $info[$i]['action'] .= "<a href='".base_url('social_apps/login_button/').$value['id']."' class='btn btn-outline-primary btn-circle' data-toggle='tooltip' data-placement='top' title='".lang('Login to validate your accesstoken.')."'><i class='fab fa-facebook-square'></i></a> <a href='#' csrf_token='".session()->get('csrf_token_session')."' csrf_token='".session()->get('csrf_token_session')."' class='btn btn-outline-danger btn-circle delete_app' table_id='".$value['id']."' data-toggle='tooltip' data-placement='top' title='".lang('Delete this APP')."'><i class='fas fa-trash-alt'></i></a></div>";
 
             $info[$i]["action"] .="<script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
             $i++;
@@ -244,8 +257,8 @@ class Social_apps extends Home
     {
         $data['table_id'] = 0;
         $data['facebook_settings'] = array();
-        $data['page_title'] = $this->lang->line('Facebook App Settings');
-        $data['title'] = $this->lang->line('Facebook App Settings');
+        $data['page_title'] = lang('Facebook App Settings');
+        $data['title'] = lang('Facebook App Settings');
         $data['body'] = 'admin/social_apps/facebook_settings';
 
         $this->_viewcontroller($data);
@@ -266,8 +279,8 @@ class Social_apps extends Home
         else $facebook_settings = $facebook_settings[0];
         $data['table_id'] = $table_id;
         $data['facebook_settings'] = $facebook_settings;
-        $data['page_title'] = $this->lang->line('Facebook App Settings');
-        $data['title'] = $this->lang->line('Facebook App Settings');
+        $data['page_title'] = lang('Facebook App Settings');
+        $data['title'] = lang('Facebook App Settings');
         $data['body'] = 'admin/social_apps/facebook_settings';
 
         $this->_viewcontroller($data);
@@ -286,11 +299,9 @@ class Social_apps extends Home
 
         if (!isset($_POST)) exit;
 
-
-
-        $this->form_validation->set_rules('api_id', $this->lang->line("App ID"), 'trim|required');
-        $this->form_validation->set_rules('api_secret', $this->lang->line("App Secret"), 'trim|required');
-        $table_id = $this->input->post('table_id',true);
+        $this->form_validation->set_rules('api_id', lang("App ID"), 'trim|required');
+        $this->form_validation->set_rules('api_secret', lang("App Secret"), 'trim|required');
+        $table_id = $this->request->getPost('table_id');
 
         if ($this->form_validation->run() == FALSE) 
         {
@@ -300,17 +311,17 @@ class Social_apps extends Home
         else
         {
             $this->csrf_token_check();
-            $insert_data['app_name'] = strip_tags($this->input->post('app_name',true));
-            $insert_data['api_id'] = strip_tags($this->input->post('api_id',true));
-            $insert_data['api_secret'] = strip_tags($this->input->post('api_secret',true));
+            $insert_data['app_name'] = strip_tags($this->request->getPost('app_name'));
+            $insert_data['api_id'] = strip_tags($this->request->getPost('api_id'));
+            $insert_data['api_secret'] = strip_tags($this->request->getPost('api_secret'));
             $insert_data['user_id'] = $this->user_id;
 
-            if($this->session->userdata('user_type') == 'Admin')
+            if(session()->get('user_type') == 'Admin')
                 $insert_data['use_by'] = 'everyone';
             else
                 $insert_data['use_by'] = 'only_me';
             
-            $status = $this->input->post('status');
+            $status = $this->request->getPost('status');
             if($status=='') $status='0';
             $insert_data['status'] = $status;
 
@@ -322,9 +333,8 @@ class Social_apps extends Home
             else 
                 $this->basic->insert_data('facebook_rx_config', $insert_data);
 
-            $this->session->set_flashdata('success_message', '1');
-            redirect(base_url('social_apps/facebook_settings'),'location');
-            
+            session()->setFlashdata('success_message', '1');
+            redirect()->to('social_apps/facebook_settings')->send();
         }
     }
 
@@ -333,7 +343,7 @@ class Social_apps extends Home
     {    
         
         $fb_config_info = $this->basic->get_data('facebook_rx_config',array('where'=>array('id'=>$id)));
-        if(isset($fb_config_info[0]['developer_access']) && $fb_config_info[0]['developer_access'] == '1' && $this->session->userdata('user_type')=="Admin")
+        if(isset($fb_config_info[0]['developer_access']) && $fb_config_info[0]['developer_access'] == '1' && session()->get('user_type')=="Admin")
         {
             $url = "https://ac.getapptoken.com/home/get_secret_code_info";
             $config_id = $fb_config_info[0]['secret_code'];
@@ -356,8 +366,8 @@ class Social_apps extends Home
 
             if(isset($result['error']))
             {
-                $this->session->set_userdata('secret_code_error','Invalid secret code!');
-                redirect('facebook_rx_config/index','location');                
+                session()->set('secret_code_error','Invalid secret code!');
+                redirect()->to('facebook_rx_config/index')->send();
                 exit();
             }
 
@@ -388,7 +398,7 @@ class Social_apps extends Home
             if(empty($exist_or_not))
             {
                 $this->basic->insert_data('facebook_rx_fb_user_info',$data);
-                $facebook_table_id = $this->db->insert_id();
+                $facebook_table_id = $this->db->insertID();
             }
             else
             {
@@ -397,10 +407,8 @@ class Social_apps extends Home
                 $this->basic->update_data('facebook_rx_fb_user_info',$where,$data);
             }
 
-            $this->session->set_userdata("facebook_rx_fb_user_info",$facebook_table_id);
-
-
-            $this->session->set_userdata("fb_rx_login_database_id",$id);
+            session()->set("facebook_rx_fb_user_info",$facebook_table_id);
+            session()->set("fb_rx_login_database_id",$id);
             $this->fb_rx_login->app_initialize($id);
             $page_list = $this->fb_rx_login->get_page_list($result['access_token']);            
             if(!empty($page_list))
@@ -494,18 +502,18 @@ class Social_apps extends Home
                     }
                 }
             }
-            $this->session->set_userdata('success_message', 'success');
-            redirect('facebook_rx_account_import/index','location');
+            session()->set('success_message', 'success');
+            redirect()->to('facebook_rx_account_import/index')->send();
         }
         else
         {
-            $this->session->set_userdata("fb_rx_login_database_id",$id);
+            session()->set("fb_rx_login_database_id",$id);
             $this->load->library('fb_rx_login');
             $redirect_url = base_url()."home/redirect_rx_link";        
             $data['fb_login_button'] = $this->fb_rx_login->login_for_user_access_token($redirect_url);  
 
             $data['body'] = 'facebook_rx/admin_login';
-            $data['page_title'] =  $this->lang->line("Admin login");
+            $data['page_title'] =  lang("Admin login");
             $data['expired_or_not'] = $this->fb_rx_login->access_token_validity_check();
             $this->_viewcontroller($data);
         }
@@ -517,7 +525,7 @@ class Social_apps extends Home
      */
     public function wordpress_settings_self_hosted()
     {
-        $data['page_title'] = $this->lang->line('Wordpress settings (self-hosted)');
+        $data['page_title'] = lang('Wordpress settings (self-hosted)');
         $data['body'] = 'admin/social_apps/wordpress_self_hosted_app_settings';
 
         $this->_viewcontroller($data);
@@ -574,9 +582,9 @@ class Social_apps extends Home
                 $status = ('1' == $info[$i]['status']) ? 'text-success' : 'text-danger';
 
                 if ('1' == $info[$i]['status']) {
-                    $info[$i]['status'] = '<span class="badge badge-status text-success green"><i class="fa fa-check-circle"></i> ' . $this->lang->line('Active') . '</span>';
+                    $info[$i]['status'] = '<span class="badge badge-status text-success green"><i class="fa fa-check-circle"></i> ' . lang('Active') . '</span>';
                 } elseif ('0' == $info[$i]['status']) {
-                    $info[$i]['status'] = '<span class="badge badge-status text-danger red"><i class="fa fa-check-circle"></i> ' . $this->lang->line('Inactive') . '</span>';
+                    $info[$i]['status'] = '<span class="badge badge-status text-danger red"><i class="fa fa-check-circle"></i> ' . lang('Inactive') . '</span>';
                 }
             }
 
@@ -589,10 +597,10 @@ class Social_apps extends Home
                 // Prepares buttons
                 $actions = '<div style="min-width: 140px;">';
 
-                $actions .= '<a data-toggle="tooltip" title="' . $this->lang->line('Update your blog categories') . '" href="#" class="btn btn-circle btn-outline-primary update-categories" data-wp-app-id="' . $info[$i]['id'] .'"><i class="fa fa-sync-alt"></i></a>&nbsp;&nbsp;';
+                $actions .= '<a data-toggle="tooltip" title="' . lang('Update your blog categories') . '" href="#" class="btn btn-circle btn-outline-primary update-categories" data-wp-app-id="' . $info[$i]['id'] .'"><i class="fa fa-sync-alt"></i></a>&nbsp;&nbsp;';
 
-                $actions .= '<a data-toggle="tooltip" title="' . $this->lang->line('Edit Wordpress Site Settings') . '" href="' . base_url("social_apps/edit_wordpress_self_hosted_settings/{$info[$i]['id']}") . '" class="btn btn-circle btn-outline-warning"><i class="fa fa-edit"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Delete Wordpress Site Settings') . '" href="" class="btn btn-circle btn-outline-danger" id="delete-wssh-settings"  csrf_token="'.$this->session->userdata('csrf_token_session').'" data-site-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
+                $actions .= '<a data-toggle="tooltip" title="' . lang('Edit Wordpress Site Settings') . '" href="' . base_url("social_apps/edit_wordpress_self_hosted_settings/{$info[$i]['id']}") . '" class="btn btn-circle btn-outline-warning"><i class="fa fa-edit"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Delete Wordpress Site Settings') . '" href="" class="btn btn-circle btn-outline-danger" id="delete-wssh-settings"  csrf_token="'.session()->get('csrf_token_session').'" data-site-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
                 $actions .= '</div>';
 
                 $info[$i]['actions'] = $actions;
@@ -612,32 +620,32 @@ class Social_apps extends Home
     public function add_wordpress_self_hosted_settings()
     {   
         $auth_key = $this->generate_authentication_key();
-        $data['page_title'] = $this->lang->line('Add Wordpress Settings (Self-Hosted)');
+        $data['page_title'] = lang('Add Wordpress Settings (Self-Hosted)');
         $data['body'] = 'admin/social_apps/wordpress_self_hosted_settings';
         $data['auth_key'] = $auth_key;
 
         if ($_POST) {
             // Sets validation rules
             $this->csrf_token_check();
-            $this->form_validation->set_rules('domain_name', $this->lang->line('Domain name'), 'trim|required');
-            $this->form_validation->set_rules('user_key', $this->lang->line('User key'), 'trim|required');
-            $this->form_validation->set_rules('authentication_key', $this->lang->line('Authentication key'), 'trim|required');
+            $this->form_validation->set_rules('domain_name', lang('Domain name'), 'trim|required');
+            $this->form_validation->set_rules('user_key', lang('User key'), 'trim|required');
+            $this->form_validation->set_rules('authentication_key', lang('Authentication key'), 'trim|required');
 
             if (false === $this->form_validation->run()) {
                 return $this->_viewcontroller($data);
             }
 
-            $domain_name = filter_var($this->input->post('domain_name',true), FILTER_SANITIZE_URL, FILTER_VALIDATE_URL);
+            $domain_name = filter_var($this->request->getPost('domain_name'), FILTER_SANITIZE_URL, FILTER_VALIDATE_URL);
             if (false == $domain_name) {
-                $message = $this->lang->line('Please provide a valid domain name.');
-                $this->session->set_userdata('add_wssh_error', $message);
+                $message = lang('Please provide a valid domain name.');
+                session()->set('add_wssh_error', $message);
                 
                 return $this->_viewcontroller($data);
             }            
 
-            $user_key = trim($this->input->post('user_key', true));
-            $authentication_key = trim($this->input->post('authentication_key', true));
-            $status = $this->input->post('status', true);
+            $user_key = trim($this->request->getPost('user_key'));
+            $authentication_key = trim($this->request->getPost('authentication_key'));
+            $status = $this->request->getPost('status');
             $status = empty($status) ? '0' : '1';
 
             $data = [
@@ -651,13 +659,13 @@ class Social_apps extends Home
 
             $this->basic->insert_data('wordpress_config_self_hosted', $data);
 
-            if ($this->db->affected_rows() > 0) {
+            if ($this->db->affectedRows() > 0) {
                 $this->_insert_usage_log($module_id=109, $request=1);
-                redirect(base_url('social_apps/wordpress_settings_self_hosted'), 'location');
+                redirect()->to('social_apps/wordpress_settings_self_hosted')->send();
             }
 
-            $message = $this->lang->line('Something went wrong while adding your wordpress site.');
-            $this->session->set_userdata('add_wssh_error', $message);   
+            $message = lang('Something went wrong while adding your wordpress site.');
+            session()->set('add_wssh_error', $message);   
             return $this->_viewcontroller($data);
         }
 
@@ -672,7 +680,7 @@ class Social_apps extends Home
         }
 
         if (null === $id) {
-            redirect('error_404', 'location');
+            redirect()->to('error_404')->send();
             exit;
         }
 
@@ -693,42 +701,42 @@ class Social_apps extends Home
         $result = $this->basic->get_data('wordpress_config_self_hosted', $where, $select, [], 1);
 
         if (1 != sizeof($result)) {
-            redirect('error_404', 'location');
+            redirect()->to('error_404')->send();
             exit;
         }
 
-        if ('Member' == $this->session->userdata('user_type')) {
+        if ('Member' == session()->get('user_type')) {
             if ($result[0]['user_id'] != $this->user_id) {
-                redirect('error_404', 'location');
+                redirect()->to('error_404')->send();
                 exit;
             }
         }
 
-        $data['page_title'] = $this->lang->line('Edit Wordpress Settings (Self-Hosted)');
+        $data['page_title'] = lang('Edit Wordpress Settings (Self-Hosted)');
         $data['body'] = 'admin/social_apps/wordpress_self_hosted_settings';
         $data['wp_settings'] = isset($result[0]) ? $result[0] : [];
 
         if ($_POST) {
             // Sets validation rules
             $this->csrf_token_check();
-            $this->form_validation->set_rules('domain_name', $this->lang->line('Domain name'), 'trim|required');
-            $this->form_validation->set_rules('user_key', $this->lang->line('Consumer name'), 'trim|required');
-            $this->form_validation->set_rules('authentication_key', $this->lang->line('Client key'), 'trim|required');
+            $this->form_validation->set_rules('domain_name', lang('Domain name'), 'trim|required');
+            $this->form_validation->set_rules('user_key', lang('Consumer name'), 'trim|required');
+            $this->form_validation->set_rules('authentication_key', lang('Client key'), 'trim|required');
 
             if (false === $this->form_validation->run()) {
                 return $this->_viewcontroller($data);
             }
 
-            $domain_name = filter_var($this->input->post('domain_name',true), FILTER_SANITIZE_URL, FILTER_VALIDATE_URL);
+            $domain_name = filter_var($this->request->getPost('domain_name'), FILTER_SANITIZE_URL, FILTER_VALIDATE_URL);
             if (false == $domain_name) {
-              $message = $this->lang->line('Please provide a valid domain name.');
-              $this->session->set_userdata('edit_wssh_error', $message);
+              $message = lang('Please provide a valid domain name.');
+              session()->set('edit_wssh_error', $message);
               return $this->_viewcontroller($data); 
             }
 
-            $user_key = trim($this->input->post('user_key', true));
-            $authentication_key = trim($this->input->post('authentication_key', true));
-            $status = $this->input->post('status', true);
+            $user_key = trim($this->request->getPost('user_key'));
+            $authentication_key = trim($this->request->getPost('authentication_key'));
+            $status = $this->request->getPost('status');
             $status = empty($status) ? '0' : '1';
 
             $data = [
@@ -740,7 +748,7 @@ class Social_apps extends Home
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
 
-            if ('Admin' == $this->session->userdata['user_type']) {
+            if ('Admin' == session()->get('user_type')) {
                 $where = [
                     'id' => (int) $id,
                 ];
@@ -753,14 +761,14 @@ class Social_apps extends Home
 
             $this->basic->update_data('wordpress_config_self_hosted', $where, $data);
 
-            if ($this->db->affected_rows() > 0) {
-                $message = $this->lang->line('Your wordpress site settings have been updated successfully.');
-                $this->session->set_userdata('edit_wssh_success', $message);                
-                redirect(base_url('social_apps/wordpress_settings_self_hosted'), 'location');
+            if ($this->db->affectedRows() > 0) {
+                $message = lang('Your wordpress site settings have been updated successfully.');
+                session()->set('edit_wssh_success', $message);                
+                redirect()->to('social_apps/wordpress_settings_self_hosted')->send();
             }
 
-            $message = $this->lang->line('Something went wrong while adding your wordpress site.');
-            $this->session->set_userdata('edit_wssh_error', $message);   
+            $message = lang('Something went wrong while adding your wordpress site.');
+            session()->set('edit_wssh_error', $message);   
             return $this->_viewcontroller($data);
         }
 
@@ -769,16 +777,15 @@ class Social_apps extends Home
 
     public function delete_wordpress_self_hosted_settings()
     {
-        if (! $this->input->is_ajax_request()) {
-            $message = $this->lang->line('Bad request.');
+        if (! $this->request->isAJAX()) {
+            $message = lang('Bad request.');
             echo json_encode(['error' => $message]);
             exit;
         }
 
         $this->csrf_token_check();
 
-
-        $id = (int) $this->input->post('site_id');
+        $id = (int) $this->request->getPost('site_id');
 
         $select = [
             'id',
@@ -788,20 +795,20 @@ class Social_apps extends Home
         $result = $this->basic->get_data('wordpress_config_self_hosted', [ 'where' => ['id' => (int) $id]], $select, [], 1);
 
         if (1 != sizeof($result)) {
-            $message = $this->lang->line('Bad request.');
+            $message = lang('Bad request.');
             echo json_encode(['error' => $message]);
             exit;
         }
 
-        if ('Member' == $this->session->userdata('user_type')) {
+        if ('Member' == session()->get('user_type')) {
             if ($result[0]['user_id'] != $this->user_id) {
-                $message = $this->lang->line('Bad request.');
+                $message = lang('Bad request.');
                 echo json_encode(['error' => $message]);
                 exit;
             }
         }
 
-        if ('Admin' == $this->session->userdata('user_type')) {
+        if ('Admin' == session()->get('user_type')) {
             $where = ['id' => $id];
         } else {
             $where = ['id' => $id, 'user_id' => $this->user_id];
@@ -809,7 +816,7 @@ class Social_apps extends Home
 
         if ($this->basic->delete_data('wordpress_config_self_hosted', $where)) {
             $this->_delete_usage_log($module_id=109,$request=1);
-            $message = $this->lang->line('Your wordpress site settings have been deleted successfully.');
+            $message = lang('Your wordpress site settings have been deleted successfully.');
             echo json_encode([
                 'status' => 'ok',
                 'message' => $message,
@@ -817,7 +824,7 @@ class Social_apps extends Home
             exit;
         }      
 
-        $message = $this->lang->line('Bad request.');
+        $message = lang('Bad request.');
         echo json_encode(['error' => $message]);
         exit;        
     }
@@ -826,12 +833,12 @@ class Social_apps extends Home
     {
         $this->ajax_check();
 
-        $wp_app_id = (string) $this->input->post('wp_app_id', true);
+        $wp_app_id = (string) $this->request->getPost('wp_app_id');
 
         if (! $wp_app_id) {
             echo json_encode([
                 'status' => false,
-                'message' => $this->lang->line('Unable to update categories'),
+                'message' => lang('Unable to update categories'),
             ]);
 
             exit;
@@ -854,7 +861,7 @@ class Social_apps extends Home
         if (1 != count($result)) {
             echo json_encode([
                 'status' => false,
-                'message' => $this->lang->line('Unable to update categories'),
+                'message' => lang('Unable to update categories'),
             ]);
 
             exit;
@@ -869,7 +876,7 @@ class Social_apps extends Home
         } catch(\Exception $e) {
             echo json_encode([
                 'status' => false,
-                'message' => $this->lang->line('Unable to update categories. Please check you blog URL'),
+                'message' => lang('Unable to update categories. Please check you blog URL'),
             ]);
 
             exit;
@@ -897,10 +904,10 @@ class Social_apps extends Home
                 ['blog_category' => json_encode($response['category_list'])]
             );
 
-            if ($this->db->affected_rows() > 0) {
+            if ($this->db->affectedRows() > 0) {
                 echo json_encode([
                     'status' => true,
-                    'message' => $this->lang->line('Your blog categories have been updated successfully'),
+                    'message' => lang('Your blog categories have been updated successfully'),
                 ]);
 
                 exit;
@@ -908,14 +915,14 @@ class Social_apps extends Home
 
             echo json_encode([
                 'status' => true,
-                'message' => $this->lang->line('Your blog categories are up-to-date'),
+                'message' => lang('Your blog categories are up-to-date'),
             ]);
 
             exit;
         } else {
             echo json_encode([
                 'status' => false,
-                'message' => $this->lang->line('Failed to pull categories from your blog'),
+                'message' => lang('Failed to pull categories from your blog'),
             ]);
 
             exit;

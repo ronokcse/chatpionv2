@@ -1,0 +1,24 @@
+.white{color:#fff !important;}
+
+.list-group-features
+{
+	display: table;
+	width: 100%;
+}
+
+.list-group-features .list-group-item
+{
+	display: table-cell;
+	width: 50% !important;
+	min-height: 80px;
+	vertical-align: middle;
+	border-radius: 0 !important;
+	border-bottom: none;
+	word-break: all;
+}
+
+.doc-body p{text-align: justify !important;}
+.doc-body img{border: 1px solid #eee; border-radius: 3px;-moz-border-radius: 3px;-webkit-border-radius: 3px;}
+.section-block{margin-top:30px;}
+.doc-section{padding-top:0 !important;}
+th,td{vertical-align: middle !important;}
