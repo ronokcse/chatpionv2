@@ -12,9 +12,9 @@ use Psr\Log\LoggerInterface;
 */
 class Social_apps extends Home
 {
-    protected $form_validation;
-    protected $fb_rx_login;
-    protected $wordpress_self_hosted;
+    public $form_validation;
+    public $fb_rx_login;
+    public $wordpress_self_hosted;
     
     /**
      * Initialize controller
@@ -30,12 +30,14 @@ class Social_apps extends Home
 
         $function_name = $this->uri->segment(2);
         $pinterest_action_array = array('pinterest_settings', 'pinterest_settings_data', 'add_pinterest_settings','edit_pinterest_settings', 'pinterest_settings_update_action', 'delete_app_pinterest', 'change_app_status_pinterest','pinterest_intermediate_account_import_page','wordpress_settings_self_hosted','add_wordpress_self_hosted_settings','edit_wordpress_self_hosted_settings','wordpress_self_hosted_settings_data','delete_wordpress_self_hosted_settings','wordpress_self_hosted_settings_load_categories');
-
         if(!in_array($function_name, $pinterest_action_array)) 
         {
-            if (session()->get('user_type') == "Member" && ($this->config->backup_mode ?? 0) == 0)
-            redirect()->to('home/login_page')->send();
-            exit();
+            if (session()->get('user_type') == "Member" && ($this->config->backup_mode ?? 0) == 0){
+                redirect()->to('home/login_page')->send();
+                exit();
+            }
+          
+          
         }        
         
         helper('form');
@@ -46,6 +48,7 @@ class Social_apps extends Home
 
         $this->important_feature();
         $this->periodic_check();
+        
     }
 
 
@@ -180,7 +183,7 @@ class Social_apps extends Home
         $data['title'] = lang('Facebook App Settings');
         $data['body'] = 'admin/social_apps/facebook_app_settings';
 
-        $this->_viewcontroller($data);
+         $this->_viewcontroller($data);
     }
 
 
@@ -199,23 +202,25 @@ class Social_apps extends Home
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'desc';
         $order_by=$sort." ".$order;
 
-        $where_custom = '';
-        $where_custom="user_id = ".$this->user_id;
+        // Build where clause for CI4
+        $where = array();
+        $where['where'] = array('user_id' => $this->user_id);
 
         if ($search_value != '') 
         {
+            $search_conditions = array();
             foreach ($search_columns as $key => $value) 
-            $temp[] = $value." LIKE "."'%$search_value%'";
-            $imp = implode(" OR ", $temp);
-            $where_custom .=" AND (".$imp.") ";
+            {
+                $search_conditions[] = $value." LIKE "."'%$search_value%'";
+            }
+            // For raw SQL conditions, we need to pass them as a string in the where clause
+            // Since Basic model supports raw SQL strings in where['where'], we'll combine them
+            $where['where'] = "user_id = ".$this->user_id." AND (".implode(" OR ", $search_conditions).")";
         }
 
-
         $table="facebook_rx_config";
-        $this->db->where($where_custom);
-        $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-        $this->db->where($where_custom);
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join='',$group_by='');
+        $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join='',$group_by='');
         $total_result=$total_rows_array[0]['total_rows'];
 
         $i=0;
@@ -529,7 +534,7 @@ class Social_apps extends Home
         $data['body'] = 'admin/social_apps/wordpress_self_hosted_app_settings';
 
         $this->_viewcontroller($data);
-    }
+    } 
 
     public function wordpress_self_hosted_settings_data()
     {
@@ -547,18 +552,18 @@ class Social_apps extends Home
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'desc';
         $order_by = $sort . " " . $order;
 
-        $where_custom = '';
-        $where_custom="user_id = " . $this->user_id;
+        // Build where clause for CI4
+        $where = array();
+        $where['where'] = array('user_id' => $this->user_id);
 
         if ($search_value != '') {
+            $search_conditions = array();
             foreach ($search_columns as $key => $value) {
-                $temp[] = $value." LIKE "."'%$search_value%'";
+                $search_conditions[] = $value." LIKE "."'%$search_value%'";
             }
-
-            $imp = implode(" OR ", $temp);
-            $where_custom .= " AND (" . $imp . ") ";
+            // For raw SQL conditions, we need to pass them as a string in the where clause
+            $where['where'] = "user_id = " . $this->user_id . " AND (" . implode(" OR ", $search_conditions) . ")";
         }
-
 
         $table="wordpress_config_self_hosted";
         $select = [
@@ -568,11 +573,9 @@ class Social_apps extends Home
             'authentication_key',
             'status',
         ];
-        $this->db->where($where_custom);
-        $info=$this->basic->get_data($table, $where='', $select, $join='', $limit, $start, $order_by, $group_by='');
+        $info=$this->basic->get_data($table, $where, $select, $join='', $limit, $start, $order_by, $group_by='');
 
-        $this->db->where($where_custom);
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join='',$group_by='');
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join='',$group_by='');
         $total_result=$total_rows_array[0]['total_rows'];
 
         $length = count($info);
@@ -648,7 +651,7 @@ class Social_apps extends Home
             $status = $this->request->getPost('status');
             $status = empty($status) ? '0' : '1';
 
-            $data = [
+            $insert_data = [
                 'domain_name' => $domain_name,
                 'user_key' => $user_key,
                 'authentication_key' => $authentication_key,
@@ -657,7 +660,7 @@ class Social_apps extends Home
                 'created_at' => date('Y-m-d H:i:s'),
             ];
 
-            $this->basic->insert_data('wordpress_config_self_hosted', $data);
+            $this->basic->insert_data('wordpress_config_self_hosted', $insert_data);
 
             if ($this->db->affectedRows() > 0) {
                 $this->_insert_usage_log($module_id=109, $request=1);
@@ -739,7 +742,7 @@ class Social_apps extends Home
             $status = $this->request->getPost('status');
             $status = empty($status) ? '0' : '1';
 
-            $data = [
+            $update_data = [
                 'domain_name' => $domain_name,
                 'user_key' => $user_key,
                 'authentication_key' => $authentication_key, 
@@ -759,7 +762,7 @@ class Social_apps extends Home
                 ];
             }
 
-            $this->basic->update_data('wordpress_config_self_hosted', $where, $data);
+            $this->basic->update_data('wordpress_config_self_hosted', $where, $update_data);
 
             if ($this->db->affectedRows() > 0) {
                 $message = lang('Your wordpress site settings have been updated successfully.');

@@ -163,7 +163,7 @@
 			    {data: 'actions'}
 			],
 			language: {
-        		url: "<?= base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+        		url: "<?= base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
   			},
       		columnDefs: [
 				{ "sortable": false, "targets": [0,1,2,3,4,6] },

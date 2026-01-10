@@ -1,5 +1,10 @@
 <?php
-require_once('application/controllers/Home.php');
+
+namespace App\Controllers;
+
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Email_auto_responder_integration extends Home
 {
@@ -7,18 +12,28 @@ class Email_auto_responder_integration extends Home
 	 * Holds mailchimp list IDs
 	 */
 	protected $list_ids = [];
+	
+	/**
+	 * Form validation library (loaded via BaseController compatibility layer)
+	 */
+	public $form_validation;
+	
+	/**
+	 * Mailchimp API library (loaded via BaseController compatibility layer)
+	 */
+	public $mailchimp_api;
 
 	/**
-	 * Constructor
+	 * Initialize controller
 	 */
-	public function __construct() 
+	public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
 	{
-		parent::__construct();
+		parent::initController($request, $response, $logger);
 
-		if ($this->session->userdata('logged_in') != 1)
-        redirect('home/login_page', 'location');
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(265,$this->module_access))
-        redirect('home/login_page', 'location');
+		if (session()->get('logged_in') != 1)
+			redirect()->to('home/login_page')->send();
+		if (session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(265, $this->module_access)))
+			redirect()->to('home/login_page')->send();
 
 		$list_ids = $this->get_mailchimp_list_ids($this->user_id);
 		$this->list_ids = $list_ids;
@@ -30,7 +45,7 @@ class Email_auto_responder_integration extends Home
 	public function mailchimp_list() 
 	{
         $data['body'] = "mail_services/mailchimp/mailchimp";
-        $data['page_title'] = $this->lang->line("Mailchimp");
+        $data['page_title'] = lang("Mailchimp");
         $this->_viewcontroller($data);   
 	}
 
@@ -39,8 +54,8 @@ class Email_auto_responder_integration extends Home
 	 */
     public function mailchimp_grid_data()
     {
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -113,9 +128,9 @@ class Email_auto_responder_integration extends Home
             if (!isset($info[$i]['actions'])) {
                 $actions = '';
                 $actions .= '<div class="webview-builder-action-buttons">';
-                $actions .= '<a data-toggle="tooltip" title="' . $this->lang->line('List') . '" href="#" class="btn btn-circle btn-outline-info" id="mailchimp-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="mailchimp-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="mailchimp-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
+                $actions .= '<a data-toggle="tooltip" title="' . lang('List') . '" href="#" class="btn btn-circle btn-outline-info" id="mailchimp-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="mailchimp-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="mailchimp-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
                 $actions .= '</div><script>$(\'[data-toggle="tooltip"]\').tooltip();</script>';
 
                 $info[$i]['actions'] = $actions;
@@ -140,13 +155,13 @@ class Email_auto_responder_integration extends Home
      */
 	public function mailchimp_add() 
 	{	
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
-		$this->form_validation->set_rules('tracking_name', $this->lang->line('Tracking name'), 'trim|required|min_length[3]|max_length[200]');
-		$this->form_validation->set_rules('api_key', $this->lang->line('API Key'), 'trim|required');
+		$this->form_validation->set_rules('tracking_name', lang('Tracking name'), 'trim|required|min_length[3]|max_length[200]');
+		$this->form_validation->set_rules('api_key', lang('API Key'), 'trim|required');
 
 		if (false === $this->form_validation->run()) {
 			$message = '';
@@ -160,8 +175,8 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$api_key = strip_tags($this->input->post('api_key'));
-		$tracking_name = strip_tags($this->input->post('tracking_name'));
+		$api_key = strip_tags($this->request->getPost('api_key'));
+		$tracking_name = strip_tags($this->request->getPost('tracking_name'));
 
 		$this->load->library('mailchimp_api');
 		$mailchimp = $this->mailchimp_api;
@@ -172,7 +187,7 @@ class Email_auto_responder_integration extends Home
 		$lists = json_decode($lists, true);
 
 		if (isset($lists['error']) && true === $lists['error']) {
-			$message = isset($lists['error_message'])? $lists['error_message']: $this->lang->line('The API key provided is invalid.');
+			$message = isset($lists['error_message'])? $lists['error_message']: lang('The API key provided is invalid.');
 			return $this->customJsonResponse($message);
 		}
 
@@ -181,20 +196,20 @@ class Email_auto_responder_integration extends Home
 			|| ! array_key_exists('lists', $lists)
 			|| empty($lists)
 		) {
-			$message = $this->lang->line('Unable to pull in data from your mailchimp account.');
+			$message = lang('Unable to pull in data from your mailchimp account.');
 			return $this->customJsonResponse($message);
 		}
 
 		$first_list_id = isset($lists['lists'][0]['id']) ? $lists['lists'][0]['id'] : null;
 		if (in_array($first_list_id, $this->list_ids)) {
-			$message = $this->lang->line('You have already imported this account.');
+			$message = lang('You have already imported this account.');
 			return $this->customJsonResponse($message);
 		}
 
 		// Tries to save mailchimp data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			$mailchimp_config = $this->basic->insert_data('mailchimp_config', [
 				'user_id' => $this->user_id,
@@ -204,7 +219,7 @@ class Email_auto_responder_integration extends Home
 			]);
 
 			// Gets last insert ID
-			$mailchimp_config_id = $this->db->insert_id(); 
+			$mailchimp_config_id = $this->db->insertID(); 
 
 			// Inserts data into database
 			$now = date("Y-m-d H:i:s");
@@ -220,10 +235,10 @@ class Email_auto_responder_integration extends Home
 			}
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate mailchimp data.');
@@ -231,7 +246,7 @@ class Email_auto_responder_integration extends Home
 		}
 
 		$this->_insert_usage_log(265,1);
-		$message = $this->lang->line('You mailchimp account has been added successfully.');
+		$message = lang('You mailchimp account has been added successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 
@@ -242,8 +257,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function mailchimp_details() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -256,7 +271,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'mailchimp_list.list_name',
@@ -289,8 +304,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function mailchimp_refresh() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -309,11 +324,11 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$user_id = (string) $this->input->post('user_id');
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$user_id = (string) $this->request->getPost('user_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		if ($user_id != md5($this->user_id)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -331,7 +346,7 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (1 != count($results)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -351,19 +366,19 @@ class Email_auto_responder_integration extends Home
 			|| ! array_key_exists('lists', $lists)
 			|| empty($lists)
 		) {
-			$message = $this->lang->line('Unable to pull in data from your mailchimp account.');
+			$message = lang('Unable to pull in data from your mailchimp account.');
 			return $this->customJsonResponse($message);
 		}
 
 		// Tries to save mailchimp data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			// Prepare values columns
 			$now = date("Y-m-d H:i:s");
 			foreach ($lists['lists'] as $key => $list) {
-				$list_name= $this->db->escape($list['name']) ; 
+				$list_name= $this->db->escapeString($list['name']) ; 
 				$value = "('{$tracking_id}', $list_name, '{$list['id']}', '{$now}')";
 
 				array_push($values, $value);
@@ -375,17 +390,17 @@ class Email_auto_responder_integration extends Home
 			$this->db->query($sql);
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate mailchimp data.');
 			return $this->customJsonResponse($e->getMessage());
 		}
 
-		$message = $this->lang->line('Your mailchimp account has been refreshed successfully.');
+		$message = lang('Your mailchimp account has been refreshed successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 
@@ -396,8 +411,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function mailchimp_delete() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -410,7 +425,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'user_id',
@@ -426,17 +441,17 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (count($results) != 1) {
-			$message = $this->lang->line('You do not have permission to delete this account.');
+			$message = lang('You do not have permission to delete this account.');
 			return $this->customJsonResponse($message);
 		}
 
 		if ($this->basic->delete_data('mailchimp_config', ['id' => $tracking_id,'user_id'=>$this->user_id])) {
 			$this->_delete_usage_log(265,1);
-			$message = $this->lang->line('Your mailchimp account has been deleted successfully.');
+			$message = lang('Your mailchimp account has been deleted successfully.');
 			return $this->customJsonResponse($message, true);
 		}
 
-		$message = $this->lang->line('Something went wrong! Please try again.');
+		$message = lang('Something went wrong! Please try again.');
 		return $this->customJsonResponse($message);
 	}
 
@@ -447,7 +462,7 @@ class Email_auto_responder_integration extends Home
 	public function sendinblue_list()
 	{
 		$data['body'] = "mail_services/sendinblue/sendinblue";
-		$data['page_title'] = $this->lang->line("Sendinblue");
+		$data['page_title'] = lang("Sendinblue");
 		$this->_viewcontroller($data);   
 	}
 
@@ -457,8 +472,8 @@ class Email_auto_responder_integration extends Home
 	 */
     public function sendinblue_grid_data()
     {
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -509,9 +524,9 @@ class Email_auto_responder_integration extends Home
             if (!isset($info[$i]['actions'])) {
                 $actions = '';
                 $actions .= '<div class="webview-builder-action-buttons">';
-                $actions .= '<a data-toggle="tooltip" title="' . $this->lang->line('List') . '" href="#" class="btn btn-circle btn-outline-info" id="sendinblue-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="sendinblue-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="sendinblue-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
+                $actions .= '<a data-toggle="tooltip" title="' . lang('List') . '" href="#" class="btn btn-circle btn-outline-info" id="sendinblue-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="sendinblue-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="sendinblue-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
                 $actions .= '</div><script>$(\'[data-toggle="tooltip"]\').tooltip();</script>';
 
                 $info[$i]['actions'] = $actions;
@@ -537,13 +552,13 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function sendinblue_add()
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
-		$this->form_validation->set_rules('tracking_name', $this->lang->line('Tracking name'), 'trim|required');
-		$this->form_validation->set_rules('api_key', $this->lang->line('API Key'), 'trim|required');
+		$this->form_validation->set_rules('tracking_name', lang('Tracking name'), 'trim|required');
+		$this->form_validation->set_rules('api_key', lang('API Key'), 'trim|required');
 
 		if (false === $this->form_validation->run()) {
 			$message = '';
@@ -557,8 +572,8 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$api_key = strip_tags($this->input->post('api_key'));
-		$tracking_name = strip_tags($this->input->post('tracking_name'));
+		$api_key = strip_tags($this->request->getPost('api_key'));
+		$tracking_name = strip_tags($this->request->getPost('tracking_name'));
 
 		$this->load->library('mailchimp_api');
 		$sendinblue = $this->mailchimp_api;
@@ -578,7 +593,7 @@ class Email_auto_responder_integration extends Home
 			|| ! array_key_exists('lists', $lists)
 			|| empty($lists)
 		) {
-			$message = $this->lang->line('Unable to pull in data from your mailchimp account.');
+			$message = lang('Unable to pull in data from your mailchimp account.');
 			return $this->customJsonResponse($message);
 		}
 
@@ -586,7 +601,7 @@ class Email_auto_responder_integration extends Home
 		// Tries to save sendinblue data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			$sendinblue_config = $this->basic->insert_data('mailchimp_config', [
 				'user_id' => $this->user_id,
@@ -597,7 +612,7 @@ class Email_auto_responder_integration extends Home
 			]);
 
 			// Gets last insert ID
-			$sendinblue_config_id = $this->db->insert_id(); 
+			$sendinblue_config_id = $this->db->insertID(); 
 
 			// Inserts data into database
 			$now = date("Y-m-d H:i:s");
@@ -616,10 +631,10 @@ class Email_auto_responder_integration extends Home
 			}
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate sendinblue data.');
@@ -627,7 +642,7 @@ class Email_auto_responder_integration extends Home
 		}
 
 		$this->_insert_usage_log(265,1);
-		$message = $this->lang->line('You sendinblue account has been added successfully.');
+		$message = lang('You sendinblue account has been added successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 
@@ -639,8 +654,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function sendinblue_details() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -653,7 +668,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'mailchimp_list.list_name',
@@ -691,8 +706,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function sendinblue_refresh()
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -711,11 +726,11 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$user_id = (string) $this->input->post('user_id');
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$user_id = (string) $this->request->getPost('user_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		if ($user_id != md5($this->user_id)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -734,7 +749,7 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (1 != count($results)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -752,7 +767,7 @@ class Email_auto_responder_integration extends Home
 			|| ! array_key_exists('lists', $lists)
 			|| empty($lists)
 		) {
-			$message = $this->lang->line('Unable to pull in data from your sendinblue account.');
+			$message = lang('Unable to pull in data from your sendinblue account.');
 			return $this->customJsonResponse($message);
 		}
 
@@ -765,12 +780,12 @@ class Email_auto_responder_integration extends Home
 		// Tries to save sendinblue data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			// Prepare values columns
 			$now = date("Y-m-d H:i:s");
 			foreach ($lists['lists'] as $key => $list) {
-				$list_name= $this->db->escape($list['name']) ; 
+				$list_name= $this->db->escapeString($list['name']) ; 
 				$value = "('{$tracking_id}', $list_name, '{$list['id']}', '{$list['folderId']}', '{$list['totalSubscribers']}', '{$list['totalBlacklisted']}', '{$now}')";
 
 				array_push($values, $value);
@@ -782,17 +797,17 @@ class Email_auto_responder_integration extends Home
 			$this->db->query($sql);
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate sendinblue data.');
 			return $this->customJsonResponse($e->getMessage());
 		}
 
-		$message = $this->lang->line('Your sendinblue account has been refreshed successfully.');
+		$message = lang('Your sendinblue account has been refreshed successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 
@@ -804,8 +819,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function sendinblue_delete()
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -818,7 +833,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'user_id',
@@ -835,7 +850,7 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (count($results) != 1) {
-			$message = $this->lang->line('You do not have permission to delete this account.');
+			$message = lang('You do not have permission to delete this account.');
 			return $this->customJsonResponse($message);
 		}
 
@@ -844,11 +859,11 @@ class Email_auto_responder_integration extends Home
 			
 			$this->basic->delete_data('mailchimp_list', ['mailchimp_config_id' => $tracking_id]);
 
-			$message = $this->lang->line('Your sendinblue account has been deleted successfully.');
+			$message = lang('Your sendinblue account has been deleted successfully.');
 			return $this->customJsonResponse($message, true);
 		}
 
-		$message = $this->lang->line('Something went wrong! Please try again.');
+		$message = lang('Something went wrong! Please try again.');
 		return $this->customJsonResponse($message);
 	}
 
@@ -929,7 +944,7 @@ class Email_auto_responder_integration extends Home
 	public function activecampaign_list()
 	{
 		$data['body'] = "mail_services/activecampaign/activecampaign_list";
-		$data['page_title'] = $this->lang->line("Activecampaign");
+		$data['page_title'] = lang("Activecampaign");
 		$this->_viewcontroller($data);   
 	}
 
@@ -939,8 +954,8 @@ class Email_auto_responder_integration extends Home
 	 */
     public function activecampaign_grid_data()
     {
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -989,9 +1004,9 @@ class Email_auto_responder_integration extends Home
             if (!isset($info[$i]['actions'])) {
                 $actions = '';
                 $actions .= '<div style="min-width:140px;">';
-                $actions .= '<a data-toggle="tooltip" title="' . $this->lang->line('Lists') . '" href="#" class="btn btn-circle btn-outline-info" id="activecampaign-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="activecampaign-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="activecampaign-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
+                $actions .= '<a data-toggle="tooltip" title="' . lang('Lists') . '" href="#" class="btn btn-circle btn-outline-info" id="activecampaign-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="activecampaign-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="activecampaign-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
                 $actions .= '</div><script>$(\'[data-toggle="tooltip"]\').tooltip();</script>';
 
                 $info[$i]['actions'] = $actions;
@@ -1017,14 +1032,14 @@ class Email_auto_responder_integration extends Home
      */
 	public function activecampaign_add() 
 	{	
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
-		$this->form_validation->set_rules('tracking_name', $this->lang->line('Tracking name'), 'trim|required|min_length[3]|max_length[200]');
-		$this->form_validation->set_rules('api_url', $this->lang->line('API URL'), 'trim|required');
-		$this->form_validation->set_rules('api_key', $this->lang->line('API Key'), 'trim|required');
+		$this->form_validation->set_rules('tracking_name', lang('Tracking name'), 'trim|required|min_length[3]|max_length[200]');
+		$this->form_validation->set_rules('api_url', lang('API URL'), 'trim|required');
+		$this->form_validation->set_rules('api_key', lang('API Key'), 'trim|required');
 
 		if (false === $this->form_validation->run()) {
 			$message = '';
@@ -1040,9 +1055,9 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$api_url = strip_tags($this->input->post('api_url'));
-		$api_key = strip_tags($this->input->post('api_key'));
-		$tracking_name = strip_tags($this->input->post('tracking_name'));
+		$api_url = strip_tags($this->request->getPost('api_url'));
+		$api_key = strip_tags($this->request->getPost('api_key'));
+		$tracking_name = strip_tags($this->request->getPost('tracking_name'));
 
 		$this->load->library('mailchimp_api');
 		$activecampaign = $this->mailchimp_api;
@@ -1052,7 +1067,7 @@ class Email_auto_responder_integration extends Home
 		$lists = $activecampaign->activecampaign_contact_list($api_key,$api_url);
 
 		if (isset($lists['error']) && true === $lists['error']) {
-			$message = $this->lang->line('The API key provided is invalid.');
+			$message = lang('The API key provided is invalid.');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1061,14 +1076,14 @@ class Email_auto_responder_integration extends Home
 			|| ! array_key_exists('lists', $lists)
 			|| empty($lists)
 		) {
-			$message = $this->lang->line('Unable to pull in data from your activecampaign account.');
+			$message = lang('Unable to pull in data from your activecampaign account.');
 			return $this->customJsonResponse($message);
 		}
 
 		// Tries to save activecampaign data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			$activecampaign_config = $this->basic->insert_data('mailchimp_config', [
 				'user_id' => $this->user_id,
@@ -1080,7 +1095,7 @@ class Email_auto_responder_integration extends Home
 			]);
 
 			// Gets last insert ID
-			$activecampaign_config_id = $this->db->insert_id(); 
+			$activecampaign_config_id = $this->db->insertID(); 
 
 			// Inserts data into database
 			$now = date("Y-m-d H:i:s");
@@ -1097,10 +1112,10 @@ class Email_auto_responder_integration extends Home
 			}
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate activecampaign data.');
@@ -1108,7 +1123,7 @@ class Email_auto_responder_integration extends Home
 		}
 
 		$this->_insert_usage_log(265,1);
-		$message = $this->lang->line('You activecampaign account has been added successfully.');
+		$message = lang('You activecampaign account has been added successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 
@@ -1120,8 +1135,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function activecampaign_details() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1134,7 +1149,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'mailchimp_list.string_id',
@@ -1169,8 +1184,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function activecampaign_delete()
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1183,7 +1198,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'user_id',
@@ -1200,7 +1215,7 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (count($results) != 1) {
-			$message = $this->lang->line('You do not have permission to delete this account.');
+			$message = lang('You do not have permission to delete this account.');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1209,11 +1224,11 @@ class Email_auto_responder_integration extends Home
 			
 			$this->basic->delete_data('mailchimp_list', ['mailchimp_config_id' => $tracking_id]);
 
-			$message = $this->lang->line('Your activecampaign account has been deleted successfully.');
+			$message = lang('Your activecampaign account has been deleted successfully.');
 			return $this->customJsonResponse($message, true);
 		}
 
-		$message = $this->lang->line('Something went wrong! Please try again.');
+		$message = lang('Something went wrong! Please try again.');
 		return $this->customJsonResponse($message);
 	}
 
@@ -1225,8 +1240,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function activecampaign_refresh() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1245,11 +1260,11 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$user_id = (string) $this->input->post('user_id');
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$user_id = (string) $this->request->getPost('user_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		if ($user_id != md5($this->user_id)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1269,7 +1284,7 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (1 != count($results)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1288,19 +1303,19 @@ class Email_auto_responder_integration extends Home
 			|| ! array_key_exists('lists', $lists)
 			|| empty($lists)
 		) {
-			$message = $this->lang->line('Unable to pull in data from your activecampaign account.');
+			$message = lang('Unable to pull in data from your activecampaign account.');
 			return $this->customJsonResponse($message);
 		}
 
 		// Tries to save activecampaign data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			// Prepare values columns
 			$now = date("Y-m-d H:i:s");
 			foreach ($lists['lists'] as $key => $list) {
-				$list_name= $this->db->escape($list['name']) ; 
+				$list_name= $this->db->escapeString($list['name']) ; 
 				$value = "('{$tracking_id}', '{$list['stringid']}', $list_name, '{$list['id']}', '{$now}')";
 
 				array_push($values, $value);
@@ -1312,17 +1327,17 @@ class Email_auto_responder_integration extends Home
 			$this->db->query($sql);
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate activecampaign data.');
 			return $this->customJsonResponse($e->getMessage());
 		}
 
-		$message = $this->lang->line('Your activecampaign account has been refreshed successfully.');
+		$message = lang('Your activecampaign account has been refreshed successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 
@@ -1334,7 +1349,7 @@ class Email_auto_responder_integration extends Home
 	public function mautic_list()
 	{
 		$data['body'] = "mail_services/mautic/mautic_list";
-		$data['page_title'] = $this->lang->line("Mautic");
+		$data['page_title'] = lang("Mautic");
 		$this->_viewcontroller($data);   
 	}
 
@@ -1344,8 +1359,8 @@ class Email_auto_responder_integration extends Home
 	 */
     public function mautic_grid_data()
     {
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1399,9 +1414,9 @@ class Email_auto_responder_integration extends Home
             if (!isset($info[$i]['actions'])) {
                 $actions = '';
                 $actions .= '<div style="min-width:140px;">';
-                $actions .= '<a data-toggle="tooltip" title="' . $this->lang->line('Lists') . '" href="#" class="btn btn-circle btn-outline-info" id="mautic-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="mautic-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="mautic-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
+                $actions .= '<a data-toggle="tooltip" title="' . lang('Lists') . '" href="#" class="btn btn-circle btn-outline-info" id="mautic-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="mautic-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="mautic-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
                 $actions .= '</div><script>$(\'[data-toggle="tooltip"]\').tooltip();</script>';
 
                 $info[$i]['actions'] = $actions;
@@ -1427,15 +1442,15 @@ class Email_auto_responder_integration extends Home
      */
 	public function mautic_add() 
 	{	
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
-		$this->form_validation->set_rules('tracking_name', $this->lang->line('Tracking name'), 'trim|required|min_length[3]|max_length[200]');
-		$this->form_validation->set_rules('api_url', $this->lang->line('API URL'), 'trim|required');
-		$this->form_validation->set_rules('mautic_username', $this->lang->line('API Key'), 'trim|required');
-		$this->form_validation->set_rules('mautic_password', $this->lang->line('API Key'), 'trim|required');
+		$this->form_validation->set_rules('tracking_name', lang('Tracking name'), 'trim|required|min_length[3]|max_length[200]');
+		$this->form_validation->set_rules('api_url', lang('API URL'), 'trim|required');
+		$this->form_validation->set_rules('mautic_username', lang('API Key'), 'trim|required');
+		$this->form_validation->set_rules('mautic_password', lang('API Key'), 'trim|required');
 
 
 		if (false === $this->form_validation->run()) {
@@ -1454,10 +1469,10 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_name = strip_tags($this->input->post('tracking_name'));
-		$api_url = strip_tags($this->input->post('api_url'));
-		$mautic_username = strip_tags($this->input->post('mautic_username'));
-		$mautic_password = $this->input->post('mautic_password');
+		$tracking_name = strip_tags($this->request->getPost('tracking_name'));
+		$api_url = strip_tags($this->request->getPost('api_url'));
+		$mautic_username = strip_tags($this->request->getPost('mautic_username'));
+		$mautic_password = $this->request->getPost('mautic_password');
 		$user_password = $mautic_username.":".$mautic_password;
 		$api_key = base64_encode($user_password);
 
@@ -1474,7 +1489,7 @@ class Email_auto_responder_integration extends Home
 		}
 
 		if (isset($lists['error']) && true === $lists['error']) {
-			$message = $this->lang->line('The API key provided is invalid.');
+			$message = lang('The API key provided is invalid.');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1483,14 +1498,14 @@ class Email_auto_responder_integration extends Home
 			|| ! array_key_exists('lists', $lists)
 			|| empty($lists)
 		) {
-			$message = $this->lang->line('Unable to pull in data from your mautic account.');
+			$message = lang('Unable to pull in data from your mautic account.');
 			return $this->customJsonResponse($message);
 		}
 
 		// Tries to save mautic data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			$mautic_config = $this->basic->insert_data('mailchimp_config', [
 				'user_id' => $this->user_id,
@@ -1502,7 +1517,7 @@ class Email_auto_responder_integration extends Home
 			]);
 
 			// Gets last insert ID
-			$mautic_config_id = $this->db->insert_id(); 
+			$mautic_config_id = $this->db->insertID(); 
 
 			// Inserts data into database
 			$now = date("Y-m-d H:i:s");
@@ -1518,10 +1533,10 @@ class Email_auto_responder_integration extends Home
 			}
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate mautic data.');
@@ -1529,7 +1544,7 @@ class Email_auto_responder_integration extends Home
 		}
 
 		$this->_insert_usage_log(265,1);
-		$message = $this->lang->line('You mautic account has been added successfully.');
+		$message = lang('You mautic account has been added successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 
@@ -1541,8 +1556,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function mautic_details() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1555,7 +1570,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'mailchimp_list.list_name',
@@ -1589,8 +1604,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function mautic_delete()
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1603,7 +1618,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'user_id',
@@ -1620,7 +1635,7 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (count($results) != 1) {
-			$message = $this->lang->line('You do not have permission to delete this account.');
+			$message = lang('You do not have permission to delete this account.');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1629,11 +1644,11 @@ class Email_auto_responder_integration extends Home
 			
 			$this->basic->delete_data('mailchimp_list', ['mailchimp_config_id' => $tracking_id]);
 
-			$message = $this->lang->line('Your mautic account has been deleted successfully.');
+			$message = lang('Your mautic account has been deleted successfully.');
 			return $this->customJsonResponse($message, true);
 		}
 
-		$message = $this->lang->line('Something went wrong! Please try again.');
+		$message = lang('Something went wrong! Please try again.');
 		return $this->customJsonResponse($message);
 	}
 
@@ -1645,8 +1660,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function mautic_refresh() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1665,11 +1680,11 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$user_id = (string) $this->input->post('user_id');
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$user_id = (string) $this->request->getPost('user_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		if ($user_id != md5($this->user_id)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1689,7 +1704,7 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (1 != count($results)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1709,19 +1724,19 @@ class Email_auto_responder_integration extends Home
 		}
 
 		if (null === $lists || ! is_array($lists) || ! array_key_exists('lists', $lists) || empty($lists) ) {
-			$message = $this->lang->line('Unable to pull in data from your mautic account.');
+			$message = lang('Unable to pull in data from your mautic account.');
 			return $this->customJsonResponse($message);
 		}
 
 		// Tries to save mautic data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			// Prepare values columns
 			$now = date("Y-m-d H:i:s");
 			foreach ($lists['lists'] as $key => $list) {
-				$list_name= $this->db->escape($list['name']) ; 
+				$list_name= $this->db->escapeString($list['name']) ; 
 				$value = "('{$tracking_id}', $list_name, '{$list['id']}', '{$now}')";
 
 				array_push($values, $value);
@@ -1733,17 +1748,17 @@ class Email_auto_responder_integration extends Home
 			$this->db->query($sql);
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate mautic data.');
 			return $this->customJsonResponse($e->getMessage());
 		}
 
-		$message = $this->lang->line('Your mautic account has been refreshed successfully.');
+		$message = lang('Your mautic account has been refreshed successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 
@@ -1756,7 +1771,7 @@ class Email_auto_responder_integration extends Home
 	public function acelle_list()
 	{
 		$data['body'] = "mail_services/acelle/acelle_list";
-		$data['page_title'] = $this->lang->line("Acelle");
+		$data['page_title'] = lang("Acelle");
 		$this->_viewcontroller($data);   
 	}
 
@@ -1766,8 +1781,8 @@ class Email_auto_responder_integration extends Home
 	 */
     public function acelle_grid_data()
     {
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1816,9 +1831,9 @@ class Email_auto_responder_integration extends Home
             if (!isset($info[$i]['actions'])) {
                 $actions = '';
                 $actions .= '<div style="min-width:140px;">';
-                $actions .= '<a data-toggle="tooltip" title="' . $this->lang->line('Lists') . '" href="#" class="btn btn-circle btn-outline-info" id="acelle-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="acelle-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
-                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . $this->lang->line('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="acelle-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
+                $actions .= '<a data-toggle="tooltip" title="' . lang('Lists') . '" href="#" class="btn btn-circle btn-outline-info" id="acelle-details-button" data-tracking-id="' . $info[$i]['id'] . '" target="_blank"><i class="fab fa-wpforms"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Refresh') . '" href="#" class="btn btn-circle btn-outline-primary" id="acelle-refresh-button" data-tracking-id="' . $info[$i]['id'] . '" data-user-id="' . md5($this->user_id) .'"><i class="fas fa-sync"></i></a>';
+                $actions .= '&nbsp;&nbsp;<a data-toggle="tooltip" title="' . lang('Delete') . '" href="" class="btn btn-circle btn-outline-danger" id="acelle-delete-button" data-tracking-id="'. $info[$i]['id'] . '"><i class="fas fa-trash-alt"></i></a>';
                 $actions .= '</div><script>$(\'[data-toggle="tooltip"]\').tooltip();</script>';
 
                 $info[$i]['actions'] = $actions;
@@ -1844,14 +1859,14 @@ class Email_auto_responder_integration extends Home
      */
 	public function acelle_add() 
 	{	
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
-		$this->form_validation->set_rules('tracking_name', $this->lang->line('Tracking name'), 'trim|required|min_length[3]|max_length[200]');
-		$this->form_validation->set_rules('api_url', $this->lang->line('API URL'), 'trim|required');
-		$this->form_validation->set_rules('api_key', $this->lang->line('API Key'), 'trim|required');
+		$this->form_validation->set_rules('tracking_name', lang('Tracking name'), 'trim|required|min_length[3]|max_length[200]');
+		$this->form_validation->set_rules('api_url', lang('API URL'), 'trim|required');
+		$this->form_validation->set_rules('api_key', lang('API Key'), 'trim|required');
 
 		if (false === $this->form_validation->run()) {
 			$message = '';
@@ -1867,9 +1882,9 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$api_url = strip_tags($this->input->post('api_url'));
-		$api_key = strip_tags($this->input->post('api_key'));
-		$tracking_name = strip_tags($this->input->post('tracking_name'));
+		$api_url = strip_tags($this->request->getPost('api_url'));
+		$api_key = strip_tags($this->request->getPost('api_key'));
+		$tracking_name = strip_tags($this->request->getPost('tracking_name'));
 
 		$this->load->library('mailchimp_api');
 		$acelle = $this->mailchimp_api;
@@ -1887,14 +1902,14 @@ class Email_auto_responder_integration extends Home
 			|| ! is_array($lists)
 			|| empty($lists)
 		) {
-			$message = $this->lang->line('Unable to pull in data from your acelle account.');
+			$message = lang('Unable to pull in data from your acelle account.');
 			return $this->customJsonResponse($message);
 		}
 
 		// Tries to save acelle data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			$acelle_config = $this->basic->insert_data('mailchimp_config', [
 				'user_id' => $this->user_id,
@@ -1906,7 +1921,7 @@ class Email_auto_responder_integration extends Home
 			]);
 
 			// Gets last insert ID
-			$acelle_config_id = $this->db->insert_id(); 
+			$acelle_config_id = $this->db->insertID(); 
 
 			// Inserts data into database
 			$now = date("Y-m-d H:i:s");
@@ -1922,10 +1937,10 @@ class Email_auto_responder_integration extends Home
 			}
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate acelle data.');
@@ -1933,7 +1948,7 @@ class Email_auto_responder_integration extends Home
 		}
 
 		$this->_insert_usage_log(265,1);
-		$message = $this->lang->line('You acelle account has been added successfully.');
+		$message = lang('You acelle account has been added successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 
@@ -1945,8 +1960,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function acelle_details() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -1959,7 +1974,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'mailchimp_list.list_name',
@@ -1993,8 +2008,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function acelle_delete()
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -2007,7 +2022,7 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		$select = [
 			'user_id',
@@ -2024,7 +2039,7 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (count($results) != 1) {
-			$message = $this->lang->line('You do not have permission to delete this account.');
+			$message = lang('You do not have permission to delete this account.');
 			return $this->customJsonResponse($message);
 		}
 
@@ -2033,11 +2048,11 @@ class Email_auto_responder_integration extends Home
 			
 			$this->basic->delete_data('mailchimp_list', ['mailchimp_config_id' => $tracking_id]);
 
-			$message = $this->lang->line('Your acelle account has been deleted successfully.');
+			$message = lang('Your acelle account has been deleted successfully.');
 			return $this->customJsonResponse($message, true);
 		}
 
-		$message = $this->lang->line('Something went wrong! Please try again.');
+		$message = lang('Something went wrong! Please try again.');
 		return $this->customJsonResponse($message);
 	}
 
@@ -2049,8 +2064,8 @@ class Email_auto_responder_integration extends Home
 	 */
 	public function acelle_refresh() 
 	{
-		if (! $this->input->is_ajax_request()) {
-			$message = $this->lang->line('Bad Request');
+		if (! $this->request->isAJAX()) {
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -2069,11 +2084,11 @@ class Email_auto_responder_integration extends Home
 			return $this->customJsonResponse($message);
 		}
 
-		$user_id = (string) $this->input->post('user_id');
-		$tracking_id = (int) $this->input->post('tracking_id');
+		$user_id = (string) $this->request->getPost('user_id');
+		$tracking_id = (int) $this->request->getPost('tracking_id');
 
 		if ($user_id != md5($this->user_id)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -2093,7 +2108,7 @@ class Email_auto_responder_integration extends Home
 		$results = $this->basic->get_data('mailchimp_config', $where, $select, [], 1);
 
 		if (1 != count($results)) {
-			$message = $this->lang->line('Bad Request');
+			$message = lang('Bad Request');
 			return $this->customJsonResponse($message);
 		}
 
@@ -2111,19 +2126,19 @@ class Email_auto_responder_integration extends Home
 			|| ! is_array($lists) 
 			|| empty($lists)
 		) {
-			$message = $this->lang->line('Unable to pull in data from your acelle account.');
+			$message = lang('Unable to pull in data from your acelle account.');
 			return $this->customJsonResponse($message);
 		}
 
 		// Tries to save acelle data into database
 		try {
 			// Begins db transaction
-			$this->db->trans_begin();
+			$this->db->transStart();
 
 			// Prepare values columns
 			$now = date("Y-m-d H:i:s");
 			foreach ($lists as $key => $list) {
-				$list_name= $this->db->escape($list['name']) ; 
+				$list_name= $this->db->escapeString($list['name']) ; 
 				$value = "('{$tracking_id}',  $list_name, '{$list['uid']}', '{$now}')";
 
 				array_push($values, $value);
@@ -2135,17 +2150,17 @@ class Email_auto_responder_integration extends Home
 			$this->db->query($sql);
 
 			// Perform commit or rollback on transaction's status
-			if (false === $this->db->trans_status()) {
-				$this->db->trans_rollback();
+			if (false === $this->db->transStatus()) {
+				$this->db->transRollback();
 			} else {
-				$this->db->trans_commit();
+				$this->db->transCommit();
 			}
 		} catch (\Exception $e) {
 			log_message('error', 'Unable to operate acelle data.');
 			return $this->customJsonResponse($e->getMessage());
 		}
 
-		$message = $this->lang->line('Your acelle account has been refreshed successfully.');
+		$message = lang('Your acelle account has been refreshed successfully.');
 		return $this->customJsonResponse($message, true);
 	}
 

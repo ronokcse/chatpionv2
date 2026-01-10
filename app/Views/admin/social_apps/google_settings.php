@@ -26,14 +26,14 @@
                 <br>
                 <span class='blue'><?php echo base_url("home/google_login_back"); ?></span>
             </div>
-			<?php if ( $this->basic->is_exist("add_ons",array("project_id"=>70)) && (session()->get('user_type') == 'Admin' || in_array(351, $this->module_access))){ ?>
+			<?php if ( (isset($basic) && $basic->is_exist("add_ons",array("project_id"=>70))) && (session()->get('user_type') == 'Admin' || (isset($module_access) && is_array($module_access) && in_array(351, $module_access)))){ ?>
 				<div class="card-body ltr">
 					<b><?php echo lang('Google Auth Redirect URL:(For Google Sheet) '); ?></b>
 					<br>
 					<span class='blue'><?php echo base_url("google_sheet/google_get_access_token"); ?></span>
 				</div>
 			<?php } ?> 
-			<?php if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && (session()->get('user_type') == 'Admin' || in_array(353, $this->module_access))){ ?>
+			<?php if ( (isset($basic) && $basic->is_exist("add_ons",array("project_id"=>72))) && (session()->get('user_type') == 'Admin' || (isset($module_access) && is_array($module_access) && in_array(353, $module_access)))){ ?>
 				<div class="card-body ltr">
 					<b><?php echo lang('Google Auth Redirect URL:(For Google Contacts) '); ?></b>
 					<br>
@@ -54,7 +54,7 @@
 	          <div class="card-header"><h4 class="card-title"><i class="fas fa-info-circle"></i> <?php echo lang('App Details'); ?></h4>
 				<span><?php echo lang(' *(You need to enable the Google Sheets API and Google Drive API Service for using google sheet)'); ?></span>
 			  </div>
-			  <?php if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && (session()->get('user_type') == 'Admin' || in_array(353, $this->module_access))){ ?>
+			  <?php if ( (isset($basic) && $basic->is_exist("add_ons",array("project_id"=>72))) && (session()->get('user_type') == 'Admin' || (isset($module_access) && is_array($module_access) && in_array(353, $module_access)))){ ?>
 				<div class="card-header"><h4 class="card-title"><i class="fas fa-info-circle"></i> <?php echo lang('App Details(Google Contacts)'); ?></h4>
 				<span><?php echo lang(' *(You need to enable the People API and Contacts API Service for using google contacts)'); ?></span>
 			  </div>
