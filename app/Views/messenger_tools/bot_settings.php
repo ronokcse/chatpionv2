@@ -1,6 +1,6 @@
 <?php
   $redirect_url = site_url('messenger_bot/bot_settings/').$page_info['id'].'/1?media_type='.$this->using_media_type;
-  view("include/upload_js");
+  echo view("include/upload_js");
 
   $image_upload_limit = 1; 
   if(config('MyConfig')->messengerbot_image_upload_limit != '')

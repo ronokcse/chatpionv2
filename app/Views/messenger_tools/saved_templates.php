@@ -1,5 +1,5 @@
 <?php 
-  view("include/upload_js"); 
+  echo view("include/upload_js"); 
 
   $image_upload_limit = 1; 
   if(config('MyConfig')->messengerbot_image_upload_limit != '')

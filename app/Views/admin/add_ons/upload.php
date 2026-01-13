@@ -1,4 +1,4 @@
-<?php view("include/upload_js"); ?>
+<?php echo view("include/upload_js"); ?>
 <?php $is_demo=$this->is_demo;?>
 <section class="section">
   <div class="section-header">

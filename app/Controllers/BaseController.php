@@ -38,6 +38,13 @@ abstract class BaseController extends Controller
      * Provides $this->load->library() method
      */
     protected $load;
+    
+    /**
+     * Pagination compatibility object for CI3 -> CI4 migration
+     * Provides $this->pagination->initialize() and $this->pagination->create_links()
+     *
+     * Note: actual property is declared on `Home` to avoid dynamic properties.
+     */
 
     /**
      * @return void
@@ -70,6 +77,95 @@ abstract class BaseController extends Controller
                 // Check if already loaded
                 if (isset($this->controller->$propertyName)) {
                     return $this->controller->$propertyName;
+                }
+
+                // CI3 -> CI4 built-in library mapping
+                // CI3: $this->load->library('email') -> CI4 Email service
+                if ($propertyName === 'email') {
+                    // CI3 Email library compatibility wrapper over CI4 Email service
+                    $emailService = \Config\Services::email();
+                    $instance = new class($emailService) {
+                        private $email;
+
+                        public function __construct($email)
+                        {
+                            $this->email = $email;
+                        }
+
+                        // CI3: initialize($config)
+                        public function initialize(array $config = [])
+                        {
+                            // CI4 Email supports initialize()
+                            if (!empty($config)) {
+                                $this->email->initialize($config);
+                            }
+                            return $this;
+                        }
+
+                        // CI3: from($from, $name = '')
+                        public function from(string $from, string $name = '')
+                        {
+                            $this->email->setFrom($from, $name);
+                            return $this;
+                        }
+
+                        // CI3: to($to)
+                        public function to($to)
+                        {
+                            $this->email->setTo($to);
+                            return $this;
+                        }
+
+                        // CI3: bcc($bcc)
+                        public function bcc($bcc)
+                        {
+                            $this->email->setBCC($bcc);
+                            return $this;
+                        }
+
+                        // CI3: subject($subject)
+                        public function subject(string $subject)
+                        {
+                            $this->email->setSubject($subject);
+                            return $this;
+                        }
+
+                        // CI3: message($message)
+                        public function message(string $message)
+                        {
+                            $this->email->setMessage($message);
+                            return $this;
+                        }
+
+                        // CI3: attach($file)
+                        public function attach(string $file, string $disposition = '', string $newname = null, string $mime = '')
+                        {
+                            // CI4 Email attach supports (file, disposition, newName, mime)
+                            $this->email->attach($file, $disposition, $newname, $mime);
+                            return $this;
+                        }
+
+                        // CI3: send()
+                        public function send(bool $autoClear = true)
+                        {
+                            return $this->email->send($autoClear);
+                        }
+
+                        // CI3: print_debugger()
+                        public function print_debugger($include = ['headers', 'subject', 'body'])
+                        {
+                            return $this->email->printDebugger($include);
+                        }
+
+                        // Allow access to underlying service if needed
+                        public function __call($name, $arguments)
+                        {
+                            return $this->email->$name(...$arguments);
+                        }
+                    };
+
+                    $this->controller->$propertyName = $instance;
+                    return $instance;
                 }
                 
                 // Try loading file directly first (for CI3 libraries without namespace)
@@ -251,6 +347,126 @@ abstract class BaseController extends Controller
                 return $this->request->isAJAX();
             }
         };
+        
+        // Pagination compatibility for CI3 -> CI4 migration (offset-based, CI3 style)
+        if (property_exists($this, 'pagination') && empty($this->pagination)) {
+            $req = $request;
+            $this->pagination = new class($req) {
+                private $request;
+                private $config = [];
+                
+                public function __construct($request) {
+                    $this->request = $request;
+                }
+                
+                public function initialize($config = []) {
+                    $this->config = is_array($config) ? $config : [];
+                    return true;
+                }
+                
+                public function create_links() {
+                    $cfg = $this->config;
+                    
+                    $baseUrl = rtrim((string)($cfg['base_url'] ?? ''), '/');
+                    $totalRows = (int)($cfg['total_rows'] ?? 0);
+                    $perPage = (int)($cfg['per_page'] ?? 0);
+                    $uriSegment = (int)($cfg['uri_segment'] ?? 3); // CI3 default
+                    $numLinks = (int)($cfg['num_links'] ?? 2);
+                    
+                    if ($totalRows <= 0 || $perPage <= 0 || $baseUrl === '') {
+                        return '';
+                    }
+                    
+                    $totalPages = (int)ceil($totalRows / $perPage);
+                    if ($totalPages <= 1) {
+                        return '';
+                    }
+                    
+                    // CI3 pagination is offset-based: segment value = offset
+                    $offset = 0;
+                    try {
+                        $seg = $this->request->getUri()->getSegment($uriSegment);
+                        $offset = is_numeric($seg) ? (int)$seg : 0;
+                    } catch (\Throwable $e) {
+                        $offset = 0;
+                    }
+                    if ($offset < 0) $offset = 0;
+                    
+                    $currentPage = (int)floor($offset / $perPage) + 1;
+                    if ($currentPage < 1) $currentPage = 1;
+                    if ($currentPage > $totalPages) $currentPage = $totalPages;
+                    
+                    $attr = '';
+                    if (!empty($cfg['attributes']) && is_array($cfg['attributes'])) {
+                        foreach ($cfg['attributes'] as $k => $v) {
+                            $attr .= ' ' . htmlspecialchars((string)$k) . '="' . htmlspecialchars((string)$v) . '"';
+                        }
+                    }
+                    
+                    $fullOpen = (string)($cfg['full_tag_open'] ?? '<ul class="pagination">');
+                    $fullClose = (string)($cfg['full_tag_close'] ?? '</ul>');
+                    
+                    $firstLinkText = (string)($cfg['first_link'] ?? 'First');
+                    $firstOpen = (string)($cfg['first_tag_open'] ?? '<li>');
+                    $firstClose = (string)($cfg['first_tag_close'] ?? '</li>');
+                    
+                    $lastLinkText = (string)($cfg['last_link'] ?? 'Last');
+                    $lastOpen = (string)($cfg['last_tag_open'] ?? '<li>');
+                    $lastClose = (string)($cfg['last_tag_close'] ?? '</li>');
+                    
+                    $nextLinkText = (string)($cfg['next_link'] ?? 'Next');
+                    $nextOpen = (string)($cfg['next_tag_open'] ?? '<li>');
+                    $nextClose = (string)($cfg['next_tag_close'] ?? '</li>');
+                    
+                    $prevLinkText = (string)($cfg['prev_link'] ?? 'Previous');
+                    $prevOpen = (string)($cfg['prev_tag_open'] ?? '<li>');
+                    $prevClose = (string)($cfg['prev_tag_close'] ?? '</li>');
+                    
+                    $curOpen = (string)($cfg['cur_tag_open'] ?? '<li class="active"><a>');
+                    $curClose = (string)($cfg['cur_tag_close'] ?? '</a></li>');
+                    
+                    $numOpen = (string)($cfg['num_tag_open'] ?? '<li>');
+                    $numClose = (string)($cfg['num_tag_close'] ?? '</li>');
+                    
+                    $html = $fullOpen;
+                    
+                    // First / Prev
+                    if ($currentPage > 1) {
+                        $html .= $firstOpen . '<a href="' . htmlspecialchars($baseUrl) . '"'.$attr.'>' . $firstLinkText . '</a>' . $firstClose;
+                        $prevOffset = ($currentPage - 2) * $perPage;
+                        $prevUrl = $prevOffset > 0 ? ($baseUrl . '/' . $prevOffset) : $baseUrl;
+                        $html .= $prevOpen . '<a href="' . htmlspecialchars($prevUrl) . '"'.$attr.'>' . $prevLinkText . '</a>' . $prevClose;
+                    }
+                    
+                    // Number links window
+                    $start = max(1, $currentPage - $numLinks);
+                    $end = min($totalPages, $currentPage + $numLinks);
+                    for ($i = $start; $i <= $end; $i++) {
+                        if ($i === $currentPage) {
+                            $html .= $curOpen . $i . $curClose;
+                            continue;
+                        }
+                        $pageOffset = ($i - 1) * $perPage;
+                        $url = $pageOffset > 0 ? ($baseUrl . '/' . $pageOffset) : $baseUrl;
+                        $html .= $numOpen . '<a href="' . htmlspecialchars($url) . '"'.$attr.'>' . $i . '</a>' . $numClose;
+                    }
+                    
+                    // Next / Last
+                    if ($currentPage < $totalPages) {
+                        $nextOffset = $currentPage * $perPage;
+                        $nextUrl = $baseUrl . '/' . $nextOffset;
+                        $html .= $nextOpen . '<a href="' . htmlspecialchars($nextUrl) . '"'.$attr.'>' . $nextLinkText . '</a>' . $nextClose;
+                        
+                        $lastOffset = ($totalPages - 1) * $perPage;
+                        $lastUrl = $lastOffset > 0 ? ($baseUrl . '/' . $lastOffset) : $baseUrl;
+                        $html .= $lastOpen . '<a href="' . htmlspecialchars($lastUrl) . '"'.$attr.'>' . $lastLinkText . '</a>' . $lastClose;
+                    }
+                    
+                    $html .= $fullClose;
+                    return $html;
+                }
+            };
+        }
         
         // Database compatibility for CI3 -> CI4 migration
         $this->db = new class() {

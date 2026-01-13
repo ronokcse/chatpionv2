@@ -1,4 +1,4 @@
-<?php include("application/views/sms_email_manager/sms/sms_section_global_js.php"); ?>
+<?php include(APPPATH . "Views/sms_email_manager/sms/sms_section_global_js.php"); ?>
 
 <style>
 
@@ -423,7 +423,7 @@
                                             </div>
 
                                         </div>
-                                        <?php if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && (session()->get('user_type') == 'Admin' || in_array(353, $this->module_access))){ ?>           
+                                        <?php if ( (isset($basic) && $basic->is_exist("add_ons",array("project_id"=>72))) && (session()->get('user_type') == 'Admin' || (isset($module_access) && is_array($module_access) && in_array(353, $module_access)))){ ?>           
                                             <div class="col-12 col-md-6">
                                                 <div class="card card-primary">
                                                     <div class="card-header">

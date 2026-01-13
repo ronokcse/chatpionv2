@@ -151,8 +151,17 @@ class Basic extends Model
 
 		for($i=0;$i<count($keys);$i++)
 		{
-			if($keys[$i]=='where')
-				$builder->where($where['where']);  // genereates the where clauses
+			if($keys[$i]=='where') {
+				// Support both array-based where and raw SQL string where (CI3 compatibility)
+				if (is_string($where['where'])) {
+					$raw = trim($where['where']);
+					if ($raw !== '') {
+						$builder->where($raw, null, false);
+					}
+				} else {
+					$builder->where($where['where']);  // genereates the where clauses
+				}
+			}
 
 			else if($keys[$i]=='where_in')
 			{

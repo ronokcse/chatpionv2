@@ -117,8 +117,8 @@
 <?php
 $current_theme = config('MyConfig')->current_theme ?? 'modern';
 if($current_theme == '') $current_theme = 'modern';
-$style_url = "application/views/site/".$current_theme."/login_style.php";
-if(file_exists(APPPATH . "views/site/".$current_theme."/login_style.php")) {
-    include(APPPATH . "views/site/".$current_theme."/login_style.php");
+$style_url = APPPATH . "Views/site/".$current_theme."/login_style.php";
+if(file_exists(APPPATH . "Views/site/".$current_theme."/login_style.php")) {
+    include(APPPATH . "Views/site/".$current_theme."/login_style.php");
 }
 ?>

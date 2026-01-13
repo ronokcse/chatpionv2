@@ -1,4 +1,4 @@
-<?php include("application/views/sms_email_manager/sms/sms_section_global_js.php"); ?>
+<?php include(APPPATH . "Views/sms_email_manager/sms/sms_section_global_js.php"); ?>
 
 
 
@@ -426,7 +426,7 @@
 
                                         <label id="hostname"><?php echo lang('Routesms Host Name'); ?>
 
-                                        <a href="#" data-placement="top" data-html="true" data-toggle="popover" title="<?php echo lang('Message'); ?>" data-content="<?php echo $this->lang->line("Write your routesms.com registered hostname which was provided from routesms.com. You've must include your hostname as given below example formate. Example <b>http://smsplus.routesms.com/</b>"); ?>"><i class='fa fa-info-circle'></i> </a>
+                                        <a href="#" data-placement="top" data-html="true" data-toggle="popover" title="<?php echo lang('Message'); ?>" data-content="<?php echo lang("Write your routesms.com registered hostname which was provided from routesms.com. You've must include your hostname as given below example formate. Example <b>http://smsplus.routesms.com/</b>"); ?>"><i class='fa fa-info-circle'></i> </a>
 
                                     </label>
 

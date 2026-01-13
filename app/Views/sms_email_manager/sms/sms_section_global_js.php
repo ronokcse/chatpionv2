@@ -70,7 +70,7 @@
 
             {
 
-              url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+              url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
 
             },
 
@@ -1186,7 +1186,7 @@
 
             {
 
-              url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+              url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
 
             },
 
@@ -2127,7 +2127,7 @@
 
                         {
 
-                          url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+                          url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
 
                         },
 
@@ -2547,7 +2547,7 @@
 
             var alreadyEnabled = "<?php echo lang('This campaign is already enabled for processing.'); ?>";
 
-            var doyoureallywanttoReprocessthiscampaign = "<?php echo $this->lang->line("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?"); ?>";
+            var doyoureallywanttoReprocessthiscampaign = "<?php echo lang("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?"); ?>";
 
 
 
@@ -2721,7 +2721,7 @@
 
             {
 
-              url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+              url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
 
             },
 
@@ -2885,7 +2885,7 @@
 
             {
 
-                url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+                url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
 
             },
 

@@ -269,6 +269,13 @@ if (!function_exists('get_instance')) {
                             // Return database connection (already available as $this->db)
                             return \Config\Database::connect();
                         }
+                        
+                        public function config($configName) {
+                            // CI3: $this->load->config('my_config')
+                            // CI4: config('MyConfig') or config('App')
+                            // This is for compatibility - config is already loaded in get_instance()
+                            return true;
+                        }
                     };
                 }
             };

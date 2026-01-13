@@ -1,4 +1,4 @@
-<?php include("application/views/sms_email_manager/sms/sms_section_global_js.php"); ?>
+<?php include(APPPATH . "Views/sms_email_manager/sms/sms_section_global_js.php"); ?>
 
 <style>
 

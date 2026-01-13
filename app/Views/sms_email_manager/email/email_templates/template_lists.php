@@ -1,5 +1,5 @@
-<?php include("application/views/sms_email_manager/email/email_templates/sms_email_manager_css.php"); ?>
-<?php include("application/views/sms_email_manager/email/email_templates/sms_email_manager_js.php"); ?>
+<?php include(APPPATH . "Views/sms_email_manager/email/email_templates/sms_email_manager_css.php"); ?>
+<?php include(APPPATH . "Views/sms_email_manager/email/email_templates/sms_email_manager_js.php"); ?>
 
 <style>
     /*.dropdown-toggle::after{content:none !important;}*/

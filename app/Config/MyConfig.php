@@ -133,5 +133,19 @@ class MyConfig extends BaseConfig
             'https://www.youtube.com/watch?v=6jiNS_4CEug',
         ],
     ];
+
+    /**
+     * CI3 compatibility helper.
+     * Allows legacy code to call `$this->config->item('key')`.
+     */
+    public function item(string $key, $default = null)
+    {
+        // Direct property access (CI4 config uses public properties)
+        if (property_exists($this, $key)) {
+            return $this->$key;
+        }
+
+        return $default;
+    }
 }
 

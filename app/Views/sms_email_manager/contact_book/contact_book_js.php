@@ -7,7 +7,7 @@
 
 		$(document).on('change', '#rows_number', function(event) {
 		    event.preventDefault();
-		    $("#group_search_submit").click();
+		    $(this).closest('form').trigger('submit');
 		});
 
 		$(document).on('keypress', '.group_search', function(event) {
@@ -178,7 +178,7 @@
 		    },
 		    language: 
 		    {
-		      url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+		      url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
 		    },
 		    dom: '<"top"f>rt<"bottom"lip><"clear">',
 		    columnDefs: [

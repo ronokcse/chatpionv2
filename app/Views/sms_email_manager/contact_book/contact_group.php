@@ -1,4 +1,4 @@
-<?php include("application/views/sms_email_manager/contact_book/contact_book_js.php"); ?>
+<?php include(APPPATH . "Views/sms_email_manager/contact_book/contact_book_js.php"); ?>
 <style>
     .group_search{padding: 21px 15px !important;}
     ::placeholder{color:#adadad !important;}
@@ -26,7 +26,7 @@
                 <div class="row">      
                     <div class="col-12">
                         <div class="card-header">
-                            <form action="<?php echo base_url('sms_email_manager/contact_group_list/'); ?>" method="post">
+                            <form action="<?php echo base_url('sms_email_manager/contact_group_list'); ?>" method="post">
                                 <div class="input-group mb-3" id="searchbox">
                                     <div class="input-group-prepend">
                                         <select name="rows_number" class="selectric form-control" id="rows_number" style="width: 100%;">

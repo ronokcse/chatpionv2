@@ -1,87 +1,84 @@
-<?php 
+<?php
 
+namespace App\Controllers;
 
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
-require_once("Home.php"); // loading home controller
-
-
+// Load Home controller - CI3 style for compatibility
+require_once(APPPATH . "Controllers/Home.php");
 
 class Sms_email_manager extends Home
-
 {
-
     public $user_id;
-
-
+    
+    /**
+     * Libraries loaded via BaseController compatibility layer
+     */
+    public $sms_manager;
+    public $email_manager;
+    public $form_validation;
+    public $sms_email_drip_exist;
+    public $is_sms_email_drip_campaigner_exist;
+    public $input;
 
     /**
-
      * An array of php file upload errors
-
      *
-
      * @var array
-
      */
-
     protected $php_file_upload_errors = [
-
         0 => 'There is no error, the file uploaded with success',
-
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
-
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
-
         3 => 'The uploaded file was only partially uploaded',
-
         4 => 'No file was uploaded',
-
         6 => 'Missing a temporary folder',
-
         7 => 'Failed to write file to disk.',
-
         8 => 'A PHP extension stopped the file upload.',
+    ];
 
-    ];    
-
-
-
-    public function __construct()
-
+    /**
+     * Initialize controller
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
+        parent::initController($request, $response, $logger);
 
-
-
-        parent::__construct();
-
-        $function_name = $this->uri->segment(2);
-
-        
+        $function_name = $this->uri->getSegment(2);
 
         if($function_name != "checking_open_rate" && $function_name != "checking_click_rate") {
-
-            if ($this->session->userdata('logged_in') != 1) {
-
-                redirect('home/login_page', 'location');
-
+            if (session()->get('logged_in') != 1) {
+                redirect()->to('home/login_page')->send();
             }
-
         }
 
-
-
-        $this->load->library('Sms_manager');
-
-        $this->load->library('Email_manager');
-
-
+        // Libraries loaded via BaseController compatibility layer
+        if (!isset($this->sms_manager)) {
+            $this->load->library('Sms_manager');
+            // Fallback: Direct load if compatibility layer fails
+            if (!isset($this->sms_manager)) {
+                require_once(APPPATH . 'Libraries/Sms_manager.php');
+                if (class_exists('Sms_manager')) {
+                    $this->sms_manager = new \Sms_manager();
+                }
+            }
+        }
+        if (!isset($this->email_manager)) {
+            $this->load->library('Email_manager');
+            // Fallback: Direct load if compatibility layer fails
+            if (!isset($this->email_manager)) {
+                require_once(APPPATH . 'Libraries/Email_manager.php');
+                if (class_exists('Email_manager')) {
+                    $this->email_manager = new \Email_manager();
+                }
+            }
+        }
 
         set_time_limit(0);
-
         $this->important_feature();
-
         $this->member_validity();
-
     }
 
 
@@ -92,9 +89,9 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) {
+        if(session()->get('user_type') != 'Admin' && (is_array($this->module_access) && count(array_intersect($this->module_access, array('263','264')))==0)) {
 
-            redirect('home/login_page', 'location');
+            redirect()->to('home/login_page')->send();
 
         }
 
@@ -102,7 +99,7 @@ class Sms_email_manager extends Home
 
         $data['body'] = 'sms_email_manager/section_menu_block';
 
-        $data['page_title'] = $this->lang->line('SMS/ Email Manager');
+        $data['page_title'] = lang('SMS/ Email Manager');
 
         $this->_viewcontroller($data);
 
@@ -116,9 +113,9 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) {
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) {
 
-            redirect('home/login_page', 'location');
+            redirect()->to('home/login_page')->send();
 
         }
 
@@ -128,7 +125,7 @@ class Sms_email_manager extends Home
 
         $data['gateway_lists'] = $this->_api_gateways();
 
-        $data['page_title'] = $this->lang->line('SMS API');
+        $data['page_title'] = lang('SMS API');
 
         $this->_viewcontroller($data);   
 
@@ -140,11 +137,9 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
-        
-
-        $this->ajax_check();
+        if (!$this->request->isAJAX() && $this->strict_ajax_call) exit();
 
 
 
@@ -220,9 +215,9 @@ class Sms_email_manager extends Home
 
             $status = $info[$i]["status"];
 
-            if($status=='1') $info[$i]["status"] = "<i title ='".$this->lang->line('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
+            if($status=='1') $info[$i]["status"] = "<i title ='".lang('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
 
-            else $info[$i]["status"] = "<i title ='".$this->lang->line('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
+            else $info[$i]["status"] = "<i title ='".lang('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
 
 
 
@@ -236,11 +231,11 @@ class Sms_email_manager extends Home
 
 
 
-            $info[$i]['actions'] = "<div style='min-width:100px;'><a href='#' title='".$this->lang->line("Send Test SMS")."' class='btn btn-circle btn-outline-primary test_sms' gateway_name='".$info[$i]['gateway_name']."' table_id='".$info[$i]['id']."'><i class='fa fa-paper-plane'></i></a>&nbsp;&nbsp;";
+            $info[$i]['actions'] = "<div style='min-width:100px;'><a href='#' title='".lang("Send Test SMS")."' class='btn btn-circle btn-outline-primary test_sms' gateway_name='".$info[$i]['gateway_name']."' table_id='".$info[$i]['id']."'><i class='fa fa-paper-plane'></i></a>&nbsp;&nbsp;";
 
 
 
-            $info[$i]['actions'] .= "<a href='#' title='".$this->lang->line("View Details")."' class='btn btn-circle btn-outline-info see_api_details' table_id='".$info[$i]['id']."'><i class='fas fa-info-circle'></i></a>&nbsp;&nbsp;";
+            $info[$i]['actions'] .= "<a href='#' title='".lang("View Details")."' class='btn btn-circle btn-outline-info see_api_details' table_id='".$info[$i]['id']."'><i class='fas fa-info-circle'></i></a>&nbsp;&nbsp;";
 
             
 
@@ -252,13 +247,13 @@ class Sms_email_manager extends Home
 
                 $edit_class = 'edit_custom_api';
 
-                $info[$i]['gateway_name'] = $this->lang->line("Custom")." - ". $info[$i]['custom_name'];
+                $info[$i]['gateway_name'] = lang("Custom")." - ". $info[$i]['custom_name'];
 
             } else if ($info[$i]['gateway_name'] == 'custom_post') {
 
                 $edit_class = 'edit_custom_post_api';
 
-                $info[$i]['gateway_name'] = $this->lang->line("Custom")." - ". $info[$i]['custom_name'];
+                $info[$i]['gateway_name'] = lang("Custom")." - ". $info[$i]['custom_name'];
 
             }  else {
 
@@ -268,11 +263,11 @@ class Sms_email_manager extends Home
 
 
 
-            $info[$i]['actions'] .= "<a href='#' title='".$this->lang->line("Edit API")."' class='btn btn-circle btn-outline-warning ". $edit_class . "' gateway='".$info[$i]['gateway_name']."' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
+            $info[$i]['actions'] .= "<a href='#' title='".lang("Edit API")."' class='btn btn-circle btn-outline-warning ". $edit_class . "' gateway='".$info[$i]['gateway_name']."' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
 
 
 
-            $info[$i]['actions'] .= "<a href='#' title='".$this->lang->line("Delete API")."' class='btn btn-circle btn-outline-danger delete_api' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
+            $info[$i]['actions'] .= "<a href='#' title='".lang("Delete API")."' class='btn btn-circle btn-outline-danger delete_api' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
 
                 <script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
 
@@ -306,7 +301,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -316,7 +311,7 @@ class Sms_email_manager extends Home
 
     	$res = array();
 
-    	$table_id = $this->input->post("table_id");
+    	$table_id = $this->request->getPost("table_id");
 
 
 
@@ -406,7 +401,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -428,13 +423,13 @@ class Sms_email_manager extends Home
 
     		{
 
-    		    $$key = trim($this->input->post($key,TRUE));
+    		    $$key = trim($this->request->getPost($key));
 
     		}
 
 
 
-            $status_checked = $this->input->post("status");
+            $status_checked = $this->request->getPost("status");
 
             if($status_checked == "") $status_checked = "0";
 
@@ -475,7 +470,7 @@ class Sms_email_manager extends Home
 
     			$return_response['status'] = "1";
 
-    			$return_response['msg']  = $this->lang->line('New API Information has been added successfully');
+    			$return_response['msg']  = lang('New API Information has been added successfully');
 
     			
 
@@ -485,7 +480,7 @@ class Sms_email_manager extends Home
 
     			$return_response['status'] = "0";
 
-    			$return_response['msg']  = $this->lang->line('Something went wrong, please try again.');
+    			$return_response['msg']  = lang('Something went wrong, please try again.');
 
     		}
 
@@ -505,7 +500,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
         $this->ajax_check();
 
@@ -513,13 +508,13 @@ class Sms_email_manager extends Home
 
         $result = [];
 
-        $table_id = $this->input->post('table_id',true);
+        $table_id = $this->request->getPost('table_id');
 
-        $test_gateway_name = trim($this->input->post('test_gateway_name',true));
+        $test_gateway_name = trim($this->request->getPost('test_gateway_name'));
 
-        $number = trim($this->input->post('number',true));
+        $number = trim($this->request->getPost('number'));
 
-        $message = $this->input->post('message',true);
+        $message = $this->request->getPost('message');
 
         $user_id = $this->user_id;
 
@@ -561,7 +556,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -569,7 +564,7 @@ class Sms_email_manager extends Home
 
 
 
-    	$table_id = $this->input->post("table_id",true);
+    	$table_id = $this->request->getPost("table_id");
 
     	$gateway_lists = $this->_api_gateways();
 
@@ -619,7 +614,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('Gateway Name').'</label>'.
+                                        <label>'.lang('Gateway Name').'</label>'.
 
                             form_dropdown("gateway_name",$gateway_lists,$gateway_name, "class='form-control select2' id='updated_gateway_name' style='width:100%;'");
 
@@ -635,7 +630,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('Auth ID/ Auth Key/ API Key/ MSISDN/ Account SID/ Account ID/ Username/ Admin').'</label>
+                                        <label>'.lang('Auth ID/ Auth Key/ API Key/ MSISDN/ Account SID/ Account ID/ Username/ Admin').'</label>
 
                                         <input type="text" class="form-control" name="username_auth_id" id="updated_username_auth_id" value="'.$username_auth_id.'">
 
@@ -647,7 +642,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('Auth Token/ API Secret/ Password').'</label>
+                                        <label>'.lang('Auth Token/ API Secret/ Password').'</label>
 
                                         <input type="text" class="form-control" name="password_auth_token" id="updated_password_auth_token" value="'.$password_auth_token.'">
 
@@ -661,9 +656,9 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label id="hostname">'.$this->lang->line("Routesms Host Name").'
+                                        <label id="hostname">'.lang("Routesms Host Name").'
 
-                                            <a href="#" data-placement="top" data-html="true" data-toggle="popover" title="'.$this->lang->line("Message").'" data-content="'.$this->lang->line("Write your routesms.com registered hostname which was provided from routesms.com. You must include your hostname as given below example formate. Example <b>http://smsplus.routesms.com/</b>").'"><i class="fa fa-info-circle"></i> </a>
+                                            <a href="#" data-placement="top" data-html="true" data-toggle="popover" title="'.lang("Message").'" data-content="'.lang("Write your routesms.com registered hostname which was provided from routesms.com. You must include your hostname as given below example formate. Example <b>http://smsplus.routesms.com/</b>").'"><i class="fa fa-info-circle"></i> </a>
 
                                         </label>
 
@@ -683,7 +678,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('API ID').'</label>
+                                        <label>'.lang('API ID').'</label>
 
                                         <input type="text" class="form-control" name="api_id" id="updated_api_id" value="'.$api_id.'">
 
@@ -695,7 +690,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('Sender/ Sender ID/ Mask/ From').'</label>
+                                        <label>'.lang('Sender/ Sender ID/ Mask/ From').'</label>
 
                                         <input type="text" class="form-control" name="phone_number" id="updated_phone_number" value="'.$phone_number.'">
 
@@ -707,7 +702,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('Short Code').'</label>
+                                        <label>'.lang('Short Code').'</label>
 
                                         <input type="text" class="form-control" name="updated_shortcode" id="updated_shortcode" value="'.$shortcode.'">
 
@@ -719,7 +714,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label style="margin-bottom:20px;">'.$this->lang->line('Status').'</label><br>
+                                        <label style="margin-bottom:20px;">'.lang('Status').'</label><br>
 
                                         <label class="custom-switch">
 
@@ -727,7 +722,7 @@ class Sms_email_manager extends Home
 
                                             <span class="custom-switch-indicator"></span>
 
-                                            <span class="custom-switch-description">'.$this->lang->line('Active').'</span>
+                                            <span class="custom-switch-description">'.lang('Active').'</span>
 
                                         </label>
 
@@ -757,7 +752,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -769,7 +764,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id",true);
+        $table_id = $this->input->post("table_id", true);
 
 
 
@@ -783,13 +778,13 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = trim($this->input->post($key,TRUE));
+                $$key = trim($this->input->post($key, true));
 
             }
 
 
 
-            $status_checked = $this->input->post("status");
+            $status_checked = $this->request->getPost("status");
 
             if($status_checked == "") $status_checked = "0";
 
@@ -837,7 +832,7 @@ class Sms_email_manager extends Home
 
                 $return_response['status'] = "1";
 
-                $return_response['msg']  = $this->lang->line('API Information has been updated successfully');
+                $return_response['msg']  = lang('API Information has been updated successfully');
 
                 
 
@@ -847,7 +842,7 @@ class Sms_email_manager extends Home
 
                 $return_response['status'] = "0";
 
-                $return_response['msg']  = $this->lang->line('Something went wrong, please try again.');
+                $return_response['msg']  = lang('Something went wrong, please try again.');
 
             }
 
@@ -865,7 +860,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -873,7 +868,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id",true);
+        $table_id = $this->input->post("table_id", true);
 
 
 
@@ -923,9 +918,9 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0)
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0)
 
-            redirect('home/login_page', 'location');
+            redirect()->to('home/login_page')->send();
 
 
 
@@ -935,22 +930,20 @@ class Sms_email_manager extends Home
 
 
 
-        // set per_page and search_value from user_submission
+        // set per_page and search_value from user submission (POST)
+        if ($this->request->getMethod(true) === 'POST') {
+            $postedPerPage = $this->input->post('rows_number', true);
+            $postedSearch = $this->input->post('search_value', true);
 
-        if (isset($_POST['rows_number']) || isset($_POST['search_value'])) {
+            if ($postedPerPage !== null && $postedPerPage !== '') {
+                $per_page = $postedPerPage;
+                session()->set('sms_email_contact_group_per_page', $per_page);
+            }
 
-
-
-            $per_page = $this->input->post('rows_number', true);
-
-            $search_value = $this->input->post('search_value', true);
-
-
-
-            $this->session->set_userdata('sms_email_contact_group_per_page', $per_page);
-
-            $this->session->set_userdata('sms_email_contact_group_search_value', $search_value);
-
+            if ($postedSearch !== null) {
+                $search_value = $postedSearch;
+                session()->set('sms_email_contact_group_search_value', $search_value);
+            }
         }
 
 
@@ -959,15 +952,15 @@ class Sms_email_manager extends Home
 
         // set session so that pagination can get proper per_page & search_value
 
-        if ($this->session->userdata('sms_email_contact_group_per_page')) 
+        if (session()->get('sms_email_contact_group_per_page')) 
 
-            $per_page = $this->session->userdata('sms_email_contact_group_per_page');
+            $per_page = session()->get('sms_email_contact_group_per_page');
 
 
 
-        if ($this->session->userdata('sms_email_contact_group_search_value')) 
+        if (session()->get('sms_email_contact_group_search_value')) 
 
-            $search_value = $this->session->userdata('sms_email_contact_group_search_value');
+            $search_value = session()->get('sms_email_contact_group_search_value');
 
 
 
@@ -1009,7 +1002,7 @@ class Sms_email_manager extends Home
 
 
 
-            'first_link' => $this->lang->line('First Page'),
+            'first_link' => lang('First Page'),
 
             'first_tag_open' => '<li class="page-item">',
 
@@ -1017,7 +1010,7 @@ class Sms_email_manager extends Home
 
 
 
-            'last_link' => $this->lang->line('Last Page'),
+            'last_link' => lang('Last Page'),
 
             'last_tag_open' => '<li class="page-item">',
 
@@ -1025,7 +1018,7 @@ class Sms_email_manager extends Home
 
 
 
-            'next_link' => $this->lang->line('Next'),
+            'next_link' => lang('Next'),
 
             'next_tag_open' => '<li class="page-item">',
 
@@ -1033,7 +1026,7 @@ class Sms_email_manager extends Home
 
 
 
-            'prev_link' => $this->lang->line('Previous'),
+            'prev_link' => lang('Previous'),
 
             'prev_tag_open' => '<li class="page-item">',
 
@@ -1063,7 +1056,8 @@ class Sms_email_manager extends Home
 
 
 
-        $start = $this->uri->segment(3);
+        $start = $this->uri->getSegment(2);
+        $start = is_numeric($start) ? (int) $start : 0;
 
         $limit = $config['per_page'];
 
@@ -1073,7 +1067,7 @@ class Sms_email_manager extends Home
 
 
 
-        $data['page_title'] = $this->lang->line("Contact Group");
+        $data['page_title'] = lang("Contact Group");
 
         $data['contactGroups'] = $contact_group;
 
@@ -1099,13 +1093,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
         $this->ajax_check();
 
-        $group_name = trim(strip_tags($this->input->post("group_name")));
+        $group_name = trim(strip_tags($this->request->getPost("group_name")));
 
         $in_data = array(
 
@@ -1153,13 +1147,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
         $this->ajax_check();
 
-        $group_id = $this->input->post("group_id");
+        $group_id = $this->request->getPost("group_id");
 
         
 
@@ -1175,7 +1169,7 @@ class Sms_email_manager extends Home
 
                         <div class="form-group">
 
-                            <label>'.$this->lang->line('Group Name').'</label>
+                            <label>'.lang('Group Name').'</label>
 
                             <input type="text" class="form-control" name="group_name" id="update_group_name" value="'.$group_info[0]["type"].'">
 
@@ -1199,7 +1193,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -1207,7 +1201,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
 
 
@@ -1215,7 +1209,7 @@ class Sms_email_manager extends Home
 
 
 
-        $group_name = trim(strip_tags($this->input->post("group_name")));
+        $group_name = trim(strip_tags($this->request->getPost("group_name")));
 
 
 
@@ -1263,7 +1257,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -1271,7 +1265,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
         if($table_id == "0" || $table_id == "") exit;
 
@@ -1299,9 +1293,9 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0)
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0)
 
-            redirect('home/login_page', 'location');
+            redirect()->to('home/login_page')->send();
 
         
 
@@ -1333,7 +1327,7 @@ class Sms_email_manager extends Home
 
 
 
-        $data['page_title'] = $this->lang->line('Contact Book');
+        $data['page_title'] = lang('Contact Book');
 
         $this->_viewcontroller($data);
 
@@ -1345,15 +1339,15 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
         $this->ajax_check();
 
 
 
-        $group_id = trim($this->input->post("group_id",true));
+        $group_id = trim($this->input->post("group_id", true));
 
-        $searching = trim($this->input->post("contact_list_searching",true));
+        $searching = trim($this->input->post("contact_list_searching", true));
 
         $display_columns = array("#",'CHECKBOX','id','first_name','last_name','email','phone_number','contact_type_id','status','actions');
 
@@ -1377,51 +1371,53 @@ class Sms_email_manager extends Home
 
 
 
-        $where_simple = array();
-
-        $where_simple['user_id'] = $this->user_id;
-
-
-
-        if ($group_id) 
-
-        {
-
-            // $where_simple['contact_type_id like ']    = "%".$group_id."%";
-
-            $this->db->where("FIND_IN_SET('$group_id',sms_email_contacts.contact_type_id) !=", 0);
-
-        }
-
-
-
-        $sql = '';
-
-        if ($searching != '')
-
-        {
-
-            $sql = "(first_name LIKE  '%".$searching."%' OR last_name LIKE '%".$searching."%' OR phone_number LIKE '%".$searching."%' OR email LIKE '%".$searching."%')";
-
-        }
-
-        if($sql != '') $this->db->where($sql);
-
-
-
-        $where = array('where' => $where_simple);
-
-
-
+        // CI4: use Query Builder (CI3 `$this->db->where()` does not exist on Connection)
         $table = "sms_email_contacts";
 
-        $info = $this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
+        $builder = $this->db->table($table);
+        $builder->where('user_id', $this->user_id);
 
+        if ($group_id) {
+            // FIND_IN_SET('<group_id>', contact_type_id) != 0
+            $escapedGroupId = $this->db->escape($group_id);
+            $builder->where("FIND_IN_SET($escapedGroupId, {$table}.contact_type_id) !=", 0, false);
+        }
 
+        if ($searching !== '') {
+            $builder->groupStart()
+                ->like('first_name', $searching)
+                ->orLike('last_name', $searching)
+                ->orLike('phone_number', $searching)
+                ->orLike('email', $searching)
+                ->groupEnd();
+        }
 
-        $total_rows_array = $this->basic->count_row($table,$where,$count="id",$join="",$group_by='');
+        // Whitelist sort columns (DataTables has pseudo columns like CHECKBOX/actions)
+        $allowedSort = ['id', 'first_name', 'last_name', 'email', 'phone_number', 'contact_type_id', 'status'];
+        if (!in_array($sort, $allowedSort, true)) {
+            $sort = 'id';
+        }
+        $builder->orderBy($sort, $order);
 
-        $total_result=$total_rows_array[0]['total_rows'];
+        $info = $builder->get($limit, $start)->getResultArray();
+
+        // Total filtered rows for DataTables
+        $countBuilder = $this->db->table($table);
+        $countBuilder->select('COUNT(id) as total_rows', false);
+        $countBuilder->where('user_id', $this->user_id);
+        if ($group_id) {
+            $escapedGroupId = $this->db->escape($group_id);
+            $countBuilder->where("FIND_IN_SET($escapedGroupId, {$table}.contact_type_id) !=", 0, false);
+        }
+        if ($searching !== '') {
+            $countBuilder->groupStart()
+                ->like('first_name', $searching)
+                ->orLike('last_name', $searching)
+                ->orLike('phone_number', $searching)
+                ->orLike('email', $searching)
+                ->groupEnd();
+        }
+        $total_result = (int) ($countBuilder->get()->getRowArray()['total_rows'] ?? 0);
 
 
 
@@ -1475,23 +1471,23 @@ class Sms_email_manager extends Home
 
             $info[$key]['email'] = "<div style='min-width:150px'>".$info[$key]['email']."</div>";
 
-            $info[$key]['actions'] = "<div style='min-width:150px'><a href='#' title='".$this->lang->line("View Details")."' class='btn btn-circle btn-outline-primary contact_details' groups='".$str."' table_id='".$info[$key]['id']."'><i class='fa fa-eye'></i></a>&nbsp;&nbsp;";
+            $info[$key]['actions'] = "<div style='min-width:150px'><a href='#' title='".lang("View Details")."' class='btn btn-circle btn-outline-primary contact_details' groups='".$str."' table_id='".$info[$key]['id']."'><i class='fa fa-eye'></i></a>&nbsp;&nbsp;";
 
 
 
-            $info[$key]['actions'] .= "<a href='#' title='".$this->lang->line("Edit Contact")."' class='btn btn-circle btn-outline-warning edit_contact' table_id='".$info[$key]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
+            $info[$key]['actions'] .= "<a href='#' title='".lang("Edit Contact")."' class='btn btn-circle btn-outline-warning edit_contact' table_id='".$info[$key]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
 
 
 
-            $info[$key]['actions'] .= "<a href='#' title='".$this->lang->line("Delete Contact")."' class='btn btn-circle btn-outline-danger delete_contact' table_id='".$info[$key]['id']."'><i class='fa fa-trash-alt'></i></a></div>
+            $info[$key]['actions'] .= "<a href='#' title='".lang("Delete Contact")."' class='btn btn-circle btn-outline-danger delete_contact' table_id='".$info[$key]['id']."'><i class='fa fa-trash-alt'></i></a></div>
 
                 <script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
 
 
 
-            if($info[$key]['status'] == "1") $info[$key]['status'] = '<span class="text-success"><i class="fas fa-circle"></i> '.$this->lang->line("Active").'</span>';
+            if($info[$key]['status'] == "1") $info[$key]['status'] = '<span class="text-success"><i class="fas fa-circle"></i> '.lang("Active").'</span>';
 
-            else $info[$key]['status'] = '<span class="text-danger"><i class="fas fa-circle"></i> '.$this->lang->line("Inactive").'</span>';
+            else $info[$key]['status'] = '<span class="text-danger"><i class="fas fa-circle"></i> '.lang("Inactive").'</span>';
 
         }
 
@@ -1521,9 +1517,9 @@ class Sms_email_manager extends Home
 
 
 
-        $id = $this->input->post("id");
+        $id = $this->request->getPost("id");
 
-        $groups = $this->input->post("groups");
+        $groups = $this->request->getPost("groups");
 
         $userid = $this->user_id;
 
@@ -1549,7 +1545,7 @@ class Sms_email_manager extends Home
 
         $current_sequence_array = [];
 
-        $option=array('0'=>$this->lang->line('Choose Sequence'));
+        $option=array('0'=>lang('Choose Sequence'));
 
 
 
@@ -1589,13 +1585,13 @@ class Sms_email_manager extends Home
 
         if($contact_details['unsubscribed'] == '0') {
 
-            $status ='<span class="subsribe_unsubscribe_container"><a class="text-primary" id="status">'.$this->lang->line("Subscribed").'</a> <a class="text-muted pointer subscribe_unsubscribe_contact" id="'.$contact_details['id']."-".$contact_details['unsubscribed'].'">('.$this->lang->line("Unsubscribe").')</a></span>';
+            $status ='<span class="subsribe_unsubscribe_container"><a class="text-primary" id="status">'.lang("Subscribed").'</a> <a class="text-muted pointer subscribe_unsubscribe_contact" id="'.$contact_details['id']."-".$contact_details['unsubscribed'].'">('.lang("Unsubscribe").')</a></span>';
 
         }
 
         else {
 
-            $status ='<span class="subsribe_unsubscribe_container"><a class="text-primary" id="status">'.$this->lang->line("Unsubscribed").'</a> <a class="text-muted pointer subscribe_unsubscribe_contact" id="'.$contact_details['id']."-".$contact_details['unsubscribed'].'">('.$this->lang->line("Subscribe").')</a></span>';
+            $status ='<span class="subsribe_unsubscribe_container"><a class="text-primary" id="status">'.lang("Unsubscribed").'</a> <a class="text-muted pointer subscribe_unsubscribe_contact" id="'.$contact_details['id']."-".$contact_details['unsubscribed'].'">('.lang("Subscribe").')</a></span>';
 
         }
 
@@ -1629,7 +1625,7 @@ class Sms_email_manager extends Home
 
                                     <li class="list-group-item">
 
-                                      <i class="fas fa-check-circle subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Status').'"></i>
+                                      <i class="fas fa-check-circle subscriber_details blue" data-toggle="tooltip" title="'.lang('Status').'"></i>
 
                                       '.$status.'                    
 
@@ -1675,13 +1671,13 @@ class Sms_email_manager extends Home
 
                                     if($this->basic->is_exist("modules",array("id"=>270)) && $this->basic->is_exist("modules",array("id"=>271))) {  
 
-                                      if($this->session->userdata('user_type') == 'Admin' || count(array_intersect($this->module_access, array('270','271'))) !=0) {
+                                      if(session()->get('user_type') == 'Admin' || count(array_intersect($this->module_access, array('270','271'))) !=0) {
 
 
 
                                             $html .= '<div class="section">   
 
-                                                    <div class="section-title mt-0"> '.$this->lang->line('Assign Sequence').'</div>
+                                                    <div class="section-title mt-0"> '.lang('Assign Sequence').'</div>
 
                                                     <div class="form-group">
 
@@ -1703,7 +1699,7 @@ class Sms_email_manager extends Home
 
                                         <div class="form-group">
 
-                                            <div class="section-title mt-0"> '.$this->lang->line('Notes').'</div>
+                                            <div class="section-title mt-0"> '.lang('Notes').'</div>
 
                                             <textarea class="form-control" id="notes" name="notes">'.$contact_details['notes'].'</textarea>
 
@@ -1739,7 +1735,7 @@ class Sms_email_manager extends Home
 
         $("#assign_campaign_id").select2({
 
-             placeholder: "'.$this->lang->line('Choose Sequence').'",
+             placeholder: "'.lang('Choose Sequence').'",
 
             allowClear: true
 
@@ -1763,11 +1759,11 @@ class Sms_email_manager extends Home
 
         $this->is_sms_email_drip_campaigner_exist=$this->sms_email_drip_campaigner_exist();
 
-        $contact_id = $this->input->post("contact_id");
+        $contact_id = $this->request->getPost("contact_id");
 
-        $campaign_ids = $this->input->post("campaign_ids");
+        $campaign_ids = $this->request->getPost("campaign_ids");
 
-        $notes = strip_tags(trim($this->input->post("notes",true)));
+        $notes = strip_tags(trim($this->input->post("notes", true)));
 
         $drip_type = "custom";
 
@@ -1797,19 +1793,19 @@ class Sms_email_manager extends Home
 
             if(!empty($campaign_ids)) {
 
-                $this->db->where_not_in("messenger_bot_drip_campaign_id",$campaign_ids); 
+                // CI4: use Query Builder for whereNotIn
+                if (!is_array($campaign_ids)) {
+                    $campaign_ids = array_filter(array_map('trim', explode(',', (string) $campaign_ids)));
+                }
 
             }
 
-
-
-            $this->db->where("subscribe_id",$contact_id);
-
-            $this->db->delete("messenger_bot_drip_campaign_assign");
-
-
-
-            echo $this->db->last_query();
+            // Delete old assignments not in selected campaigns
+            $builder = $this->db->table("messenger_bot_drip_campaign_assign");
+            if (!empty($campaign_ids)) {
+                $builder->whereNotIn("messenger_bot_drip_campaign_id", $campaign_ids);
+            }
+            $builder->where("subscribe_id", $contact_id)->delete();
 
         }
 
@@ -1831,7 +1827,7 @@ class Sms_email_manager extends Home
 
 
 
-        $contact_details_id = $this->input->post("contact_details_id");
+        $contact_details_id = $this->request->getPost("contact_details_id");
 
         $ex_ids = explode("-", $contact_details_id);
 
@@ -1875,7 +1871,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -1967,7 +1963,7 @@ class Sms_email_manager extends Home
 
         {
 
-            mkdir($dir_name,0777);
+            mkdir($dir_name,0777,true);
 
         }
 
@@ -2019,7 +2015,7 @@ class Sms_email_manager extends Home
 
       $this->ajax_check();
 
-      $ids = $this->input->post("ids");
+      $ids = $this->request->getPost("ids");
 
       $user_id = $this->user_id;
 
@@ -2031,7 +2027,7 @@ class Sms_email_manager extends Home
 
       $sequence_lists_html = '
 
-        <label>'.$this->lang->line("Select Sequence Campaign").'</label>
+        <label>'.lang("Select Sequence Campaign").'</label>
 
         <select name="sequence_ids" class="form-control" id="sequence_ids" multiple style="width:100%;">';
 
@@ -2067,11 +2063,11 @@ class Sms_email_manager extends Home
 
 
 
-        $ids = $this->input->post("ids");
+        $ids = $this->request->getPost("ids");
 
-        $page_id = $this->input->post("page_id");
+        $page_id = $this->request->getPost("page_id");
 
-        $sequence_id = $this->input->post("sequence_id");
+        $sequence_id = $this->request->getPost("sequence_id");
 
         $drip_type = "custom";
 
@@ -2109,7 +2105,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -2149,7 +2145,7 @@ class Sms_email_manager extends Home
 
 
 
-            if($this->db->affected_rows() > 0) {
+            if($this->db->affectedRows() > 0) {
 
                 echo "1";
 
@@ -2177,7 +2173,7 @@ class Sms_email_manager extends Home
 
 
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -2191,7 +2187,7 @@ class Sms_email_manager extends Home
 
         {
 
-            mkdir($output_dir,0777);
+            mkdir($output_dir,0777,true);
 
         }
 
@@ -2253,7 +2249,7 @@ class Sms_email_manager extends Home
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') exit();
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -2267,7 +2263,7 @@ class Sms_email_manager extends Home
 
         {
 
-            mkdir($output_dir,0777);
+            mkdir($output_dir,0777,true);
 
         }
 
@@ -2331,7 +2327,7 @@ class Sms_email_manager extends Home
 
 
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -2339,7 +2335,7 @@ class Sms_email_manager extends Home
 
 
 
-        $filename = strip_tags($this->input->post("fileval",true));
+        $filename = strip_tags($this->input->post("fileval", true));
 
 
 
@@ -2353,7 +2349,7 @@ class Sms_email_manager extends Home
 
             $res['status'] = '0';
 
-            $res['message'] = $this->lang->line("Sorry, file does not exists in the directory.");
+            $res['message'] = lang("Sorry, file does not exists in the directory.");
 
 
 
@@ -2373,7 +2369,7 @@ class Sms_email_manager extends Home
 
             $res['status'] = '1';
 
-            $res['message'] = $this->lang->line("your given information has been updated successfully.");
+            $res['message'] = lang("your given information has been updated successfully.");
 
             $res['file'] = $file;
 
@@ -2391,7 +2387,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
         if(!$_POST) exit();
 
@@ -2419,7 +2415,7 @@ class Sms_email_manager extends Home
 
         } else {
 
-            $fileName = $this->input->post("fileName",true);
+            $fileName = $this->input->post("fileName", true);
 
             if(file_exists($output_dir.$fileName)){
 
@@ -2437,13 +2433,13 @@ class Sms_email_manager extends Home
 
     { 
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
         $user_id = $this->user_id;
 
-        $contact_group = $this->input->post("csv_group_id");
+        $contact_group = $this->request->getPost("csv_group_id");
 
 
 
@@ -2491,7 +2487,7 @@ class Sms_email_manager extends Home
 
 
 
-            $this->db->trans_start();
+            $this->db->transStart();
 
             $count_insert=0;
 
@@ -2565,9 +2561,8 @@ class Sms_email_manager extends Home
 
                     $sql = "(user_id ='".$user_id."' AND (phone_number='".$new_phone_number."' OR email='".$new_email."'))";
 
-                    $this->db->where($sql);
-
-                    $db_data = $this->basic->get_data("sms_email_contacts");
+                    // CI4: use Basic model raw where instead of CI3-style $this->db->where()
+                    $db_data = $this->basic->get_data("sms_email_contacts", ['where' => $sql]);
 
 
 
@@ -2631,7 +2626,7 @@ class Sms_email_manager extends Home
 
                             
 
-                            array_push($rejected_rows, ['reason' => $this->lang->line("Either email or phone number already Exists in database"),'data'=> $csv_data]);
+                            array_push($rejected_rows, ['reason' => lang("Either email or phone number already Exists in database"),'data'=> $csv_data]);
 
                             continue;
 
@@ -2768,12 +2763,12 @@ class Sms_email_manager extends Home
             }
 
 
+            // Finalize transaction (commit/rollback based on status)
+            $this->db->transComplete();
 
-            $this->db->trans_complete();
 
 
-
-            if ($this->db->trans_status() === false) {
+            if ($this->db->transStatus() === false) {
 
 
 
@@ -2823,7 +2818,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -2831,11 +2826,11 @@ class Sms_email_manager extends Home
 
 
 
-            if($this->session->userdata('user_type') == "Admin") {
+            if(session()->get('user_type') == "Admin") {
 
 
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("This action is disabled in this demo account. Please signup as user and try this with your account")));
+                echo json_encode(array('status'=>'0','message'=>lang("This action is disabled in this demo account. Please signup as user and try this with your account")));
 
                 exit();
 
@@ -2863,7 +2858,7 @@ class Sms_email_manager extends Home
 
             $data = file_get_contents(FCPATH.'upload/csv/'.$filename); 
 
-            force_download($name, $data);
+            return $this->response->download($name, $data);
 
 
 
@@ -2883,7 +2878,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -2903,7 +2898,7 @@ class Sms_email_manager extends Home
 
             foreach ($post as $key => $value) {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
@@ -2915,7 +2910,7 @@ class Sms_email_manager extends Home
 
                 $result['status'] = "2";
 
-                $result['msg'] = $this->lang->line("Email Already Exists. Please try with new Email.");
+                $result['msg'] = lang("Email Already Exists. Please try with new Email.");
 
 
 
@@ -2925,7 +2920,7 @@ class Sms_email_manager extends Home
 
                 $result['status'] = "3";
 
-                $result['msg'] = $this->lang->line("Phone Number Already Exists. Please try with new Phone Number.");
+                $result['msg'] = lang("Phone Number Already Exists. Please try with new Phone Number.");
 
             }
 
@@ -2955,7 +2950,7 @@ class Sms_email_manager extends Home
 
 
 
-                $status = $this->input->post("status",true);
+                $status = $this->input->post("status", true);
 
                 if($status == '') $status = '0';
 
@@ -2989,7 +2984,7 @@ class Sms_email_manager extends Home
 
                     $result['status'] = "1";
 
-                    $result['msg'] = $this->lang->line("Contact has been added successfully.");
+                    $result['msg'] = lang("Contact has been added successfully.");
 
                 } else
 
@@ -2997,7 +2992,7 @@ class Sms_email_manager extends Home
 
                     $result['status'] = "0";
 
-                    $result['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                    $result['msg'] = lang("Something went wrong, please try once again.");
 
                 }
 
@@ -3019,7 +3014,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -3027,7 +3022,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
         $user_id = $this->user_id;
 
@@ -3073,7 +3068,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('First Name').'</label>
+                                        <label>'.lang('First Name').'</label>
 
                                         <input type="text" class="form-control" name="first_name" id="updated_first_name" value="'.$contact_details[0]['first_name'].'">
 
@@ -3085,7 +3080,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('Last Name').'</label>
+                                        <label>'.lang('Last Name').'</label>
 
                                         <input type="text" class="form-control" name="last_name" id="updated_last_name" value="'.$contact_details[0]['last_name'].'">
 
@@ -3097,7 +3092,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('Email').'</label>
+                                        <label>'.lang('Email').'</label>
 
                                         <input type="email" class="form-control" name="contact_email" id="updated_contact_email" value="'.$contact_details[0]['email'].'">
 
@@ -3111,7 +3106,7 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('Phone Number').'</label>
+                                        <label>'.lang('Phone Number').'</label>
 
                                         <input type="text" class="form-control" name="phone_number" id="updated_phone_number" value="'.$contact_details[0]['phone_number'].'">
 
@@ -3123,9 +3118,9 @@ class Sms_email_manager extends Home
 
                                     <div class="form-group">
 
-                                        <label>'.$this->lang->line('Contact Group').'
+                                        <label>'.lang('Contact Group').'
 
-                                            <a href="#" data-toggle="tooltip" title="'.$this->lang->line("You Can select multiple contact group.").'"><i class="fas fa-info-circle"></i></a>
+                                            <a href="#" data-toggle="tooltip" title="'.lang("You Can select multiple contact group.").'"><i class="fas fa-info-circle"></i></a>
 
                                         </label>
 
@@ -3167,7 +3162,7 @@ class Sms_email_manager extends Home
 
                         <div class="form-group">
 
-                            <label>'.$this->lang->line("Status").'</label><br>
+                            <label>'.lang("Status").'</label><br>
 
                             <label class="custom-switch mt-2">
 
@@ -3175,7 +3170,7 @@ class Sms_email_manager extends Home
 
                                 <span class="custom-switch-indicator"></span>
 
-                                <span class="custom-switch-description">'.$this->lang->line('Active').'</span>
+                                <span class="custom-switch-description">'.lang('Active').'</span>
 
                                 <span class="red">'.form_error('status').'</span>
 
@@ -3207,7 +3202,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
@@ -3215,7 +3210,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
 
 
@@ -3233,7 +3228,7 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
@@ -3255,7 +3250,7 @@ class Sms_email_manager extends Home
 
                     $result['status'] = "4";
 
-                    $result['msg'] = $this->lang->line("Email and Phone Number Already Exists. Please try with different Email/Phone Number.");
+                    $result['msg'] = lang("Email and Phone Number Already Exists. Please try with different Email/Phone Number.");
 
                     echo json_encode($result);
 
@@ -3277,7 +3272,7 @@ class Sms_email_manager extends Home
 
                     $result['status'] = "2";
 
-                    $result['msg'] = $this->lang->line("Email Already Exists. Please try with new Email.");
+                    $result['msg'] = lang("Email Already Exists. Please try with new Email.");
 
                     echo json_encode($result);
 
@@ -3299,7 +3294,7 @@ class Sms_email_manager extends Home
 
                     $result['status'] = "3";
 
-                    $result['msg'] = $this->lang->line("Phone Number Already Exists. Please try with new Phone Number.");
+                    $result['msg'] = lang("Phone Number Already Exists. Please try with new Phone Number.");
 
                     echo json_encode($result);
 
@@ -3329,7 +3324,7 @@ class Sms_email_manager extends Home
 
 
 
-            $status = $this->input->post("status",true);
+            $status = $this->input->post("status", true);
 
             if($status=='') $status = '0';
 
@@ -3363,7 +3358,7 @@ class Sms_email_manager extends Home
 
                 $result['status'] = "1";
 
-                $result['msg'] = $this->lang->line("Contact has been updated successfully.");
+                $result['msg'] = lang("Contact has been updated successfully.");
 
             } else
 
@@ -3371,7 +3366,7 @@ class Sms_email_manager extends Home
 
                 $result['status'] = "0";
 
-                $result['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                $result['msg'] = lang("Something went wrong, please try once again.");
 
             }
 
@@ -3391,13 +3386,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('263','264')))==0) exit;
 
 
 
         $this->ajax_check();
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
         if($table_id == "0" || $table_id == null) exit;
 
@@ -3433,7 +3428,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(263,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
@@ -3441,7 +3436,7 @@ class Sms_email_manager extends Home
 
 
 
-        $data['page_title'] = $this->lang->line('SMTP API');
+        $data['page_title'] = lang('SMTP API');
 
         $this->_viewcontroller($data);
 
@@ -3453,7 +3448,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -3508,16 +3503,9 @@ class Sms_email_manager extends Home
 
 
         $table = "email_smtp_config";
-
-        $this->db->where($where_custom);
-
-        $info = $this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-
-
-
-        $this->db->where($where_custom);
-
-        $total_rows_array = $this->basic->count_row($table,$where='',$count="id",$join="",$group_by='');
+        $where = ['where' => $where_custom];
+        $info = $this->basic->get_data($table, $where, $select = '', $join = '', $limit, $start, $order_by, $group_by = '');
+        $total_rows_array = $this->basic->count_row($table, $where, $count = "id", $join = "", $group_by = '');
 
         $total_result=$total_rows_array[0]['total_rows'];
 
@@ -3529,17 +3517,17 @@ class Sms_email_manager extends Home
 
             $status = $info[$i]["status"];
 
-            if($status=='1') $info[$i]["status"] = "<i title ='".$this->lang->line('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
+            if($status=='1') $info[$i]["status"] = "<i title ='".lang('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
 
-            else $info[$i]["status"] = "<i title ='".$this->lang->line('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
-
-
-
-            $info[$i]['actions'] = "<div style='min-width:140px'><a href='#' data-toggle='tooltip' title='".$this->lang->line("Send Test Mail")."' class='btn btn-circle btn-outline-primary send_testmail' table_id='".$info[$i]['id']."'><i class='fa fa-paper-plane'></i></a>&nbsp;<a href='#' data-toggle='tooltip' title='".$this->lang->line("Edit")."' class='btn btn-circle btn-outline-warning edit_smtp' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;";
+            else $info[$i]["status"] = "<i title ='".lang('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
 
 
 
-            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".$this->lang->line("Delete")."' class='btn btn-circle btn-outline-danger delete_smtp' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
+            $info[$i]['actions'] = "<div style='min-width:140px'><a href='#' data-toggle='tooltip' title='".lang("Send Test Mail")."' class='btn btn-circle btn-outline-primary send_testmail' table_id='".$info[$i]['id']."'><i class='fa fa-paper-plane'></i></a>&nbsp;<a href='#' data-toggle='tooltip' title='".lang("Edit")."' class='btn btn-circle btn-outline-warning edit_smtp' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;";
+
+
+
+            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".lang("Delete")."' class='btn btn-circle btn-outline-danger delete_smtp' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
 
                 <script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
 
@@ -3571,7 +3559,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -3595,9 +3583,9 @@ class Sms_email_manager extends Home
 
 
 
-            $email_table_id = $this->input->post("table_id",true);
+            $email_table_id = $this->input->post("table_id", true);
 
-            $service_type = $this->input->post("service_type",true);
+            $service_type = $this->input->post("service_type", true);
 
 
 
@@ -3637,11 +3625,11 @@ class Sms_email_manager extends Home
 
 
 
-            $to_email = trim($this->input->post("email"));
+            $to_email = trim($this->request->getPost("email"));
 
-            $subject = trim($this->input->post("subject"));
+            $subject = trim($this->request->getPost("subject"));
 
-            $message = $this->input->post("message");
+            $message = $this->request->getPost("message");
 
             $attachement = "";
 
@@ -3669,7 +3657,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -3693,13 +3681,13 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
 
 
-            $smtp_status = $this->input->post("smtp_status",true);
+            $smtp_status = $this->input->post("smtp_status", true);
 
             if($smtp_status == "") $smtp_status = "0";
 
@@ -3731,7 +3719,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '1';
 
-                $ret['msg'] = $this->lang->line("SMTP API Information has been added successfully.");
+                $ret['msg'] = lang("SMTP API Information has been added successfully.");
 
             } else
 
@@ -3739,7 +3727,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '0';
 
-                $ret['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                $ret['msg'] = lang("Something went wrong, please try once again.");
 
             }
 
@@ -3759,7 +3747,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -3769,7 +3757,7 @@ class Sms_email_manager extends Home
 
         $user_id = $this->user_id;
 
-        $table_id = $this->input->post("table_id",true);
+        $table_id = $this->input->post("table_id", true);
 
         if($table_id == "0" || $table_id == "") exit;
 
@@ -3833,7 +3821,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Email Address').'</label>
+                                <label>'.lang('Email Address').'</label>
 
                                 <input type="text" class="form-control" id="updated_smtp_email" name="smtp_email" value="'.$smtp_email.'">
 
@@ -3845,7 +3833,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('SMTP Host').'</label>
+                                <label>'.lang('SMTP Host').'</label>
 
                                 <input type="text" class="form-control" id="updated_smtp_host" name="smtp_host" value="'.$smtp_host.'">
 
@@ -3857,7 +3845,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('SMTP Port').'</label>
+                                <label>'.lang('SMTP Port').'</label>
 
                                 <input type="text" class="form-control" id="updated_smtp_port" name="smtp_port" value="'.$smtp_port.'">
 
@@ -3869,7 +3857,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('SMTP Username').'</label>
+                                <label>'.lang('SMTP Username').'</label>
 
                                 <input type="text" class="form-control" id="updated_smtp_username" name="smtp_username" value="'.$smtp_user.'">
 
@@ -3881,7 +3869,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('SMTP Password').'</label>
+                                <label>'.lang('SMTP Password').'</label>
 
                                 <input type="text" class="form-control" id="updated_smtp_password" name="smtp_password" value="'.$smtp_pass.'">
 
@@ -3893,15 +3881,15 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('SMTP Type').'</label>
+                                <label>'.lang('SMTP Type').'</label>
 
                                 <select class="form-control select2" id="updated_smtp_type" name="smtp_type" style="width:100%;">
 
-                                    <option value="Default" '.$default_selected.'>'.$this->lang->line('Default').'</option>
+                                    <option value="Default" '.$default_selected.'>'.lang('Default').'</option>
 
-                                    <option value="tls" '.$tls_selected.'>'.$this->lang->line('tls').'</option>
+                                    <option value="tls" '.$tls_selected.'>'.lang('tls').'</option>
 
-                                    <option value="ssl" '.$ssl_selected.'>'.$this->lang->line('ssl').'</option>
+                                    <option value="ssl" '.$ssl_selected.'>'.lang('ssl').'</option>
 
                                 </select>
 
@@ -3913,7 +3901,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Status').'</label><br>
+                                <label>'.lang('Status').'</label><br>
 
                                 <label class="custom-switch">
 
@@ -3921,7 +3909,7 @@ class Sms_email_manager extends Home
 
                                     <span class="custom-switch-indicator"></span>
 
-                                    <span class="custom-switch-description">'.$this->lang->line('Active').'</span>
+                                    <span class="custom-switch-description">'.lang('Active').'</span>
 
                                 </label>
 
@@ -3935,7 +3923,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Sender Name').'</label>
+                                <label>'.lang('Sender Name').'</label>
 
                                 <input type="text" class="form-control" id="updated_sender_name" name="sender_name" value="'.$sender_name.'">
 
@@ -3969,7 +3957,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -3983,7 +3971,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
 
 
@@ -3997,13 +3985,13 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
 
 
-            $smtp_status = $this->input->post("smtp_status",true);
+            $smtp_status = $this->input->post("smtp_status", true);
 
             if($smtp_status == "") $smtp_status = "0";
 
@@ -4035,7 +4023,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '1';
 
-                $ret['msg'] = $this->lang->line("SMTP API Information has been updated successfully.");
+                $ret['msg'] = lang("SMTP API Information has been updated successfully.");
 
             } else
 
@@ -4043,7 +4031,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '0';
 
-                $ret['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                $ret['msg'] = lang("Something went wrong, please try once again.");
 
             }
 
@@ -4061,7 +4049,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4069,7 +4057,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id",true);
+        $table_id = $this->input->post("table_id", true);
 
         if($table_id == "0" || $table_id == "") exit;
 
@@ -4101,13 +4089,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(263,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
         $data['body'] = 'sms_email_manager/email/email_api_config/mailgun_config';
 
-        $data['page_title'] = $this->lang->line('Mailgun API');
+        $data['page_title'] = lang('Mailgun API');
 
         $this->_viewcontroller($data);
 
@@ -4119,7 +4107,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4174,16 +4162,9 @@ class Sms_email_manager extends Home
 
 
         $table = "email_mailgun_config";
-
-        $this->db->where($where_custom);
-
-        $info = $this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-
-
-
-        $this->db->where($where_custom);
-
-        $total_rows_array = $this->basic->count_row($table,$where='',$count="id",$join="",$group_by='');
+        $where = ['where' => $where_custom];
+        $info = $this->basic->get_data($table, $where, $select = '', $join = '', $limit, $start, $order_by, $group_by = '');
+        $total_rows_array = $this->basic->count_row($table, $where, $count = "id", $join = "", $group_by = '');
 
         $total_result=$total_rows_array[0]['total_rows'];
 
@@ -4195,21 +4176,21 @@ class Sms_email_manager extends Home
 
             $status = $info[$i]["status"];
 
-            if($status=='1') $info[$i]["status"] = "<i title ='".$this->lang->line('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
+            if($status=='1') $info[$i]["status"] = "<i title ='".lang('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
 
-            else $info[$i]["status"] = "<i title ='".$this->lang->line('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
-
-
-
-            $info[$i]['actions'] = "<div style='min-width:150px'><a href='#' data-toggle='tooltip' title='".$this->lang->line("Send Test Mail")."' class='btn btn-circle btn-outline-primary send_testmail' table_id='".$info[$i]['id']."'><i class='fa fa-send'></i></a>&nbsp;&nbsp;";
+            else $info[$i]["status"] = "<i title ='".lang('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
 
 
 
-            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".$this->lang->line("Edit")."' class='btn btn-circle btn-outline-warning edit_mailgun_api' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
+            $info[$i]['actions'] = "<div style='min-width:150px'><a href='#' data-toggle='tooltip' title='".lang("Send Test Mail")."' class='btn btn-circle btn-outline-primary send_testmail' table_id='".$info[$i]['id']."'><i class='fa fa-send'></i></a>&nbsp;&nbsp;";
 
 
 
-            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".$this->lang->line("Delete")."' class='btn btn-circle btn-outline-danger delete_mailgun_api' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
+            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".lang("Edit")."' class='btn btn-circle btn-outline-warning edit_mailgun_api' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
+
+
+
+            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".lang("Delete")."' class='btn btn-circle btn-outline-danger delete_mailgun_api' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
 
                 <script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
 
@@ -4239,7 +4220,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4263,13 +4244,13 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
 
 
-            $mailgun_status = $this->input->post("mailgun_status",true);
+            $mailgun_status = $this->input->post("mailgun_status", true);
 
             if($mailgun_status == "") $mailgun_status = "0";
 
@@ -4293,7 +4274,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '1';
 
-                $ret['msg'] = $this->lang->line("Mailgun API Information has been added successfully.");
+                $ret['msg'] = lang("Mailgun API Information has been added successfully.");
 
             } else
 
@@ -4301,7 +4282,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '0';
 
-                $ret['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                $ret['msg'] = lang("Something went wrong, please try once again.");
 
             }
 
@@ -4319,7 +4300,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4329,7 +4310,7 @@ class Sms_email_manager extends Home
 
         $user_id  = $this->user_id;
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
         if($table_id == "0" || $table_id == "") exit;
 
@@ -4375,7 +4356,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Email Address').'</label>
+                                <label>'.lang('Email Address').'</label>
 
                                 <input type="text" class="form-control" id="updated_mailgun_email" name="mailgun_email" value="'.$email.'">
 
@@ -4387,7 +4368,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Domain Name').'</label>
+                                <label>'.lang('Domain Name').'</label>
 
                                 <input type="text" class="form-control" id="updated_mailgun_domain" name="mailgun_domain" value="'.$domain.'">
 
@@ -4399,7 +4380,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('API Key').'</label>
+                                <label>'.lang('API Key').'</label>
 
                                 <input type="text" class="form-control" id="updated_mailgun_api_key" name="mailgun_api_key" value="'.$api_key.'">
 
@@ -4411,7 +4392,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Status').'</label><br>
+                                <label>'.lang('Status').'</label><br>
 
                                 <label class="custom-switch">
 
@@ -4419,7 +4400,7 @@ class Sms_email_manager extends Home
 
                                     <span class="custom-switch-indicator"></span>
 
-                                    <span class="custom-switch-description">'.$this->lang->line('Active').'</span>
+                                    <span class="custom-switch-description">'.lang('Active').'</span>
 
                                 </label>
 
@@ -4447,7 +4428,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4461,7 +4442,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
 
 
@@ -4475,13 +4456,13 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
 
 
-            $mailgun_status = $this->input->post("mailgun_status",true);
+            $mailgun_status = $this->input->post("mailgun_status", true);
 
             if($mailgun_status == "") $mailgun_status = "0";
 
@@ -4505,7 +4486,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '1';
 
-                $ret['msg'] = $this->lang->line("Mailgun API Information has been updated successfully.");
+                $ret['msg'] = lang("Mailgun API Information has been updated successfully.");
 
             } else
 
@@ -4513,7 +4494,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '0';
 
-                $ret['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                $ret['msg'] = lang("Something went wrong, please try once again.");
 
             }
 
@@ -4531,7 +4512,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4539,7 +4520,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
         if($table_id == "0" || $table_id == "") exit;
 
@@ -4569,13 +4550,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(263,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
         $data['body'] = 'sms_email_manager/email/email_api_config/mandrill_config';
 
-        $data['page_title'] = $this->lang->line('Mandrill API');
+        $data['page_title'] = lang('Mandrill API');
 
         $this->_viewcontroller($data);
 
@@ -4587,7 +4568,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4642,16 +4623,9 @@ class Sms_email_manager extends Home
 
 
         $table = "email_mandrill_config";
-
-        $this->db->where($where_custom);
-
-        $info = $this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-
-
-
-        $this->db->where($where_custom);
-
-        $total_rows_array = $this->basic->count_row($table,$where='',$count="id",$join="",$group_by='');
+        $where = ['where' => $where_custom];
+        $info = $this->basic->get_data($table, $where, $select = '', $join = '', $limit, $start, $order_by, $group_by = '');
+        $total_rows_array = $this->basic->count_row($table, $where, $count = "id", $join = "", $group_by = '');
 
         $total_result=$total_rows_array[0]['total_rows'];
 
@@ -4663,21 +4637,21 @@ class Sms_email_manager extends Home
 
             $status = $info[$i]["status"];
 
-            if($status=='1') $info[$i]["status"] = "<i title ='".$this->lang->line('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
+            if($status=='1') $info[$i]["status"] = "<i title ='".lang('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
 
-            else $info[$i]["status"] = "<i title ='".$this->lang->line('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
-
-
-
-            $info[$i]['actions'] = "<div style='min-width:150px'><a href='#' data-toggle='tooltip' title='".$this->lang->line("Send Test Mail")."' class='btn btn-circle btn-outline-primary send_testmail' table_id='".$info[$i]['id']."'><i class='fa fa-send'></i></a>&nbsp;&nbsp;";
+            else $info[$i]["status"] = "<i title ='".lang('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
 
 
 
-            $info[$i]['actions'] .= "<a href='#' title='".$this->lang->line("Edit")."' class='btn btn-circle btn-outline-warning edit_mandrill_api' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
+            $info[$i]['actions'] = "<div style='min-width:150px'><a href='#' data-toggle='tooltip' title='".lang("Send Test Mail")."' class='btn btn-circle btn-outline-primary send_testmail' table_id='".$info[$i]['id']."'><i class='fa fa-send'></i></a>&nbsp;&nbsp;";
 
 
 
-            $info[$i]['actions'] .= "<a href='#' title='".$this->lang->line("Delete")."' class='btn btn-circle btn-outline-danger delete_mandrill_api' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
+            $info[$i]['actions'] .= "<a href='#' title='".lang("Edit")."' class='btn btn-circle btn-outline-warning edit_mandrill_api' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
+
+
+
+            $info[$i]['actions'] .= "<a href='#' title='".lang("Delete")."' class='btn btn-circle btn-outline-danger delete_mandrill_api' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
 
                 <script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
 
@@ -4707,7 +4681,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4731,13 +4705,13 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
 
 
-            $mandrill_status = $this->input->post("mandrill_status",true);
+            $mandrill_status = $this->input->post("mandrill_status", true);
 
             if($mandrill_status == "") $mandrill_status = "0";
 
@@ -4761,7 +4735,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '1';
 
-                $ret['msg'] = $this->lang->line("Mandrill API Information has been added successfully.");
+                $ret['msg'] = lang("Mandrill API Information has been added successfully.");
 
             } else
 
@@ -4769,7 +4743,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '0';
 
-                $ret['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                $ret['msg'] = lang("Something went wrong, please try once again.");
 
             }
 
@@ -4787,7 +4761,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4797,7 +4771,7 @@ class Sms_email_manager extends Home
 
         $user_id  = $this->user_id;
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
         if($table_id == "0" || $table_id == "") exit;
 
@@ -4843,7 +4817,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Your Name').'</label>
+                                <label>'.lang('Your Name').'</label>
 
                                 <input type="text" class="form-control" id="updated_mandrill_name" name="mandrill_name" value="'.$name.'">
 
@@ -4855,7 +4829,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Email Address').'</label>
+                                <label>'.lang('Email Address').'</label>
 
                                 <input type="text" class="form-control" id="updated_mandrill_email" name="mandrill_email" value="'.$email.'">
 
@@ -4867,7 +4841,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('API Key').'</label>
+                                <label>'.lang('API Key').'</label>
 
                                 <input type="text" class="form-control" id="updated_mandrill_api_key" name="mandrill_api_key" value="'.$api_key.'">
 
@@ -4879,7 +4853,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Status').'</label><br>
+                                <label>'.lang('Status').'</label><br>
 
                                 <label class="custom-switch">
 
@@ -4887,7 +4861,7 @@ class Sms_email_manager extends Home
 
                                     <span class="custom-switch-indicator"></span>
 
-                                    <span class="custom-switch-description">'.$this->lang->line('Active').'</span>
+                                    <span class="custom-switch-description">'.lang('Active').'</span>
 
                                 </label>
 
@@ -4915,7 +4889,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -4929,7 +4903,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
 
 
@@ -4943,13 +4917,13 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
 
 
-            $mandrill_status = $this->input->post("mandrill_status",true);
+            $mandrill_status = $this->input->post("mandrill_status", true);
 
             if($mandrill_status == "") $mandrill_status = "0";
 
@@ -4973,7 +4947,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '1';
 
-                $ret['msg'] = $this->lang->line("Mandrill API Information has been updated successfully.");
+                $ret['msg'] = lang("Mandrill API Information has been updated successfully.");
 
             } else
 
@@ -4981,7 +4955,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '0';
 
-                $ret['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                $ret['msg'] = lang("Something went wrong, please try once again.");
 
             }
 
@@ -5001,11 +4975,11 @@ class Sms_email_manager extends Home
 
         $this->ajax_check();
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
         if($table_id == "0" || $table_id == "") exit;
 
@@ -5037,13 +5011,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(263,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
         $data['body'] = 'sms_email_manager/email/email_api_config/sendgrid_config';
 
-        $data['page_title'] = $this->lang->line('Sendgrid API');
+        $data['page_title'] = lang('Sendgrid API');
 
         $this->_viewcontroller($data);
 
@@ -5059,7 +5033,7 @@ class Sms_email_manager extends Home
 
 
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -5110,16 +5084,9 @@ class Sms_email_manager extends Home
 
 
         $table = "email_sendgrid_config";
-
-        $this->db->where($where_custom);
-
-        $info = $this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-
-
-
-        $this->db->where($where_custom);
-
-        $total_rows_array = $this->basic->count_row($table,$where='',$count="id",$join="",$group_by='');
+        $where = ['where' => $where_custom];
+        $info = $this->basic->get_data($table, $where, $select = '', $join = '', $limit, $start, $order_by, $group_by = '');
+        $total_rows_array = $this->basic->count_row($table, $where, $count = "id", $join = "", $group_by = '');
 
         $total_result=$total_rows_array[0]['total_rows'];
 
@@ -5131,21 +5098,21 @@ class Sms_email_manager extends Home
 
             $status = $info[$i]["status"];
 
-            if($status=='1') $info[$i]["status"] = "<i title ='".$this->lang->line('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
+            if($status=='1') $info[$i]["status"] = "<i title ='".lang('Active')."'class='status-icon fas fa-toggle-on text-primary'></i>";
 
-            else $info[$i]["status"] = "<i title ='".$this->lang->line('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
-
-
-
-            $info[$i]['actions'] = "<div style='min-width:100px'><a href='#' data-toggle='tooltip' title='".$this->lang->line("Send Test Mail")."' class='btn btn-circle btn-outline-primary send_testmail' table_id='".$info[$i]['id']."'><i class='fa fa-send'></i></a>&nbsp;&nbsp;";
+            else $info[$i]["status"] = "<i title ='".lang('Inactive')."'class='status-icon fas fa-toggle-off gray'></i>";
 
 
 
-            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".$this->lang->line("Edit")."' class='btn btn-circle btn-outline-warning edit_sendgrid_api' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
+            $info[$i]['actions'] = "<div style='min-width:100px'><a href='#' data-toggle='tooltip' title='".lang("Send Test Mail")."' class='btn btn-circle btn-outline-primary send_testmail' table_id='".$info[$i]['id']."'><i class='fa fa-send'></i></a>&nbsp;&nbsp;";
 
 
 
-            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".$this->lang->line("Delete")."' class='btn btn-circle btn-outline-danger delete_sendgrid_api' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
+            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".lang("Edit")."' class='btn btn-circle btn-outline-warning edit_sendgrid_api' table_id='".$info[$i]['id']."'><i class='fa fa-edit'></i></a>&nbsp;&nbsp;";
+
+
+
+            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".lang("Delete")."' class='btn btn-circle btn-outline-danger delete_sendgrid_api' table_id='".$info[$i]['id']."'><i class='fa fa-trash-alt'></i></a></div>
 
                 <script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
 
@@ -5173,7 +5140,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -5197,13 +5164,13 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
 
 
-            $sendgrid_status = $this->input->post("sendgrid_status",true);
+            $sendgrid_status = $this->input->post("sendgrid_status", true);
 
             if($sendgrid_status == "") $sendgrid_status = "0";
 
@@ -5227,7 +5194,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '1';
 
-                $ret['msg'] = $this->lang->line("Sendgrid API Information has been added successfully.");
+                $ret['msg'] = lang("Sendgrid API Information has been added successfully.");
 
             } else
 
@@ -5235,7 +5202,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '0';
 
-                $ret['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                $ret['msg'] = lang("Something went wrong, please try once again.");
 
             }
 
@@ -5255,7 +5222,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -5265,7 +5232,7 @@ class Sms_email_manager extends Home
 
         $user_id  = $this->user_id;
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
         if($table_id == "0" || $table_id == "") exit;
 
@@ -5311,7 +5278,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Email Address').'</label>
+                                <label>'.lang('Email Address').'</label>
 
                                 <input type="text" class="form-control" id="updated_sendgrid_email" name="sendgrid_email" value="'.$email.'">
 
@@ -5325,7 +5292,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Username').'</label>
+                                <label>'.lang('Username').'</label>
 
                                 <input type="text" class="form-control" id="updated_sendgrid_username" name="sendgrid_username" value="'.$username.'">
 
@@ -5337,7 +5304,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Password').'</label>
+                                <label>'.lang('Password').'</label>
 
                                 <input type="text" class="form-control" id="updated_sendgrid_password" name="sendgrid_password" value="'.$password.'">
 
@@ -5349,7 +5316,7 @@ class Sms_email_manager extends Home
 
                             <div class="form-group">
 
-                                <label>'.$this->lang->line('Status').'</label><br>
+                                <label>'.lang('Status').'</label><br>
 
                                 <label class="custom-switch">
 
@@ -5357,7 +5324,7 @@ class Sms_email_manager extends Home
 
                                     <span class="custom-switch-indicator"></span>
 
-                                    <span class="custom-switch-description">'.$this->lang->line('Active').'</span>
+                                    <span class="custom-switch-description">'.lang('Active').'</span>
 
                                 </label>
 
@@ -5385,7 +5352,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -5399,7 +5366,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
 
 
@@ -5413,13 +5380,13 @@ class Sms_email_manager extends Home
 
             {
 
-                $$key = $this->input->post($key,TRUE);
+                $$key = $this->input->post($key, true);
 
             }
 
 
 
-            $sendgrid_status = $this->input->post("sendgrid_status",true);
+            $sendgrid_status = $this->input->post("sendgrid_status", true);
 
             if($sendgrid_status == "") $sendgrid_status = "0";
 
@@ -5443,7 +5410,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '1';
 
-                $ret['msg'] = $this->lang->line("Sendgrid API Information has been updated successfully.");
+                $ret['msg'] = lang("Sendgrid API Information has been updated successfully.");
 
             } else
 
@@ -5451,7 +5418,7 @@ class Sms_email_manager extends Home
 
                 $ret['status'] = '0';
 
-                $ret['msg'] = $this->lang->line("Something went wrong, please try once again.");
+                $ret['msg'] = lang("Something went wrong, please try once again.");
 
             }
 
@@ -5469,7 +5436,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -5477,7 +5444,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id");
+        $table_id = $this->request->getPost("table_id");
 
         if($table_id == "0" || $table_id == "") exit;
 
@@ -5515,13 +5482,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
         $data['body'] = 'sms_email_manager/sms/sms_campaign_lists';
 
-        $data['page_title'] = $this->lang->line('SMS Campaign');
+        $data['page_title'] = lang('SMS Campaign');
 
         $this->_viewcontroller($data);
 
@@ -5533,7 +5500,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -5541,11 +5508,11 @@ class Sms_email_manager extends Home
 
 
 
-        $campaign_status     = trim($this->input->post("campaign_status",true));
+        $campaign_status     = trim($this->input->post("campaign_status", true));
 
-        $searching_campaign  = trim($this->input->post("searching_campaign",true));
+        $searching_campaign  = trim($this->input->post("searching_campaign", true));
 
-        $post_date_range = $this->input->post("post_date_range",true);
+        $post_date_range = $this->input->post("post_date_range", true);
 
 
 
@@ -5643,7 +5610,7 @@ class Sms_email_manager extends Home
 
             if ($info[$i]['gateway_name'] == 'custom') {
 
-                $info[$i]['gateway_name'] = $this->lang->line("Custom - "). $info[$i]['custom_name'];
+                $info[$i]['gateway_name'] = lang("Custom - "). $info[$i]['custom_name'];
 
             }
 
@@ -5665,7 +5632,7 @@ class Sms_email_manager extends Home
 
             else 
 
-                $info[$i]['schedule_time'] = "<div style='min-width:100px !important;' class='text-muted'><i class='fas fa-exclamation-circle'></i> ".$this->lang->line('Not Scheduled')."</div>";
+                $info[$i]['schedule_time'] = "<div style='min-width:100px !important;' class='text-muted'><i class='fas fa-exclamation-circle'></i> ".lang('Not Scheduled')."</div>";
 
 
 
@@ -5681,11 +5648,11 @@ class Sms_email_manager extends Home
 
             if($posting_status=='1')
 
-                $delete_btn = "<a href='#' class='btn btn-circle btn-light pointer text-muted' data-toggle='tooltip' title='".$this->lang->line("Campaign in processing can not be deleted. You can pause campaign and then delete it.")."'><i class='fa fa-trash'></i></a>";
+                $delete_btn = "<a href='#' class='btn btn-circle btn-light pointer text-muted' data-toggle='tooltip' title='".lang("Campaign in processing can not be deleted. You can pause campaign and then delete it.")."'><i class='fa fa-trash'></i></a>";
 
             else 
 
-                $delete_btn =  "<a href='#' data-toggle='tooltip' title='".$this->lang->line("delete campaign")."' id='".$info[$i]['id']."' class='delete_sms_campaign btn btn-circle btn-outline-danger'><i class='fa fa-trash'></i></a>";
+                $delete_btn =  "<a href='#' data-toggle='tooltip' title='".lang("delete campaign")."' id='".$info[$i]['id']."' class='delete_sms_campaign btn btn-circle btn-outline-danger'><i class='fa fa-trash'></i></a>";
 
 
 
@@ -5721,11 +5688,11 @@ class Sms_email_manager extends Home
 
                 if($posting_status=='1' && $is_try_again=='1')
 
-                    $force_porcess_str .= "<a href='#' class='btn btn-circle btn-outline-dark pause_campaign_info' table_id='".$info[$i]['id']."' data-toggle='tooltip' title='".$this->lang->line("Pause Campaign")."'><i class='fas fa-pause'></i></a>";
+                    $force_porcess_str .= "<a href='#' class='btn btn-circle btn-outline-dark pause_campaign_info' table_id='".$info[$i]['id']."' data-toggle='tooltip' title='".lang("Pause Campaign")."'><i class='fas fa-pause'></i></a>";
 
                 if($posting_status=='3')
 
-                    $force_porcess_str .= "<a href='#' class='btn btn-circle btn-outline-success play_campaign_info' table_id='".$info[$i]['id']."' data-toggle='tooltip' title='".$this->lang->line("Start Campaign")."'><i class='fas fa-play'></i></a>";
+                    $force_porcess_str .= "<a href='#' class='btn btn-circle btn-outline-success play_campaign_info' table_id='".$info[$i]['id']."' data-toggle='tooltip' title='".lang("Start Campaign")."'><i class='fas fa-play'></i></a>";
 
             }
 
@@ -5735,7 +5702,7 @@ class Sms_email_manager extends Home
 
                 $action_count++;
 
-                $force_porcess_str .= "<a href='#' id='".$info[$i]['id']."' class='force btn btn-circle btn-outline-warning' data-toggle='tooltip' title='".$this->lang->line("force reprocessing")."'><i class='fas fa-sync'></i></a>";
+                $force_porcess_str .= "<a href='#' id='".$info[$i]['id']."' class='force btn btn-circle btn-outline-warning' data-toggle='tooltip' title='".lang("force reprocessing")."'><i class='fas fa-sync'></i></a>";
 
             }
 
@@ -5745,19 +5712,19 @@ class Sms_email_manager extends Home
 
             if( $posting_status == '2') 
 
-                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-success badge"><i class="fas fa-check-circle"></i> '.$this->lang->line("Completed").'</span></div>';
+                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-success badge"><i class="fas fa-check-circle"></i> '.lang("Completed").'</span></div>';
 
             else if( $posting_status == '1') 
 
-                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-warning"><i class="fas fa-spinner"></i> '.$this->lang->line("Processing").'</span></div>';
+                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-warning"><i class="fas fa-spinner"></i> '.lang("Processing").'</span></div>';
 
             else if( $posting_status == '3') 
 
-                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-muted"><i class="fas fa-stop"></i> '.$this->lang->line("Paused").'</span></div>';
+                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-muted"><i class="fas fa-stop"></i> '.lang("Paused").'</span></div>';
 
             else 
 
-                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-danger"><i class="far fa-times-circle"></i> '.$this->lang->line("Pending").'</span></div>';
+                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-danger"><i class="far fa-times-circle"></i> '.lang("Pending").'</span></div>';
 
 
 
@@ -5767,7 +5734,7 @@ class Sms_email_manager extends Home
 
 
 
-            $report_btn = "<a href='#' class='campaign_report btn btn-circle btn-outline-primary' data-toggle='tooltip' title='".$this->lang->line("View Report")."' 
+            $report_btn = "<a href='#' class='campaign_report btn btn-circle btn-outline-primary' data-toggle='tooltip' title='".lang("View Report")."' 
 
                 table_id='".$info[$i]['id']."' 
 
@@ -5789,7 +5756,7 @@ class Sms_email_manager extends Home
 
             if($posting_status != '0' || $info[$i]['time_zone'] == "") 
 
-                $edit_btn = "<a href='#' data-toggle='tooltip' title='".$this->lang->line("only pending campaigns are editable")."' class='btn btn-circle btn-light'><i class='fas fa-edit'></i></a>";
+                $edit_btn = "<a href='#' data-toggle='tooltip' title='".lang("only pending campaigns are editable")."' class='btn btn-circle btn-light'><i class='fas fa-edit'></i></a>";
 
             else
 
@@ -5797,7 +5764,7 @@ class Sms_email_manager extends Home
 
                 $edit_url = site_url('sms_email_manager/edit_sms_campaign/'.$info[$i]['id']);
 
-                $edit_btn =  "<a data-toggle='tooltip' title='".$this->lang->line('edit campaign')."' href='".$edit_url."' class='btn btn-circle btn-outline-warning'><i class='fas fa-edit'></i></a>";
+                $edit_btn =  "<a data-toggle='tooltip' title='".lang('edit campaign')."' href='".$edit_url."' class='btn btn-circle btn-outline-warning'><i class='fas fa-edit'></i></a>";
 
             }
 
@@ -5861,7 +5828,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -5869,7 +5836,7 @@ class Sms_email_manager extends Home
 
 
 
-        $id = $this->input->post("campaign_id");
+        $id = $this->request->getPost("campaign_id");
 
         if($id == "" || $id=="0") exit;
 
@@ -5923,7 +5890,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -5931,9 +5898,9 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post('table_id');
+        $table_id = $this->request->getPost('table_id');
 
-        $search_value = trim($this->input->post("searching",true));  
+        $search_value = trim($this->input->post("searching", true));  
 
 
 
@@ -5980,16 +5947,9 @@ class Sms_email_manager extends Home
 
 
         $table = "sms_sending_campaign_send";
-
-        $this->db->where($where_custom);
-
-        $info = $this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-
-
-
-        $this->db->where($where_custom);
-
-        $total_rows_array = $this->basic->count_row($table,$where='',$count="id",$join='',$group_by='');
+        $where = ['where' => $where_custom];
+        $info = $this->basic->get_data($table, $where, $select = '', $join = '', $limit, $start, $order_by, $group_by = '');
+        $total_rows_array = $this->basic->count_row($table, $where, $count = "id", $join = '', $group_by = '');
 
         $total_result = $total_rows_array[0]['total_rows'];
 
@@ -6069,7 +6029,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
@@ -6079,7 +6039,7 @@ class Sms_email_manager extends Home
 
         $data['body'] = "sms_email_manager/sms/edit_message_content";
 
-        $data['page_title'] = $this->lang->line("Edit Message Contents");
+        $data['page_title'] = lang("Edit Message Contents");
 
         $data["message_data"] = $this->basic->get_data("sms_sending_campaign",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
 
@@ -6093,7 +6053,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -6101,11 +6061,11 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id",true);
+        $table_id = $this->input->post("table_id", true);
 
         $user_id = $this->user_id;
 
-        $message = $this->input->post("message");
+        $message = $this->request->getPost("message");
 
         $message = str_replace(array("'",'"'), array('`','`'), $message);
 
@@ -6137,13 +6097,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
         $this->ajax_check();
 
-        $id = $this->input->post("table_id");
+        $id = $this->request->getPost("table_id");
 
 
 
@@ -6163,13 +6123,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
         $this->ajax_check();
 
-        $table_id = $this->input->post('table_id');
+        $table_id = $this->request->getPost('table_id');
 
         $post_info = $this->basic->update_data('sms_sending_campaign',array('id'=>$table_id),array('posting_status'=>'3','is_try_again'=>'0'));
 
@@ -6185,13 +6145,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
         $this->ajax_check();
 
-        $table_id = $this->input->post('table_id');
+        $table_id = $this->request->getPost('table_id');
 
         $post_info = $this->basic->update_data('sms_sending_campaign',array('id'=>$table_id),array('posting_status'=>'1','is_try_again'=>'1'));
 
@@ -6205,13 +6165,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
         $this->ajax_check();
 
-        $id = $this->input->post("id");
+        $id = $this->request->getPost("id");
 
 
 
@@ -6221,7 +6181,7 @@ class Sms_email_manager extends Home
 
         $this->basic->update_data('sms_sending_campaign',$where,$data);
 
-        if($this->db->affected_rows() != 0) echo "1";
+        if($this->db->affectedRows() != 0) echo "1";
 
         else  echo "0";
 
@@ -6233,27 +6193,27 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
-        if($this->session->userdata('logged_in') != 1) exit();
+        if(session()->get('logged_in') != 1) exit();
 
         $this->ajax_check();
 
-        $page_id=$this->input->post('page_id');// database id
+        $page_id=$this->request->getPost('page_id');// database id
 
-        $user_gender=$this->input->post('user_gender');
+        $user_gender=$this->request->getPost('user_gender');
 
-        $user_time_zone=$this->input->post('user_time_zone');
+        $user_time_zone=$this->request->getPost('user_time_zone');
 
-        $user_locale=$this->input->post('user_locale');
+        $user_locale=$this->request->getPost('user_locale');
 
-        $load_label=$this->input->post('load_label');
+        $load_label=$this->request->getPost('load_label');
 
-        $label_ids=$this->input->post('label_ids');
+        $label_ids=$this->request->getPost('label_ids');
 
-        $excluded_label_ids=$this->input->post('excluded_label_ids');
+        $excluded_label_ids=$this->request->getPost('excluded_label_ids');
 
 
 
@@ -6369,29 +6329,27 @@ class Sms_email_manager extends Home
 
            if(count($label_ids)>0) $sql_part.=")";
 
-           if($sql_part!="") $this->db->where($sql_part);
-
-
-
-           foreach ($excluded_label_ids as $key => $value) 
-
-           {
-
-              $sq="NOT FIND_IN_SET('".$value."',contact_group_id) !=0";
-
-              $this->db->where($sq);
-
-           }
-
         }
 
 
 
-        $where2 = array('where'=>$where_simple2);
+        // CI4: use Query Builder for dynamic raw where conditions (labels/excluded labels)
+        $builder = $this->db->table("messenger_bot_subscriber");
+        $builder->select('COUNT(id) as subscriber_count', false);
+        $builder->where($where_simple2);
 
-        $bot_subscriber=$this->basic->get_data("messenger_bot_subscriber",$where2,'count(id) as subscriber_count');
+        if ($load_label == '0') {
+            if ($sql_part != "") {
+                $builder->where($sql_part, null, false);
+            }
+            foreach ($excluded_label_ids as $key => $value) {
+                $sq = "NOT FIND_IN_SET('".$value."',contact_group_id) !=0";
+                $builder->where($sq, null, false);
+            }
+        }
 
-        $subscriber_count = isset($bot_subscriber[0]['subscriber_count'])? $bot_subscriber[0]['subscriber_count'] : 0;
+        $row = $builder->get()->getRowArray();
+        $subscriber_count = isset($row['subscriber_count']) ? (int) $row['subscriber_count'] : 0;
 
         $page_info['subscriber_count'] = $subscriber_count;
 
@@ -6413,7 +6371,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
         if(!$_POST) exit;
         $this->ajax_check();
         $user_id = $this->user_id;
@@ -6421,15 +6379,12 @@ class Sms_email_manager extends Home
         if(isset($contacts_sms_group) && !empty($contacts_sms_group))
         foreach ($contacts_sms_group as $key => $value) 
         {
-            $where_simple = array('sms_email_contacts.user_id'=>$this->user_id,"sms_email_contacts.phone_number !="=>"","sms_email_contacts.status"=>"1");
-            $this->db->where("FIND_IN_SET('$value',sms_email_contacts.contact_type_id) !=", 0);
-            $where = array('where'=>$where_simple);    
-            $contact_details = $this->basic->get_data('sms_email_contacts', $where,array("phone_number"));
-            foreach ($contact_details as $key2 => $value2) 
-            {   
-
-                $contacts_id[] = isset($value2["id"]) ? $value2["id"]: "";
-
+            $where_custom = "sms_email_contacts.user_id='{$this->user_id}' AND sms_email_contacts.phone_number!='' AND sms_email_contacts.status='1' AND FIND_IN_SET('{$value}',sms_email_contacts.contact_type_id) != 0";
+            $contact_details = $this->basic->get_data('sms_email_contacts', ['where' => $where_custom], ['id']);
+            foreach ($contact_details as $contact) {
+                if (isset($contact['id'])) {
+                    $contacts_id[] = $contact['id'];
+                }
             }
         }
         $total_contact = isset($contacts_id) ? count($contacts_id):0;
@@ -6465,7 +6420,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
@@ -6481,7 +6436,7 @@ class Sms_email_manager extends Home
 
 
 
-        $page_info = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),"bot_enabled"=>'1')),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
+        $page_info = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),"bot_enabled"=>'1')),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
 
         $data['page_info'] = $page_info;  
 
@@ -6500,23 +6455,18 @@ class Sms_email_manager extends Home
 
 
 
-                $where_simple = array('sms_email_contacts.user_id'=>$user_id);
+                // CI4: use Query Builder to count contacts per group (unsubscribed)
+                $countRow = $this->db->table('sms_email_contacts')
+                    ->select('COUNT(id) as number_count', false)
+                    ->where('user_id', $user_id)
+                    ->where("FIND_IN_SET('{$search_key}', sms_email_contacts.contact_type_id) !=", 0, false)
+                    ->where('unsubscribed !=', 0)
+                    ->get()
+                    ->getRowArray();
 
-                $this->db->where("FIND_IN_SET('$search_key',sms_email_contacts.contact_type_id) !=", 0);
-
-                $this->db->where('unsubscribed !=', 0);
-                $where = array('where'=>$where_simple);
-                $this->db->select("count(sms_email_contacts.id) as number_count",false);    
-                $contact_details = $this->basic->get_data('sms_email_contacts', $where, $select='', $join='', $limit='', $start='', $order_by='sms_email_contacts.first_name', $group_by='', $num_rows=0);
-
-                foreach ($contact_details as $key2 => $value2) 
-
-                {
-
-                    if($value2['number_count']>0)
-
-                    $group_name[$search_key] = $search_type." (".$value2['number_count'].")";
-
+                $numberCount = (int) ($countRow['number_count'] ?? 0);
+                if ($numberCount > 0) {
+                    $group_name[$search_key] = $search_type . " (" . $numberCount . ")";
                 }
 
                     
@@ -6543,7 +6493,7 @@ class Sms_email_manager extends Home
 
 
 
-        if(isset($apiAccess) && $apiAccess == '1' && $this->session->userdata("user_type") == 'Member')
+        if(isset($apiAccess) && $apiAccess == '1' && session()->get("user_type") == 'Member')
 
         {
 
@@ -6575,7 +6525,7 @@ class Sms_email_manager extends Home
 
 
 
-            $info['gateway_name'] = ($info['gateway_name'] == 'custom') ? $this->lang->line('Custom API')." : ".$info['custom_name'] : $info['gateway_name'];
+            $info['gateway_name'] = ($info['gateway_name'] == 'custom') ? lang('Custom API')." : ".$info['custom_name'] : $info['gateway_name'];
 
             
 
@@ -6596,31 +6546,22 @@ class Sms_email_manager extends Home
         }
 
         unset($info);
-        if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && ($this->session->userdata('user_type') == 'Admin' || in_array(353, $this->module_access))){
+        if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && (session()->get('user_type') == 'Admin' || in_array(353, $this->module_access))){
 
-            $this->db->select('google_contacts_account.id, google_contacts_account.email, COUNT(google_contacts.id) AS number_count');
-            $this->db->from('google_contacts_account');
-            $this->db->join('google_contacts', 'google_contacts_account.id = google_contacts.google_contacts_account_id', 'inner');
-            $this->db->where('google_contacts_account.user_id', $this->user_id);
-            $this->db->group_by('google_contacts_account.id');  // Group by google_contacts_account.id
+            $rows = $this->db->table('google_contacts_account')
+                ->select('google_contacts_account.id, google_contacts_account.email, COUNT(google_contacts.id) AS number_count', false)
+                ->join('google_contacts', 'google_contacts_account.id = google_contacts.google_contacts_account_id', 'inner')
+                ->where('google_contacts_account.user_id', $this->user_id)
+                ->groupBy('google_contacts_account.id')
+                ->get()
+                ->getResultArray();
 
-            // Execute the query and get the result
-            $query = $this->db->get();
-
-            // Initialize the array to store the result
             $contact_account_name = [];
-
-            // Check if query returned a result
-            if ($query->num_rows() > 0) {
-                foreach ($query->result_array() as $row) {
-                    // Ensure the 'number_count' value is greater than 0
-                    if ($row['number_count'] > 0) {
-                        // Store the google_contacts_account.id, email, and number_count in the desired format
-                        $contact_account_name[$row['id']] = $row['email'] . " (" . $row['number_count'] . ")";
-                    }
+            foreach ($rows as $row) {
+                if (!empty($row['number_count'])) {
+                    $contact_account_name[$row['id']] = $row['email'] . " (" . $row['number_count'] . ")";
                 }
             }
-
             $data['google_contacts_account'] = $contact_account_name;
 
         }
@@ -6638,7 +6579,7 @@ class Sms_email_manager extends Home
 
         $data['body'] = 'sms_email_manager/sms/create_sms_campaigns';
 
-        $data['page_title'] = $this->lang->line('Create SMS Campaign');
+        $data['page_title'] = lang('Create SMS Campaign');
 
         $this->_viewcontroller($data);
 
@@ -6651,33 +6592,33 @@ class Sms_email_manager extends Home
     public function create_sms_campaign_action()
 
     {
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
         if(!$_POST) exit();
         $this->ajax_check();
         if($this->is_demo == '1')
         {
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
             {                
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("This action is disabled in this demo account. Please signup as user and try this with your account")));
+                echo json_encode(array('status'=>'0','message'=>lang("This action is disabled in this demo account. Please signup as user and try this with your account")));
                 exit();
             }
         }
         $report = array();
         $campaign_name = strip_tags(trim($this->input->post('campaign_name', true)));
         $message       = $this->input->post('message', true);
-        $schedule_time = $this->input->post('schedule_time');
+        $schedule_time = $this->request->getPost('schedule_time');
         $time_zone     = strip_tags(trim($this->input->post('time_zone', true)));
         $sms_api       = strip_tags(trim($this->input->post('from_sms', true)));
         $to_numbers    = trim($this->input->post('to_numbers', true));
         $campaign_delay    = trim($this->input->post('campaign_delay', true));
         $country_code_add  = trim($this->input->post('country_code_add', true));
         $country_code_remove  = trim($this->input->post('country_code_remove', true));
-        $page_auto_id = $this->input->post('page',true); // page auto id
-        $label_ids = $this->input->post('label_ids',true);
-        $excluded_label_ids = $this->input->post('excluded_label_ids',true);
-        $user_gender = $this->input->post('user_gender',true);
-        $user_time_zone = $this->input->post('user_time_zone',true);
-        $user_locale = $this->input->post('user_locale',true);
+        $page_auto_id = $this->input->post('page', true); // page auto id
+        $label_ids = $this->input->post('label_ids', true);
+        $excluded_label_ids = $this->input->post('excluded_label_ids', true);
+        $user_gender = $this->input->post('user_gender', true);
+        $user_time_zone = $this->input->post('user_time_zone', true);
+        $user_locale = $this->input->post('user_locale', true);
         if(!isset($label_ids) || !is_array($label_ids)) $label_ids=array();
         if(!isset($excluded_label_ids) || !is_array($excluded_label_ids)) $excluded_label_ids=array();
         if($time_zone=='') $time_zone = "Asia/Novosibirsk";
@@ -6690,7 +6631,7 @@ class Sms_email_manager extends Home
             $pageinfo = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("id"=>$page_auto_id,"user_id"=>$this->user_id)));
             if(!isset($pageinfo[0]))
             {
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("Something went wrong.")));
+                echo json_encode(array('status'=>'0','message'=>lang("Something went wrong.")));
                 exit();
             }
             $fb_page_id  = $pageinfo[0]['page_id'];
@@ -6844,13 +6785,8 @@ class Sms_email_manager extends Home
 
             {
 
-                $where_simple = array('sms_email_contacts.user_id'=>$this->user_id);
-
-                $this->db->where("FIND_IN_SET('$value',sms_email_contacts.contact_type_id) !=", 0);
-
-                $where = array('where'=>$where_simple);    
-
-                $contact_details = $this->basic->get_data('sms_email_contacts', $where);
+                $where_custom = "sms_email_contacts.user_id='{$this->user_id}' AND FIND_IN_SET('{$value}',sms_email_contacts.contact_type_id) != 0";
+                $contact_details = $this->basic->get_data('sms_email_contacts', ['where' => $where_custom]);
 
 
 
@@ -7006,7 +6942,7 @@ class Sms_email_manager extends Home
 
 
          // Google contacts campaign
-         if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && ($this->session->userdata('user_type') == 'Admin' || in_array(353, $this->module_access))){
+         if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && (session()->get('user_type') == 'Admin' || in_array(353, $this->module_access))){
 
             $google_contacts_sms_group = $this->input->post('google_contacts_id', true);
             if(isset($google_contacts_sms_group) && !empty($google_contacts_sms_group))
@@ -7059,7 +6995,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("Campaign could not target any subscriber with phone number to reach message. Please try again with different targeting options.")));
+            echo json_encode(array('status'=>'0','message'=>lang("Campaign could not target any subscriber with phone number to reach message. Please try again with different targeting options.")));
 
             exit();
 
@@ -7162,7 +7098,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("Sorry, your monthly limit to send SMS is exceeded.")));
+            echo json_encode(array('status'=>'0','message'=>lang("Sorry, your monthly limit to send SMS is exceeded.")));
 
             exit();
 
@@ -7170,7 +7106,7 @@ class Sms_email_manager extends Home
         if($this->basic->insert_data("sms_sending_campaign", $inserted_data))
         {
             // getting inserted row id
-            $campaign_id = $this->db->insert_id();
+            $campaign_id = $this->db->insertID();
             $report_insert = array();
             foreach ($report as $key=>$value) 
 
@@ -7220,7 +7156,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line('Something went wrong, please try once again.')));
+            echo json_encode(array('status'=>'0','message'=>lang('Something went wrong, please try once again.')));
 
         }
 
@@ -7232,7 +7168,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
@@ -7250,7 +7186,7 @@ class Sms_email_manager extends Home
         // for google contacts
         $data['selected_google_contacts_account'] = isset($data['campaign_data'][0]['google_contact_type_id']) ? explode(",", $data['campaign_data'][0]['google_contact_type_id']) : '';
 
-        $page_info = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),"bot_enabled"=>'1')),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
+        $page_info = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),"bot_enabled"=>'1')),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
 
         $data['page_info'] = $page_info;
 
@@ -7296,26 +7232,16 @@ class Sms_email_manager extends Home
 
 
 
-                $where_simple = array('sms_email_contacts.user_id' => $this->user_id);
+                $countRow = $this->db->table('sms_email_contacts')
+                    ->select('COUNT(id) as number_count', false)
+                    ->where('user_id', $this->user_id)
+                    ->where("FIND_IN_SET('{$search_key}', sms_email_contacts.contact_type_id) !=", 0, false)
+                    ->get()
+                    ->getRowArray();
 
-                $this->db->where("FIND_IN_SET('$search_key',sms_email_contacts.contact_type_id) !=", 0);
-
-                $where = array('where'=>$where_simple);
-
-                $this->db->select("count(sms_email_contacts.id) as number_count",false);    
-
-                $contact_details = $this->basic->get_data('sms_email_contacts', $where, $select='', $join='', $limit='', $start='', $order_by='sms_email_contacts.first_name', $group_by='', $num_rows=0);
-
-            
-
-                foreach ($contact_details as $key2 => $value2) 
-
-                {
-
-                    if($value2['number_count']>0)
-
-                    $group_name[$search_key] = $search_type." (".$value2['number_count'].")";
-
+                $numberCount = (int) ($countRow['number_count'] ?? 0);
+                if ($numberCount > 0) {
+                    $group_name[$search_key] = $search_type . " (" . $numberCount . ")";
                 }
 
             }  
@@ -7332,7 +7258,7 @@ class Sms_email_manager extends Home
 
 
 
-        if($apiAccess == '1' && $this->session->userdata("user_type") == 'Member')
+        if($apiAccess == '1' && session()->get("user_type") == 'Member')
 
         {
 
@@ -7366,7 +7292,7 @@ class Sms_email_manager extends Home
 
 
 
-            $info['gateway_name'] = ($info['gateway_name'] == 'custom') ? $this->lang->line('Custom API')." : ".$info['custom_name'] : $info['gateway_name'];
+            $info['gateway_name'] = ($info['gateway_name'] == 'custom') ? lang('Custom API')." : ".$info['custom_name'] : $info['gateway_name'];
 
 
 
@@ -7382,31 +7308,21 @@ class Sms_email_manager extends Home
 
         }
 
-        if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && ($this->session->userdata('user_type') == 'Admin' || in_array(353, $this->module_access))){
+        if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && (session()->get('user_type') == 'Admin' || in_array(353, $this->module_access))){
+            $rows = $this->db->table('google_contacts_account')
+                ->select('google_contacts_account.id, google_contacts_account.email, COUNT(google_contacts.id) AS number_count', false)
+                ->join('google_contacts', 'google_contacts_account.id = google_contacts.google_contacts_account_id', 'inner')
+                ->where('google_contacts_account.user_id', $this->user_id)
+                ->groupBy('google_contacts_account.id')
+                ->get()
+                ->getResultArray();
 
-            $this->db->select('google_contacts_account.id, google_contacts_account.email, COUNT(google_contacts.id) AS number_count');
-            $this->db->from('google_contacts_account');
-            $this->db->join('google_contacts', 'google_contacts_account.id = google_contacts.google_contacts_account_id', 'inner');
-            $this->db->where('google_contacts_account.user_id', $this->user_id);
-            $this->db->group_by('google_contacts_account.id');  // Group by google_contacts_account.id
-
-            // Execute the query and get the result
-            $query = $this->db->get();
-
-            // Initialize the array to store the result
             $contact_account_name = [];
-
-            // Check if query returned a result
-            if ($query->num_rows() > 0) {
-                foreach ($query->result_array() as $row) {
-                    // Ensure the 'number_count' value is greater than 0
-                    if ($row['number_count'] > 0) {
-                        // Store the google_contacts_account.id, email, and number_count in the desired format
-                        $contact_account_name[$row['id']] = $row['email'] . " (" . $row['number_count'] . ")";
-                    }
+            foreach ($rows as $row) {
+                if (!empty($row['number_count'])) {
+                    $contact_account_name[$row['id']] = $row['email'] . " (" . $row['number_count'] . ")";
                 }
             }
-
             $data['google_contacts_account'] = $contact_account_name;
 
         }
@@ -7420,7 +7336,7 @@ class Sms_email_manager extends Home
 
         $data['groups_name']       = isset($group_name) ? $group_name: "";
 
-        $data['page_title']        = $this->lang->line('Edit SMS Campaign');
+        $data['page_title']        = lang('Edit SMS Campaign');
 
 
 
@@ -7434,7 +7350,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(264,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(264,$this->module_access))) exit;
 
 
 
@@ -7442,11 +7358,11 @@ class Sms_email_manager extends Home
 
         {
 
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
 
             {                
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("This action is disabled in this demo account. Please signup as user and try this with your account")));
+                echo json_encode(array('status'=>'0','message'=>lang("This action is disabled in this demo account. Please signup as user and try this with your account")));
 
                 exit();
 
@@ -7464,15 +7380,15 @@ class Sms_email_manager extends Home
 
 
 
-        $campaign_id   = $this->input->post('campaign_id',true);
+        $campaign_id   = $this->input->post('campaign_id', true);
 
-        $previous_thread = $this->input->post("previous_thread");
+        $previous_thread = $this->request->getPost("previous_thread");
 
         $schedule_name = strip_tags(trim($this->input->post('campaign_name', true)));
 
         $message       = $this->input->post('message', true);
 
-        $schedule_time = $this->input->post('schedule_time');
+        $schedule_time = $this->request->getPost('schedule_time');
 
         $time_zone     = strip_tags(trim($this->input->post('time_zone', true)));
 
@@ -7488,17 +7404,17 @@ class Sms_email_manager extends Home
 
 
 
-        $page_auto_id = $this->input->post('page',true); // page auto id
+        $page_auto_id = $this->input->post('page', true); // page auto id
 
-        $label_ids = $this->input->post('label_ids',true);
+        $label_ids = $this->input->post('label_ids', true);
 
-        $excluded_label_ids = $this->input->post('excluded_label_ids',true);
+        $excluded_label_ids = $this->input->post('excluded_label_ids', true);
 
-        $user_gender = $this->input->post('user_gender',true);
+        $user_gender = $this->input->post('user_gender', true);
 
-        $user_time_zone = $this->input->post('user_time_zone',true);
+        $user_time_zone = $this->input->post('user_time_zone', true);
 
-        $user_locale = $this->input->post('user_locale',true);
+        $user_locale = $this->input->post('user_locale', true);
 
 
 
@@ -7532,7 +7448,7 @@ class Sms_email_manager extends Home
 
             {
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("Something went wrong.")));
+                echo json_encode(array('status'=>'0','message'=>lang("Something went wrong.")));
 
                 exit();
 
@@ -7742,15 +7658,8 @@ class Sms_email_manager extends Home
 
             {
 
-                $where_simple = array('sms_email_contacts.user_id'=>$this->user_id);
-
-                $this->db->where("FIND_IN_SET('$value',sms_email_contacts.contact_type_id) !=", 0);
-
-                $where = array('where'=>$where_simple);
-
-
-
-                $contact_details = $this->basic->get_data('sms_email_contacts', $where, $select='');
+                $where_custom = "sms_email_contacts.user_id='{$this->user_id}' AND FIND_IN_SET('{$value}',sms_email_contacts.contact_type_id) != 0";
+                $contact_details = $this->basic->get_data('sms_email_contacts', ['where' => $where_custom], $select='');
 
                 foreach ($contact_details as $key2 => $value2) 
 
@@ -7940,7 +7849,7 @@ class Sms_email_manager extends Home
 
 
           // Google contacts campaign
-          if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && ($this->session->userdata('user_type') == 'Admin' || in_array(353, $this->module_access))){
+          if ( $this->basic->is_exist("add_ons",array("project_id"=>72)) && (session()->get('user_type') == 'Admin' || in_array(353, $this->module_access))){
 
             $google_contacts_sms_group = $this->input->post('google_contacts_id', true);
             if(isset($google_contacts_sms_group) && !empty($google_contacts_sms_group))
@@ -7993,7 +7902,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("Campaign could not target any subscriber with phone number to reach message. Please try again with different targeting options.")));
+            echo json_encode(array('status'=>'0','message'=>lang("Campaign could not target any subscriber with phone number to reach message. Please try again with different targeting options.")));
 
             exit();
 
@@ -8109,7 +8018,7 @@ class Sms_email_manager extends Home
 
             {
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("Sorry, your monthly limit to send SMS is exceeded.")));
+                echo json_encode(array('status'=>'0','message'=>lang("Sorry, your monthly limit to send SMS is exceeded.")));
 
                 exit();
 
@@ -8195,7 +8104,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line('Something went wrong, please try once again.')));
+            echo json_encode(array('status'=>'0','message'=>lang('Something went wrong, please try once again.')));
 
         }
 
@@ -8215,9 +8124,9 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) {
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) {
 
-            redirect('home/login_page', 'location');
+            redirect()->to('home/login_page')->send();
 
         }
 
@@ -8225,7 +8134,7 @@ class Sms_email_manager extends Home
 
         $data['body'] = 'sms_email_manager/email/email_campaign/email_campaign_lists';
 
-        $data['page_title'] = $this->lang->line('Email Campaign');
+        $data['page_title'] = lang('Email Campaign');
 
         $this->_viewcontroller($data);
 
@@ -8237,7 +8146,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -8245,11 +8154,11 @@ class Sms_email_manager extends Home
 
 
 
-        $campaign_status     = trim($this->input->post("campaign_status",true));
+        $campaign_status     = trim($this->input->post("campaign_status", true));
 
-        $searching_campaign  = trim($this->input->post("searching_campaign",true));
+        $searching_campaign  = trim($this->input->post("searching_campaign", true));
 
-        $post_date_range = $this->input->post("post_date_range",true);
+        $post_date_range = $this->input->post("post_date_range", true);
 
 
 
@@ -8373,19 +8282,19 @@ class Sms_email_manager extends Home
 
             if($info[$i]['configure_email_table'] == 'email_smtp_config') {
 
-                $info[$i]['email_api'] = isset($email_api_infos[0]['email_address']) ? "SMTP - ".$email_api_infos[0]['email_address']: $this->lang->line("Corresponding API Information has been deleted.");
+                $info[$i]['email_api'] = isset($email_api_infos[0]['email_address']) ? "SMTP - ".$email_api_infos[0]['email_address']: lang("Corresponding API Information has been deleted.");
 
             } else if($info[$i]['configure_email_table'] == 'email_mailgun_config') {
 
-                $info[$i]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Mailgun - ".$email_api_infos[0]['email_address']: $this->lang->line("Corresponding API Information has been deleted.");
+                $info[$i]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Mailgun - ".$email_api_infos[0]['email_address']: lang("Corresponding API Information has been deleted.");
 
             } else if($info[$i]['configure_email_table'] == 'email_mandrill_config') {
 
-                $info[$i]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Mandrill - ".$email_api_infos[0]['email_address']: $this->lang->line("Corresponding API Information has been deleted.");
+                $info[$i]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Mandrill - ".$email_api_infos[0]['email_address']: lang("Corresponding API Information has been deleted.");
 
             } else if($info[$i]['configure_email_table'] == 'email_sendgrid_config') {
 
-                $info[$i]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Sendgrid - ".$email_api_infos[0]['email_address']: $this->lang->line("Corresponding API Information has been deleted.");
+                $info[$i]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Sendgrid - ".$email_api_infos[0]['email_address']: lang("Corresponding API Information has been deleted.");
 
             }
 
@@ -8397,7 +8306,7 @@ class Sms_email_manager extends Home
 
                 $action_count++;
 
-                $attachment = "<a target='_BLANK' href='".base_url('sms_email_manager/download_email_attachment/').$info[$i]['email_attachment']."/".$this->user_id."' data-toggle='tooltip' title='".$this->lang->line("Attachment")."' class='btn btn-circle btn-outline-info'><i class='fas fa-paperclip'></i></a>";
+                $attachment = "<a target='_BLANK' href='".base_url('sms_email_manager/download_email_attachment/').$info[$i]['email_attachment']."/".$this->user_id."' data-toggle='tooltip' title='".lang("Attachment")."' class='btn btn-circle btn-outline-info'><i class='fas fa-paperclip'></i></a>";
 
                 $forReport = $info[$i]['email_attachment'];
 
@@ -8533,11 +8442,11 @@ class Sms_email_manager extends Home
 
             if($posting_status=='1') {
 
-                $delete_btn = "<a href='#' class='btn btn-circle btn-light pointer text-muted' data-toggle='tooltip' title='".$this->lang->line("Campaign in processing can not be deleted. You can pause campaign and then delete it.")."'><i class='fa fa-trash'></i></a>";
+                $delete_btn = "<a href='#' class='btn btn-circle btn-light pointer text-muted' data-toggle='tooltip' title='".lang("Campaign in processing can not be deleted. You can pause campaign and then delete it.")."'><i class='fa fa-trash'></i></a>";
 
             } else { 
 
-                $delete_btn =  "<a href='#' data-toggle='tooltip' title='".$this->lang->line("delete campaign")."' id='".$info[$i]['id']."' class='delete_email_campaign btn btn-circle btn-outline-danger'><i class='fa fa-trash'></i></a>";
+                $delete_btn =  "<a href='#' data-toggle='tooltip' title='".lang("delete campaign")."' id='".$info[$i]['id']."' class='delete_email_campaign btn btn-circle btn-outline-danger'><i class='fa fa-trash'></i></a>";
 
             }
 
@@ -8581,7 +8490,7 @@ class Sms_email_manager extends Home
 
 
 
-                    $force_porcess_str .= "<a href='#' class='btn btn-circle btn-outline-dark pause_email_campaign_info' table_id='".$info[$i]['id']."' data-toggle='tooltip' title='".$this->lang->line("Pause Campaign")."'><i class='fas fa-pause'></i></a>";
+                    $force_porcess_str .= "<a href='#' class='btn btn-circle btn-outline-dark pause_email_campaign_info' table_id='".$info[$i]['id']."' data-toggle='tooltip' title='".lang("Pause Campaign")."'><i class='fas fa-pause'></i></a>";
 
                 }
 
@@ -8591,7 +8500,7 @@ class Sms_email_manager extends Home
 
 
 
-                    $force_porcess_str .= "<a href='#' class='btn btn-circle btn-outline-success play_email_campaign_info' table_id='".$info[$i]['id']."' data-toggle='tooltip' title='".$this->lang->line("Start Campaign")."'><i class='fas fa-play'></i></a>";
+                    $force_porcess_str .= "<a href='#' class='btn btn-circle btn-outline-success play_email_campaign_info' table_id='".$info[$i]['id']."' data-toggle='tooltip' title='".lang("Start Campaign")."'><i class='fas fa-play'></i></a>";
 
                 }
 
@@ -8603,7 +8512,7 @@ class Sms_email_manager extends Home
 
                 $action_count++;
 
-                $force_porcess_str .= "<a href='#' id='".$info[$i]['id']."' class='force_email btn btn-circle btn-outline-warning' data-toggle='tooltip' title='".$this->lang->line("force reprocessing")."'><i class='fas fa-sync'></i></a>";
+                $force_porcess_str .= "<a href='#' id='".$info[$i]['id']."' class='force_email btn btn-circle btn-outline-warning' data-toggle='tooltip' title='".lang("force reprocessing")."'><i class='fas fa-sync'></i></a>";
 
             }
 
@@ -8613,31 +8522,31 @@ class Sms_email_manager extends Home
 
             if( $posting_status == '2') 
 
-                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-success text-center badge"><i class="fas fa-check-circle"></i> '.$this->lang->line("Completed").'</span></div>';
+                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-success text-center badge"><i class="fas fa-check-circle"></i> '.lang("Completed").'</span></div>';
 
             else if( $posting_status == '1') 
 
-                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-warning text-center badge"><i class="fas fa-spinner"></i> '.$this->lang->line("Processing").'</span></div>';
+                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-warning text-center badge"><i class="fas fa-spinner"></i> '.lang("Processing").'</span></div>';
 
             else if( $posting_status == '3') 
 
-                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-muted text-center badge"><i class="fas fa-stop"></i> '.$this->lang->line("Paused").'</span></div>';
+                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-muted text-center badge"><i class="fas fa-stop"></i> '.lang("Paused").'</span></div>';
 
             else 
 
-                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-danger text-center badge"><i class="far fa-times-circle"></i> '.$this->lang->line("Pending").'</span></div>';
+                $info[$i]['posting_status'] = '<div style="min-width:100px"><span class="text-danger text-center badge"><i class="far fa-times-circle"></i> '.lang("Pending").'</span></div>';
 
 
 
 
 
-            $report_btn = "<a target='_BLANK' href='".base_url('sms_email_manager/email_campaign_reports/').$info[$i]['id']."' class='btn btn-circle btn-outline-primary' data-toggle='tooltip' title='".$this->lang->line("View Report")."'><i class='fas fa-eye'></i> </a>";
+            $report_btn = "<a target='_BLANK' href='".base_url('sms_email_manager/email_campaign_reports/').$info[$i]['id']."' class='btn btn-circle btn-outline-primary' data-toggle='tooltip' title='".lang("View Report")."'><i class='fas fa-eye'></i> </a>";
 
 
 
             if($posting_status != '0' || $info[$i]['time_zone'] == "") 
 
-                $edit_btn = "<a href='#' data-toggle='tooltip' title='".$this->lang->line("only pending campaigns are editable")."' class='btn btn-circle btn-light'><i class='fas fa-edit'></i></a>";
+                $edit_btn = "<a href='#' data-toggle='tooltip' title='".lang("only pending campaigns are editable")."' class='btn btn-circle btn-light'><i class='fas fa-edit'></i></a>";
 
             else
 
@@ -8645,7 +8554,7 @@ class Sms_email_manager extends Home
 
                 $edit_url = site_url('sms_email_manager/edit_email_campaign/'.$info[$i]['id']);
 
-                $edit_btn =  "<a data-toggle='tooltip' title='".$this->lang->line('edit campaign')."' href='".$edit_url."' class='btn btn-circle btn-outline-warning'><i class='fas fa-edit'></i></a>";
+                $edit_btn =  "<a data-toggle='tooltip' title='".lang('edit campaign')."' href='".$edit_url."' class='btn btn-circle btn-outline-warning'><i class='fas fa-edit'></i></a>";
 
             }
 
@@ -8713,7 +8622,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(263,$this->module_access))) redirect()->to('home/login_page')->send();
 
         if($id==0 || $id == "") exit();
 
@@ -8735,7 +8644,7 @@ class Sms_email_manager extends Home
 
 
 
-            $campaign_datas[0]['email_api'] = isset($email_api_infos[0]['email_address']) ? "SMTP - ".$email_api_infos[0]['email_address']: $this->lang->line("Corresponding API Information has been deleted.");
+            $campaign_datas[0]['email_api'] = isset($email_api_infos[0]['email_address']) ? "SMTP - ".$email_api_infos[0]['email_address']: lang("Corresponding API Information has been deleted.");
 
 
 
@@ -8743,7 +8652,7 @@ class Sms_email_manager extends Home
 
 
 
-            $campaign_datas[0]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Mailgun - ".$email_api_infos[0]['email_address']: $this->lang->line("Corresponding API Information has been deleted.");
+            $campaign_datas[0]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Mailgun - ".$email_api_infos[0]['email_address']: lang("Corresponding API Information has been deleted.");
 
 
 
@@ -8751,7 +8660,7 @@ class Sms_email_manager extends Home
 
 
 
-            $campaign_datas[0]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Mandrill - ".$email_api_infos[0]['email_address']: $this->lang->line("Corresponding API Information has been deleted.");
+            $campaign_datas[0]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Mandrill - ".$email_api_infos[0]['email_address']: lang("Corresponding API Information has been deleted.");
 
 
 
@@ -8759,7 +8668,7 @@ class Sms_email_manager extends Home
 
 
 
-            $campaign_datas[0]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Sendgrid - ".$email_api_infos[0]['email_address']: $this->lang->line("Corresponding API Information has been deleted.");
+            $campaign_datas[0]['email_api'] = isset($email_api_infos[0]['email_address']) ? "Sendgrid - ".$email_api_infos[0]['email_address']: lang("Corresponding API Information has been deleted.");
 
             
 
@@ -8773,7 +8682,7 @@ class Sms_email_manager extends Home
 
 
 
-            $campaign_datas[0]['status'] = "<span class='text-danger'>".$this->lang->line("Pending")."</span>";
+            $campaign_datas[0]['status'] = "<span class='text-danger'>".lang("Pending")."</span>";
 
 
 
@@ -8781,7 +8690,7 @@ class Sms_email_manager extends Home
 
 
 
-            $campaign_datas[0]['status'] = "<span class='text-warning'>".$this->lang->line("Processing")."</span>";
+            $campaign_datas[0]['status'] = "<span class='text-warning'>".lang("Processing")."</span>";
 
 
 
@@ -8789,7 +8698,7 @@ class Sms_email_manager extends Home
 
 
 
-            $campaign_datas[0]['status'] = "<span class='text-success'>".$this->lang->line("Completed")."</span>";
+            $campaign_datas[0]['status'] = "<span class='text-success'>".lang("Completed")."</span>";
 
 
 
@@ -8797,7 +8706,7 @@ class Sms_email_manager extends Home
 
 
 
-            $campaign_datas[0]['status'] = "<span class='text-dark'>".$this->lang->line("Paused")."</span>";
+            $campaign_datas[0]['status'] = "<span class='text-dark'>".lang("Paused")."</span>";
 
 
 
@@ -8925,7 +8834,7 @@ class Sms_email_manager extends Home
 
 
 
-            $campaign_datas[0]['completed_at'] = $this->lang->line("Not Sent Yet");
+            $campaign_datas[0]['completed_at'] = lang("Not Sent Yet");
 
         }
 
@@ -8957,7 +8866,7 @@ class Sms_email_manager extends Home
 
         $data['body'] = "sms_email_manager/email/email_campaign/email_campaign_report";
 
-        $data['page_title'] = $this->lang->line("Campaign Report");
+        $data['page_title'] = lang("Campaign Report");
 
         $this->_viewcontroller($data);        
 
@@ -8971,7 +8880,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -8979,11 +8888,11 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post('table_id');
+        $table_id = $this->request->getPost('table_id');
 
-        $search_value = trim($this->input->post("searching",true));
+        $search_value = trim($this->input->post("searching", true));
 
-        $rate_type = trim($this->input->post("rate_type",true));    
+        $rate_type = trim($this->input->post("rate_type", true));    
 
 
 
@@ -9062,16 +8971,9 @@ class Sms_email_manager extends Home
 
 
         $table="email_sending_campaign_send";
-
-        $this->db->where($where_custom);
-
-        $info = $this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-
-
-
-        $this->db->where($where_custom);
-
-        $total_rows_array = $this->basic->count_row($table,$where='',$count="id",$join='',$group_by='');
+        $where = ['where' => $where_custom];
+        $info = $this->basic->get_data($table, $where, $select = '', $join = '', $limit, $start, $order_by, $group_by = '');
+        $total_rows_array = $this->basic->count_row($table, $where, $count = "id", $join = '', $group_by = '');
 
         $total_result = $total_rows_array[0]['total_rows'];
 
@@ -9133,13 +9035,13 @@ class Sms_email_manager extends Home
 
                 if($info[$i]['is_open'] == "1") {
 
-                    $info[$i]['is_open'] = "<div class='font-weight-bold text-dark text-center'>".$this->lang->line('Yes')."</div>";
+                    $info[$i]['is_open'] = "<div class='font-weight-bold text-dark text-center'>".lang('Yes')."</div>";
 
                 }
 
                 else {
 
-                    $info[$i]['is_open'] = "<div class='font-weight-bold text-muted text-center'>".$this->lang->line('No')."</div>";
+                    $info[$i]['is_open'] = "<div class='font-weight-bold text-muted text-center'>".lang('No')."</div>";
 
                 }
 
@@ -9217,13 +9119,13 @@ class Sms_email_manager extends Home
 
                 if($info[$i]['is_clicked'] == "1") {
 
-                    $info[$i]['is_clicked'] = "<div class='font-weight-bold text-dark text-center'>".$this->lang->line('Yes')."</div>";
+                    $info[$i]['is_clicked'] = "<div class='font-weight-bold text-dark text-center'>".lang('Yes')."</div>";
 
                 }
 
                 else {
 
-                    $info[$i]['is_clicked'] = "<div class='font-weight-bold text-muted text-center'>".$this->lang->line('No')."</div>";
+                    $info[$i]['is_clicked'] = "<div class='font-weight-bold text-muted text-center'>".lang('No')."</div>";
 
                 }
 
@@ -9231,13 +9133,13 @@ class Sms_email_manager extends Home
 
                 if($info[$i]['is_unsubscribed'] == "1") {
 
-                    $info[$i]['is_unsubscribed'] = "<div class='font-weight-bold text-dark text-center'>".$this->lang->line('Yes')."</div>";
+                    $info[$i]['is_unsubscribed'] = "<div class='font-weight-bold text-dark text-center'>".lang('Yes')."</div>";
 
                 }
 
                 else {
 
-                    $info[$i]['is_unsubscribed'] = "<div class='font-weight-bold text-muted text-center'>".$this->lang->line('No')."</div>";
+                    $info[$i]['is_unsubscribed'] = "<div class='font-weight-bold text-muted text-center'>".lang('No')."</div>";
 
                 }
 
@@ -9301,7 +9203,7 @@ class Sms_email_manager extends Home
 
     {
 
-       if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+       if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -9309,11 +9211,11 @@ class Sms_email_manager extends Home
 
        {
 
-           if($this->session->userdata('user_type') == "Admin")
+           if(session()->get('user_type') == "Admin")
 
            {                
 
-               echo json_encode(array('status'=>'0','message'=>$this->lang->line("This action is disabled in this demo account. Please signup as user and try this with your account")));
+               echo json_encode(array('status'=>'0','message'=>lang("This action is disabled in this demo account. Please signup as user and try this with your account")));
 
                exit();
 
@@ -9385,9 +9287,9 @@ class Sms_email_manager extends Home
 
            $ret[]= $filename;
 
-           $this->session->set_userdata("attachment_file_path_name_scheduler", $output_dir.'/'.$filename);
+           session()->set("attachment_file_path_name_scheduler", $output_dir.'/'.$filename);
 
-           $this->session->set_userdata("attachment_filename_scheduler", $filename);
+           session()->set("attachment_filename_scheduler", $filename);
 
            echo json_encode($filename);
 
@@ -9401,11 +9303,11 @@ class Sms_email_manager extends Home
 
     {
 
-        unlink($this->session->userdata("attachment_file_path_name_scheduler"));
+        unlink(session()->get("attachment_file_path_name_scheduler"));
 
-        $this->session->unset_userdata("attachment_file_path_name_scheduler");
+        session()->remove("attachment_file_path_name_scheduler");
 
-        $this->session->unset_userdata("attachment_filename_scheduler");
+        session()->remove("attachment_filename_scheduler");
 
     }
 
@@ -9415,7 +9317,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -9423,11 +9325,11 @@ class Sms_email_manager extends Home
 
         {
 
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
 
             {                
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("This action is disabled in this demo account. Please signup as user and try this with your account")));
+                echo json_encode(array('status'=>'0','message'=>lang("This action is disabled in this demo account. Please signup as user and try this with your account")));
 
                 exit();
 
@@ -9441,25 +9343,19 @@ class Sms_email_manager extends Home
 
 
 
-        if($user_id != $userid) redirect('home/access_forbidden', 'location');
+        if($user_id != $userid) redirect()->to('home/access_forbidden')->send();
 
 
-
-        $this->load->helper('download');
 
         $name = $filename;
-
-
 
         $fileDir = FCPATH.'upload/attachment/'.$filename;
 
         if(file_exists($fileDir)) {
 
-
-
             $data = file_get_contents(FCPATH.'upload/attachment/'.$filename); 
 
-            force_download($name, $data);
+            return $this->response->download($name, $data);
 
 
 
@@ -9481,7 +9377,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -9489,9 +9385,9 @@ class Sms_email_manager extends Home
 
 
 
-            if($this->session->userdata('user_type') == "Admin") {                
+            if(session()->get('user_type') == "Admin") {                
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("This action is disabled in this demo account. Please signup as user and try this with your account")));
+                echo json_encode(array('status'=>'0','message'=>lang("This action is disabled in this demo account. Please signup as user and try this with your account")));
 
                 exit();
 
@@ -9505,7 +9401,7 @@ class Sms_email_manager extends Home
 
 
 
-        $id = $this->input->post("campaign_id");
+        $id = $this->request->getPost("campaign_id");
 
         if($id == "" || $id=="0") exit;
 
@@ -9563,7 +9459,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(263,$this->module_access))) redirect()->to('home/login_page')->send();
 
         if($id==0 || $id == "") exit();
 
@@ -9571,7 +9467,7 @@ class Sms_email_manager extends Home
 
         $data['body'] = "sms_email_manager/email/email_campaign/edit_email_campaign_message_content";
 
-        $data['page_title'] = $this->lang->line("Edit Message Contents");
+        $data['page_title'] = lang("Edit Message Contents");
 
         $data["message_data"] = $this->basic->get_data("email_sending_campaign",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
 
@@ -9585,7 +9481,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -9593,11 +9489,11 @@ class Sms_email_manager extends Home
 
         {
 
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
 
             {                
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("This action is disabled in this demo account. Please signup as user and try this with your account")));
+                echo json_encode(array('status'=>'0','message'=>lang("This action is disabled in this demo account. Please signup as user and try this with your account")));
 
                 exit();
 
@@ -9611,11 +9507,11 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id",true);
+        $table_id = $this->input->post("table_id", true);
 
         $user_id = $this->user_id;
 
-        $message = $this->input->post("message");
+        $message = $this->request->getPost("message");
 
         // $message  = preg_replace("@<(script|script[^>]+)>(.*)(</script>)?@mui", "[removed]disallowed characters[removed]", $message);
 
@@ -9645,11 +9541,11 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
         $this->ajax_check();
 
-        $id = $this->input->post("table_id");
+        $id = $this->request->getPost("table_id");
 
 
 
@@ -9669,11 +9565,11 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
         $this->ajax_check();
 
-        $table_id = $this->input->post('table_id');
+        $table_id = $this->request->getPost('table_id');
 
         $post_info = $this->basic->update_data('email_sending_campaign',array('id'=>$table_id),array('posting_status'=>'3','is_try_again'=>'0'));
 
@@ -9689,11 +9585,11 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
         $this->ajax_check();
 
-        $table_id = $this->input->post('table_id');
+        $table_id = $this->request->getPost('table_id');
 
         $post_info = $this->basic->update_data('email_sending_campaign',array('id'=>$table_id),array('posting_status'=>'1','is_try_again'=>'1'));
 
@@ -9707,11 +9603,11 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
         $this->ajax_check();
 
-        $id = $this->input->post("id");
+        $id = $this->request->getPost("id");
 
 
 
@@ -9721,7 +9617,7 @@ class Sms_email_manager extends Home
 
         $this->basic->update_data('email_sending_campaign',$where,$data);
 
-        if($this->db->affected_rows() != 0) echo "1";
+        if($this->db->affectedRows() != 0) echo "1";
 
         else  echo "0";
 
@@ -9733,11 +9629,11 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
-        if($this->session->userdata('logged_in') != 1) exit();
+        if(session()->get('logged_in') != 1) exit();
 
 
 
@@ -9745,21 +9641,21 @@ class Sms_email_manager extends Home
 
 
 
-        $page_id        = $this->input->post('page_id');// database id
+        $page_id        = $this->request->getPost('page_id');// database id
 
-        $user_gender    = $this->input->post('user_gender');
+        $user_gender    = $this->request->getPost('user_gender');
 
-        $user_time_zone = $this->input->post('user_time_zone');
+        $user_time_zone = $this->request->getPost('user_time_zone');
 
-        $user_locale    = $this->input->post('user_locale');
+        $user_locale    = $this->request->getPost('user_locale');
 
-        $load_label     = $this->input->post('load_label');
+        $load_label     = $this->request->getPost('load_label');
 
-        $label_ids      = $this->input->post('label_ids');
+        $label_ids      = $this->request->getPost('label_ids');
 
 
 
-        $excluded_label_ids = $this->input->post('excluded_label_ids');
+        $excluded_label_ids = $this->request->getPost('excluded_label_ids');
 
 
 
@@ -9875,29 +9771,27 @@ class Sms_email_manager extends Home
 
            if(count($label_ids)>0) $sql_part.=")";
 
-           if($sql_part!="") $this->db->where($sql_part);
-
-
-
-           foreach ($excluded_label_ids as $key => $value) 
-
-           {
-
-              $sq="NOT FIND_IN_SET('".$value."',contact_group_id) !=0";
-
-              $this->db->where($sq);
-
-           }
-
         }
 
 
 
-        $where2 = array('where'=>$where_simple2);
+        // CI4: use Query Builder for dynamic raw where conditions (labels/excluded labels)
+        $builder = $this->db->table("messenger_bot_subscriber");
+        $builder->select('COUNT(id) as subscriber_count', false);
+        $builder->where($where_simple2);
 
-        $bot_subscriber=$this->basic->get_data("messenger_bot_subscriber",$where2,'count(id) as subscriber_count');
+        if ($load_label == '0') {
+            if ($sql_part != "") {
+                $builder->where($sql_part, null, false);
+            }
+            foreach ($excluded_label_ids as $key => $value) {
+                $sq = "NOT FIND_IN_SET('".$value."',contact_group_id) !=0";
+                $builder->where($sq, null, false);
+            }
+        }
 
-        $subscriber_count = isset($bot_subscriber[0]['subscriber_count'])? $bot_subscriber[0]['subscriber_count'] : 0;
+        $row = $builder->get()->getRowArray();
+        $subscriber_count = isset($row['subscriber_count']) ? (int) $row['subscriber_count'] : 0;
 
         $page_info['subscriber_count'] = $subscriber_count;
 
@@ -9919,7 +9813,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -9941,13 +9835,8 @@ class Sms_email_manager extends Home
 
             {
 
-                $where_simple = array('sms_email_contacts.user_id'=>$this->user_id,'sms_email_contacts.unsubscribed'=>'0','sms_email_contacts.status'=>'1');
-
-                $this->db->where("FIND_IN_SET('$value',sms_email_contacts.contact_type_id) !=", 0);
-
-                $where = array('where'=>$where_simple);
-
-                $contact_details = $this->basic->get_data('sms_email_contacts', $where);
+                $where_custom = "sms_email_contacts.user_id='{$this->user_id}' AND sms_email_contacts.unsubscribed='0' AND sms_email_contacts.status='1' AND FIND_IN_SET('{$value}',sms_email_contacts.contact_type_id) != 0";
+                $contact_details = $this->basic->get_data('sms_email_contacts', ['where' => $where_custom]);
 
                 foreach ($contact_details as $key2 => $value2) 
 
@@ -9965,13 +9854,8 @@ class Sms_email_manager extends Home
 
             {
 
-                $where_simple1 = array('sms_email_contacts.user_id'=>$this->user_id,'sms_email_contacts.email !='=>"",'sms_email_contacts.unsubscribed'=>'0','sms_email_contacts.status'=>'1');
-
-                $this->db->where("FIND_IN_SET('$value1',sms_email_contacts.contact_type_id) !=", 0);
-
-                $where1 = array('where'=>$where_simple1);    
-
-                $contact_details2 = $this->basic->get_data('sms_email_contacts', $where1);
+                $where_custom = "sms_email_contacts.user_id='{$this->user_id}' AND sms_email_contacts.email!='' AND sms_email_contacts.unsubscribed='0' AND sms_email_contacts.status='1' AND FIND_IN_SET('{$value1}',sms_email_contacts.contact_type_id) != 0";
+                $contact_details2 = $this->basic->get_data('sms_email_contacts', ['where' => $where_custom]);
 
 
 
@@ -10013,13 +9897,13 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(263,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
-        $this->session->unset_userdata("attachment_file_path_name_scheduler");
+        session()->remove("attachment_file_path_name_scheduler");
 
-        $this->session->unset_userdata("attachment_filename_scheduler");
+        session()->remove("attachment_filename_scheduler");
 
         
 
@@ -10035,7 +9919,7 @@ class Sms_email_manager extends Home
 
 
 
-        $page_info = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),"bot_enabled"=>'1')),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
+        $page_info = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),"bot_enabled"=>'1')),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
 
         $data['page_info'] = $page_info; 
 
@@ -10053,26 +9937,17 @@ class Sms_email_manager extends Home
 
 
 
-            $where_simple=array('sms_email_contacts.user_id'=>$this->user_id,'sms_email_contacts.unsubscribed'=>'0');
+            $countRow = $this->db->table('sms_email_contacts')
+                ->select('COUNT(id) as number_count', false)
+                ->where('user_id', $this->user_id)
+                ->where('unsubscribed', '0')
+                ->where("FIND_IN_SET('{$search_key}', sms_email_contacts.contact_type_id) !=", 0, false)
+                ->get()
+                ->getRowArray();
 
-            $this->db->where("FIND_IN_SET('$search_key',sms_email_contacts.contact_type_id) !=", 0);
-
-            $where=array('where'=>$where_simple);
-
-            $this->db->select("count(sms_email_contacts.id) as number_count",false);    
-
-            $contact_details=$this->basic->get_data('sms_email_contacts', $where, $select='', $join='', $limit='', $start='', $order_by=' sms_email_contacts.first_name', $group_by='', $num_rows=0);
-
-        
-
-            foreach ($contact_details as $key2 => $value2) 
-
-            {
-
-                if($value2['number_count']>0)
-
-                $group_name[$search_key] = $search_type." (".$value2['number_count'].")";
-
+            $numberCount = (int) ($countRow['number_count'] ?? 0);
+            if ($numberCount > 0) {
+                $group_name[$search_key] = $search_type . " (" . $numberCount . ")";
             }
 
                 
@@ -10087,7 +9962,7 @@ class Sms_email_manager extends Home
 
 
 
-        if($email_api_access == '1' && $this->session->userdata("user_type") == 'Member')
+        if($email_api_access == '1' && session()->get("user_type") == 'Member')
 
         {                                                            
 
@@ -10283,7 +10158,7 @@ class Sms_email_manager extends Home
 
         $data['body']        = "sms_email_manager/email/email_campaign/create_email_campaign";
 
-        $data['page_title']  = $this->lang->line('Create Email Campaign');
+        $data['page_title']  = lang('Create Email Campaign');
 
         $this->_viewcontroller($data);
 
@@ -10297,7 +10172,7 @@ class Sms_email_manager extends Home
 
         /* Check that if the email module exists or not */
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -10311,11 +10186,11 @@ class Sms_email_manager extends Home
 
         {
 
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
 
             {                
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("This action is disabled in this demo account. Please signup as user and try this with your account")));
+                echo json_encode(array('status'=>'0','message'=>lang("This action is disabled in this demo account. Please signup as user and try this with your account")));
 
                 exit();
 
@@ -10339,11 +10214,11 @@ class Sms_email_manager extends Home
 
 
 
-        $email_template = $this->input->post('message');
+        $email_template = $this->request->getPost('message');
 
-        $email_template_id = (int) $this->input->post('email-template');
+        $email_template_id = (int) $this->request->getPost('email-template');
 
-        $selected_tab = (int) $this->input->post('selected-tab');
+        $selected_tab = (int) $this->request->getPost('selected-tab');
 
         
 
@@ -10353,7 +10228,7 @@ class Sms_email_manager extends Home
 
         if (! empty($email_template)) {
 
-            $email_message = $this->input->post('message');
+            $email_message = $this->request->getPost('message');
 
         } else if (! empty($email_template_id)) {
 
@@ -10387,33 +10262,33 @@ class Sms_email_manager extends Home
 
         $configure_table_name = "email_smtp_config";
 
-        $schedule_time        = $this->input->post('schedule_time');
+        $schedule_time        = $this->request->getPost('schedule_time');
 
         $time_zone            = strip_tags(trim($this->input->post('time_zone', true)));
 
         /* stored the attachment file path in attachment variable */
 
-        $attachement          = $this->session->userdata("attachment_file_path_name_scheduler");
+        $attachement          = session()->get("attachment_file_path_name_scheduler");
 
         /* stored the attachment file name in filename variable */
 
-        $filename             = $this->session->userdata("attachment_filename_scheduler");
+        $filename             = session()->get("attachment_filename_scheduler");
 
 
 
         /* informations from Messenger Subscriber section */
 
-        $page_auto_id         = $this->input->post('page',true); /* facebook_rx_fb_page_info_table_id */
+        $page_auto_id         = $this->input->post('page', true); /* facebook_rx_fb_page_info_table_id */
 
-        $label_ids            = $this->input->post('label_ids',true);
+        $label_ids            = $this->input->post('label_ids', true);
 
-        $excluded_label_ids   = $this->input->post('excluded_label_ids',true);
+        $excluded_label_ids   = $this->input->post('excluded_label_ids', true);
 
-        $user_gender          = $this->input->post('user_gender',true);
+        $user_gender          = $this->input->post('user_gender', true);
 
-        $user_time_zone       = $this->input->post('user_time_zone',true);
+        $user_time_zone       = $this->input->post('user_time_zone', true);
 
-        $user_locale          = $this->input->post('user_locale',true);
+        $user_locale          = $this->input->post('user_locale', true);
 
 
 
@@ -10429,9 +10304,9 @@ class Sms_email_manager extends Home
 
         /* destroy the attachment related sessions */
 
-        $this->session->unset_userdata("attachment_file_path_name_scheduler");
+        session()->remove("attachment_file_path_name_scheduler");
 
-        $this->session->unset_userdata("attachment_filename_scheduler");
+        session()->remove("attachment_filename_scheduler");
 
 
 
@@ -10501,7 +10376,7 @@ class Sms_email_manager extends Home
 
             {
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("Something went wrong.")));
+                echo json_encode(array('status'=>'0','message'=>lang("Something went wrong.")));
 
                 exit();
 
@@ -10687,13 +10562,8 @@ class Sms_email_manager extends Home
 
             {
 
-                $where_simple = array('sms_email_contacts.user_id'=>$this->user_id,'sms_email_contacts.unsubscribed'=>'0');
-
-                $this->db->where("FIND_IN_SET('$value',sms_email_contacts.contact_type_id) !=", 0);
-
-                $where = array('where'=>$where_simple);    
-
-                $contact_details=$this->basic->get_data('sms_email_contacts', $where);   
+                $where_custom = "sms_email_contacts.user_id='{$this->user_id}' AND sms_email_contacts.unsubscribed='0' AND FIND_IN_SET('{$value}',sms_email_contacts.contact_type_id) != 0";
+                $contact_details = $this->basic->get_data('sms_email_contacts', ['where' => $where_custom]);
 
                 foreach ($contact_details as $key2 => $value2) 
 
@@ -10763,7 +10633,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("Campaign could not target any subscriber with email to reach message. Please try again with different targeting options.")));
+            echo json_encode(array('status'=>'0','message'=>lang("Campaign could not target any subscriber with email to reach message. Please try again with different targeting options.")));
 
             exit();
 
@@ -10893,7 +10763,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("Sorry, your monthly limit to send SMS is exceeded.")));
+            echo json_encode(array('status'=>'0','message'=>lang("Sorry, your monthly limit to send SMS is exceeded.")));
 
             exit();
 
@@ -10909,7 +10779,7 @@ class Sms_email_manager extends Home
 
             // getting inserted row id of email_sending_campaign table
 
-            $campaign_id = $this->db->insert_id();
+            $campaign_id = $this->db->insertID();
 
 
 
@@ -10973,7 +10843,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line('Something went wrong, please try once again.')));
+            echo json_encode(array('status'=>'0','message'=>lang('Something went wrong, please try once again.')));
 
         }
 
@@ -10985,7 +10855,7 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && !(is_array($this->module_access) && in_array(263,$this->module_access))) redirect()->to('home/login_page')->send();
 
 
 
@@ -11001,13 +10871,13 @@ class Sms_email_manager extends Home
 
     
 
-        $this->session->unset_userdata("attachment_file_path_name_scheduler");
+        session()->remove("attachment_file_path_name_scheduler");
 
-        $this->session->unset_userdata("attachment_filename_scheduler");
+        session()->remove("attachment_filename_scheduler");
 
 
 
-        $page_info = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),"bot_enabled"=>'1')),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
+        $page_info = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),"bot_enabled"=>'1')),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
 
         $data['page_info'] = $page_info;
 
@@ -11051,26 +10921,17 @@ class Sms_email_manager extends Home
 
 
 
-            $where_simple=array('sms_email_contacts.user_id'=>$this->user_id,'sms_email_contacts.unsubscribed'=>'0');
+            $countRow = $this->db->table('sms_email_contacts')
+                ->select('COUNT(id) as number_count', false)
+                ->where('user_id', $this->user_id)
+                ->where('unsubscribed', '0')
+                ->where("FIND_IN_SET('{$search_key}', sms_email_contacts.contact_type_id) !=", 0, false)
+                ->get()
+                ->getRowArray();
 
-            $this->db->where("FIND_IN_SET('$search_key',sms_email_contacts.contact_type_id) !=", 0);
-
-            $where=array('where'=>$where_simple);
-
-            $this->db->select("count(sms_email_contacts.id) as number_count",false);    
-
-            $contact_details=$this->basic->get_data('sms_email_contacts', $where, $select='', $join='', $limit='', $start='', $order_by='sms_email_contacts.first_name', $group_by='', $num_rows=0);
-
-        
-
-            foreach ($contact_details as $key2 => $value2) 
-
-            {
-
-                if($value2['number_count']>0)
-
-                $group_name[$search_key] = $search_type." (".$value2['number_count'].")";
-
+            $numberCount = (int) ($countRow['number_count'] ?? 0);
+            if ($numberCount > 0) {
+                $group_name[$search_key] = $search_type . " (" . $numberCount . ")";
             }
 
                 
@@ -11087,7 +10948,7 @@ class Sms_email_manager extends Home
 
         /***get smtp option***/
 
-        if($email_api_access == '1' && $this->session->userdata("user_type") == 'Member') {                                                            
+        if($email_api_access == '1' && session()->get("user_type") == 'Member') {                                                            
 
             /***get smtp  option***/
 
@@ -11329,7 +11190,7 @@ class Sms_email_manager extends Home
 
         $data['locale_list'] = $this->sdk_locale();
 
-        $data['page_title']  = $this->lang->line('Edit Email Campaign');
+        $data['page_title']  = lang('Edit Email Campaign');
 
         $this->_viewcontroller($data);  
 
@@ -11343,7 +11204,7 @@ class Sms_email_manager extends Home
 
         /* Check that the email broadcasting module exists or not */
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
+        if(session()->get('user_type') != 'Admin' && !in_array(263,$this->module_access)) exit;
 
 
 
@@ -11357,9 +11218,9 @@ class Sms_email_manager extends Home
 
 
 
-        $campaign_id          = $this->input->post("campaign_id");
+        $campaign_id          = $this->request->getPost("campaign_id");
 
-        $previous_thread      = $this->input->post("previous_thread");
+        $previous_thread      = $this->request->getPost("previous_thread");
 
         $campaign_name        = strip_tags(trim($this->input->post('campaign_name', true)));
 
@@ -11367,13 +11228,13 @@ class Sms_email_manager extends Home
 
         
 
-        // $email_message        = $this->input->post('message');
+        // $email_message        = $this->request->getPost('message');
 
 
 
-        $email_template = $this->input->post('message');
+        $email_template = $this->request->getPost('message');
 
-        $email_template_id = (int) $this->input->post('email-template');
+        $email_template_id = (int) $this->request->getPost('email-template');
 
         $selected_tab = (string) $this->input->post('selected-tab', true);
 
@@ -11385,7 +11246,7 @@ class Sms_email_manager extends Home
 
         if (('rich-text-editor-tab' == $selected_tab) && $email_template) {
 
-            $email_message = $this->input->post('message');
+            $email_message = $this->request->getPost('message');
 
         } else if (('drag-and-drop-tab' == $selected_tab) && $email_template_id) {
 
@@ -11417,29 +11278,29 @@ class Sms_email_manager extends Home
 
         $configure_table_name = "email_smtp_config";
 
-        $schedule_time        = $this->input->post('schedule_time');
+        $schedule_time        = $this->request->getPost('schedule_time');
 
         $time_zone            = strip_tags(trim($this->input->post('time_zone', true)));
 
-        $attachement          = $this->session->userdata("attachment_file_path_name_scheduler");
+        $attachement          = session()->get("attachment_file_path_name_scheduler");
 
-        $filename             = $this->session->userdata("attachment_filename_scheduler");
+        $filename             = session()->get("attachment_filename_scheduler");
 
 
 
         /* informations from Messenger Subscriber section */
 
-        $page_auto_id         = $this->input->post('page',true); /* facebook_rx_fb_page_info_table_id */
+        $page_auto_id         = $this->input->post('page', true); /* facebook_rx_fb_page_info_table_id */
 
-        $label_ids            = $this->input->post('label_ids',true);
+        $label_ids            = $this->input->post('label_ids', true);
 
-        $excluded_label_ids   = $this->input->post('excluded_label_ids',true);
+        $excluded_label_ids   = $this->input->post('excluded_label_ids', true);
 
-        $user_gender          = $this->input->post('user_gender',true);
+        $user_gender          = $this->input->post('user_gender', true);
 
-        $user_time_zone       = $this->input->post('user_time_zone',true);
+        $user_time_zone       = $this->input->post('user_time_zone', true);
 
-        $user_locale          = $this->input->post('user_locale',true);
+        $user_locale          = $this->input->post('user_locale', true);
 
 
 
@@ -11481,9 +11342,9 @@ class Sms_email_manager extends Home
 
 
 
-        $this->session->unset_userdata("attachment_file_path_name_scheduler");
+        session()->remove("attachment_file_path_name_scheduler");
 
-        $this->session->unset_userdata("attachment_filename_scheduler");
+        session()->remove("attachment_filename_scheduler");
 
 
 
@@ -11557,7 +11418,7 @@ class Sms_email_manager extends Home
 
             {
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("Something went wrong.")));
+                echo json_encode(array('status'=>'0','message'=>lang("Something went wrong.")));
 
                 exit();
 
@@ -11741,13 +11602,8 @@ class Sms_email_manager extends Home
 
 
 
-                $where_simple = array('sms_email_contacts.user_id'=>$this->user_id,'sms_email_contacts.unsubscribed'=>'0');
-
-                $this->db->where("FIND_IN_SET('$value',sms_email_contacts.contact_type_id) !=", 0);
-
-                $where = array('where'=>$where_simple);    
-
-                $contact_details=$this->basic->get_data('sms_email_contacts', $where);       
+                $where_custom = "sms_email_contacts.user_id='{$this->user_id}' AND sms_email_contacts.unsubscribed='0' AND FIND_IN_SET('{$value}',sms_email_contacts.contact_type_id) != 0";
+                $contact_details = $this->basic->get_data('sms_email_contacts', ['where' => $where_custom]);
 
                 foreach ($contact_details as $key2 => $value2) {
 
@@ -11821,7 +11677,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("Campaign could not target any subscriber with email to reach message. Please try again with different targeting options.")));
+            echo json_encode(array('status'=>'0','message'=>lang("Campaign could not target any subscriber with email to reach message. Please try again with different targeting options.")));
 
             exit();
 
@@ -11965,7 +11821,7 @@ class Sms_email_manager extends Home
 
             {
 
-                echo json_encode(array('status'=>'0','message'=>$this->lang->line("Sorry, your monthly limit to send promo message is exceeded.")));
+                echo json_encode(array('status'=>'0','message'=>lang("Sorry, your monthly limit to send promo message is exceeded.")));
 
                 exit();
 
@@ -12055,7 +11911,7 @@ class Sms_email_manager extends Home
 
         {
 
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line('Something went wrong, please try once again.')));
+            echo json_encode(array('status'=>'0','message'=>lang('Something went wrong, please try once again.')));
 
         }
 
@@ -12097,7 +11953,7 @@ class Sms_email_manager extends Home
 
 
 
-            $this->db->trans_begin();
+            $this->db->transStart();
 
 
 
@@ -12151,11 +12007,11 @@ class Sms_email_manager extends Home
 
 
 
-            if ($this->db->trans_status() === FALSE) {
+            if ($this->db->transStatus() === FALSE) {
 
 
 
-                $this->db->trans_rollback();
+                $this->db->transRollback();
 
             }
 
@@ -12163,7 +12019,7 @@ class Sms_email_manager extends Home
 
 
 
-                $this->db->trans_commit();
+                $this->db->transCommit();
 
             }
 
@@ -12233,7 +12089,7 @@ class Sms_email_manager extends Home
 
 
 
-                        $this->db->trans_begin();
+                        $this->db->transStart();
 
 
 
@@ -12287,11 +12143,11 @@ class Sms_email_manager extends Home
 
 
 
-                        if ($this->db->trans_status() === FALSE) {
+                        if ($this->db->transStatus() === FALSE) {
 
 
 
-                            $this->db->trans_rollback();
+                            $this->db->transRollback();
 
                         }
 
@@ -12299,7 +12155,7 @@ class Sms_email_manager extends Home
 
 
 
-                            $this->db->trans_commit();
+                            $this->db->transCommit();
 
                         }
 
@@ -12307,7 +12163,7 @@ class Sms_email_manager extends Home
 
 
 
-                    redirect($value, "refresh");
+                    redirect()->to($value)->send();
 
 
 
@@ -12469,11 +12325,11 @@ class Sms_email_manager extends Home
 
                                     <tr>
 
-                                      <th scope="col">'.$this->lang->line("Key").'</th>
+                                      <th scope="col">'.lang("Key").'</th>
 
-                                      <th scope="col">'.$this->lang->line("Type").'</th>
+                                      <th scope="col">'.lang("Type").'</th>
 
-                                      <th scope="col">'.$this->lang->line("Value").'</th>
+                                      <th scope="col">'.lang("Value").'</th>
 
                                     </tr>
 
@@ -12671,11 +12527,11 @@ class Sms_email_manager extends Home
 
         $form_array = array(
 
-            'fixed' => $this->lang->line("Fixed"),
+            'fixed' => lang("Fixed"),
 
-            'destination_number' => $this->lang->line("Destination Number"),
+            'destination_number' => lang("Destination Number"),
 
-            'message_content' => $this->lang->line("Message Content")
+            'message_content' => lang("Message Content")
 
         );
 
@@ -12713,7 +12569,7 @@ class Sms_email_manager extends Home
 
                   <div class="card-header">
 
-                    <h4><i class="fas fa-code"></i> '.$this->lang->line("Test response : ").'</h4>
+                    <h4><i class="fas fa-code"></i> '.lang("Test response : ").'</h4>
 
                   </div>
 
@@ -12731,7 +12587,7 @@ class Sms_email_manager extends Home
 
         // Base URL
 
-        $final_string .= '<div class="card" style="padding:20px;box-shadow: 0 4px 8px rgba(0, 0, 0, 0.09);"><label style="word-break: break-all;margin-bottom: 0;"><span style="font-size: 16px;color: var(--blue);padding-right: 10px;margin-bottom: 0;font-weight: bold;"><i class="fas fa-link"></i> '.$this->lang->line("Base URL : ").'</span> '. $scheme . '://'. $host. $path .'</label></div>';
+        $final_string .= '<div class="card" style="padding:20px;box-shadow: 0 4px 8px rgba(0, 0, 0, 0.09);"><label style="word-break: break-all;margin-bottom: 0;"><span style="font-size: 16px;color: var(--blue);padding-right: 10px;margin-bottom: 0;font-weight: bold;"><i class="fas fa-link"></i> '.lang("Base URL : ").'</span> '. $scheme . '://'. $host. $path .'</label></div>';
 
 
 
@@ -12759,7 +12615,7 @@ class Sms_email_manager extends Home
 
         // Generated URL
 
-        $final_string .= '<div class="card m-0" style="padding:20px;box-shadow: 0 4px 8px rgba(0, 0, 0, 0.09);"><label style="word-break: break-all;margin-bottom: 0;"><span style="font-size: 16px;color: var(--blue);padding-right: 10px;margin-bottom: 0;font-weight: bold;"><i class="fas fa-link"></i> '.$this->lang->line("Generated URL : ").'</span> <span id="updated_url"> '. $custom_url.'</span></label></div>';
+        $final_string .= '<div class="card m-0" style="padding:20px;box-shadow: 0 4px 8px rgba(0, 0, 0, 0.09);"><label style="word-break: break-all;margin-bottom: 0;"><span style="font-size: 16px;color: var(--blue);padding-right: 10px;margin-bottom: 0;font-weight: bold;"><i class="fas fa-link"></i> '.lang("Generated URL : ").'</span> <span id="updated_url"> '. $custom_url.'</span></label></div>';
 
 
 
@@ -12809,11 +12665,11 @@ class Sms_email_manager extends Home
 
         $is_first_time_edit_request = $this->input->post('is_first_time_edit_request', true);
 
-        $key=$this->input->post('key',true);
+        $key=$this->input->post('key', true);
 
-        $type=$this->input->post('types',true);
+        $type=$this->input->post('types', true);
 
-        $key_value=$this->input->post('value',true);
+        $key_value=$this->input->post('value', true);
 
         $check_destination_number=0;
 
@@ -12881,7 +12737,7 @@ class Sms_email_manager extends Home
 
         if ($scheme == '') {
 
-            echo json_encode(array('status' => '0','message' => $this->lang->line("Please provide a valid url")));
+            echo json_encode(array('status' => '0','message' => lang("Please provide a valid url")));
 
             exit;
 
@@ -12889,7 +12745,7 @@ class Sms_email_manager extends Home
 
 
 
-            echo json_encode(array('status' => '0','message' => $this->lang->line("Please provide a valid url")));
+            echo json_encode(array('status' => '0','message' => lang("Please provide a valid url")));
 
             exit;
 
@@ -12899,7 +12755,7 @@ class Sms_email_manager extends Home
 
         {
 
-            $message = $this->lang->line("Final URL must have both #DESTINATION_NUMBER# and #MESSAGE_CONTENT#"); 
+            $message = lang("Final URL must have both #DESTINATION_NUMBER# and #MESSAGE_CONTENT#"); 
 
             echo json_encode(array('status' => 'error', 'message' => $message));
 
@@ -12931,7 +12787,7 @@ class Sms_email_manager extends Home
 
                   <div class="card-header">
 
-                    <h4><i class="fas fa-code"></i> '.$this->lang->line("Test response").' :</h4>
+                    <h4><i class="fas fa-code"></i> '.lang("Test response").' :</h4>
 
                   </div>
 
@@ -12957,7 +12813,7 @@ class Sms_email_manager extends Home
 
                   <div class="card-header">
 
-                    <h4><i class="fas fa-code"></i> '.$this->lang->line("Test response").' :</h4>
+                    <h4><i class="fas fa-code"></i> '.lang("Test response").' :</h4>
 
                   </div>
 
@@ -12971,7 +12827,7 @@ class Sms_email_manager extends Home
 
         }
 
-        // $final_string .= '<div class="card" style="padding:20px;box-shadow: 0 4px 8px rgba(0, 0, 0, 0.09);"><label style="word-break: break-all;margin-bottom: 0;"><span style="font-size: 16px;color: var(--blue);padding-right: 10px;margin-bottom: 0;font-weight: bold;"><i class="fas fa-link"></i> '.$this->lang->line("Genarated URL : ").'</span> '.$custom_url."?".$str.'</label></div>';
+        // $final_string .= '<div class="card" style="padding:20px;box-shadow: 0 4px 8px rgba(0, 0, 0, 0.09);"><label style="word-break: break-all;margin-bottom: 0;"><span style="font-size: 16px;color: var(--blue);padding-right: 10px;margin-bottom: 0;font-weight: bold;"><i class="fas fa-link"></i> '.lang("Genarated URL : ").'</span> '.$custom_url."?".$str.'</label></div>';
 
         echo json_encode(array('status'=>'1','message'=>$final_string));
 
@@ -13017,11 +12873,11 @@ class Sms_email_manager extends Home
 
 
 
-            $message = $this->lang->line("Something went wrong");
+            $message = lang("Something went wrong");
 
             if (strpos($updated_url, '#DESTINATION_NUMBER#') === false || strpos($updated_url, '#MESSAGE_CONTENT#') === false) {
 
-                $message = $this->lang->line("Final URL must have both #DESTINATION_NUMBER# and #MESSAGE_CONTENT#");
+                $message = lang("Final URL must have both #DESTINATION_NUMBER# and #MESSAGE_CONTENT#");
 
             }
 
@@ -13053,13 +12909,13 @@ class Sms_email_manager extends Home
 
                 $this->basic->update_data('sms_api_config', array('id' => $table_id), $insert_data);
 
-                echo json_encode(array('status' => 'success', 'message' => $this->lang->line("Your API has updated successfully.")));
+                echo json_encode(array('status' => 'success', 'message' => lang("Your API has updated successfully.")));
 
             } else {
 
                 $this->basic->insert_data('sms_api_config', $insert_data);
 
-                echo json_encode(array('status' => 'success', 'message' => $this->lang->line("Your API has created successfully.")));
+                echo json_encode(array('status' => 'success', 'message' => lang("Your API has created successfully.")));
 
             }
 
@@ -13089,11 +12945,11 @@ class Sms_email_manager extends Home
 
            $table_id = $this->input->post('table_id', true);
 
-           $key =$this->input->post('key');
+           $key =$this->request->getPost('key');
 
-           $value =$this->input->post('value');
+           $value =$this->request->getPost('value');
 
-           $type=$this->input->post('types');
+           $type=$this->request->getPost('types');
 
 
 
@@ -13125,11 +12981,11 @@ class Sms_email_manager extends Home
 
 
 
-            $message = $this->lang->line("Something went wrong");
+            $message = lang("Something went wrong");
 
                 // if (strpos($updated_url, '#DESTINATION_NUMBER#') === false || strpos($updated_url, '#MESSAGE_CONTENT#') === false) {
 
-                //     $message = $this->lang->line("Final URL must have both #DESTINATION_NUMBER# and #MESSAGE_CONTENT#");
+                //     $message = lang("Final URL must have both #DESTINATION_NUMBER# and #MESSAGE_CONTENT#");
 
                 // }
 
@@ -13143,7 +12999,7 @@ class Sms_email_manager extends Home
 
         {
 
-            $message = $this->lang->line("Final URL must have both #DESTINATION_NUMBER# and #MESSAGE_CONTENT#"); 
+            $message = lang("Final URL must have both #DESTINATION_NUMBER# and #MESSAGE_CONTENT#"); 
 
             echo json_encode(array('status' => 'error', 'message' => $message));
 
@@ -13203,7 +13059,7 @@ class Sms_email_manager extends Home
 
                 $check_destination_number=0;
 
-                echo json_encode(array('status' => 'success', 'message' => $this->lang->line("Your API has updated successfully.")));
+                echo json_encode(array('status' => 'success', 'message' => lang("Your API has updated successfully.")));
 
             } else {
 
@@ -13213,7 +13069,7 @@ class Sms_email_manager extends Home
 
                 $check_destination_number=0;
 
-                echo json_encode(array('status' => 'success', 'message' => $this->lang->line("Your API has created successfully.")));
+                echo json_encode(array('status' => 'success', 'message' => lang("Your API has created successfully.")));
 
 
 
@@ -13263,7 +13119,7 @@ class Sms_email_manager extends Home
 
         } else {
 
-            echo json_encode(array('status' => 'error', 'message' => $this->lang->line("Something went wrong")));
+            echo json_encode(array('status' => 'error', 'message' => lang("Something went wrong")));
 
         }
 
@@ -13317,7 +13173,7 @@ class Sms_email_manager extends Home
 
         } else {
 
-            echo json_encode(array('status' => 'error', 'message' => $this->lang->line("Something went wrong")));
+            echo json_encode(array('status' => 'error', 'message' => lang("Something went wrong")));
 
         }
 
@@ -13391,9 +13247,9 @@ class Sms_email_manager extends Home
 
     {   
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) {
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) {
 
-            redirect('home/login_page', 'location');
+            redirect()->to('home/login_page')->send();
 
         }
 
@@ -13403,7 +13259,7 @@ class Sms_email_manager extends Home
 
         $data['product_name'] = $this->config->item('product_name');
 
-        $data['page_title'] = $this->lang->line('Drag & Drop Email Template Builder');      
+        $data['page_title'] = lang('Drag & Drop Email Template Builder');      
 
 
 
@@ -13481,9 +13337,9 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) {
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) {
 
-            redirect('home/login_page', 'location');
+            redirect()->to('home/login_page')->send();
 
         }
 
@@ -13493,17 +13349,17 @@ class Sms_email_manager extends Home
 
 
 
-        $templateId = (int) $this->input->post('templateId');
+        $templateId = (int) $this->request->getPost('templateId');
 
         $templateName = $this->input->post('templateName', true);
 
         $emailSubject = $this->input->post('emailSubject', true);
 
-        $mailTemplateHtml = $this->input->post('mailTemplateHtml');
+        $mailTemplateHtml = $this->request->getPost('mailTemplateHtml');
 
         $locationHash = (string) $this->input->post('locationHash', true);
 
-        $refinedMailTemplateHtml = $this->input->post('refinedMailTemplateHtml');
+        $refinedMailTemplateHtml = $this->request->getPost('refinedMailTemplateHtml');
 
 
 
@@ -13543,7 +13399,7 @@ class Sms_email_manager extends Home
 
                     'status' => false,
 
-                    'message' => $this->lang->line('You do NOT have permission!'),
+                    'message' => lang('You do NOT have permission!'),
 
                 ]);
 
@@ -13581,7 +13437,7 @@ class Sms_email_manager extends Home
 
 
 
-            if ($this->db->affected_rows() > 0) {
+            if ($this->db->affectedRows() > 0) {
 
                 echo json_encode([
 
@@ -13595,7 +13451,7 @@ class Sms_email_manager extends Home
 
                     'templateId' => $templateId,
 
-                    'message' => $this->lang->line('The template has been saved!'),
+                    'message' => lang('The template has been saved!'),
 
                 ]);
 
@@ -13611,7 +13467,7 @@ class Sms_email_manager extends Home
 
                 'status' => false,
 
-                'message' => $this->lang->line('There is nothing to save!'),
+                'message' => lang('There is nothing to save!'),
 
             ]);
 
@@ -13651,7 +13507,7 @@ class Sms_email_manager extends Home
 
 
 
-        if ($this->db->affected_rows() > 0) {
+        if ($this->db->affectedRows() > 0) {
 
             echo json_encode([
 
@@ -13663,9 +13519,9 @@ class Sms_email_manager extends Home
 
                 'subject' => $emailSubject,
 
-                'templateId' => $this->db->insert_id(),
+                'templateId' => $this->db->insertID(),
 
-                'message' => $this->lang->line('The template has been saved!'),
+                'message' => lang('The template has been saved!'),
 
             ]);
 
@@ -13681,7 +13537,7 @@ class Sms_email_manager extends Home
 
             'status' => false,
 
-            'message' => $this->lang->line('There is nothing to save!'),
+            'message' => lang('There is nothing to save!'),
 
         ]);
 
@@ -13727,7 +13583,7 @@ class Sms_email_manager extends Home
 
                     ? $this->php_file_upload_errors[$error]
 
-                    : $this->lang->line('Unknown error occurred');
+                    : lang('Unknown error occurred');
 
 
 
@@ -13761,7 +13617,7 @@ class Sms_email_manager extends Home
 
                         'status' => false,
 
-                        'message' => $this->lang->line('File type not allowed'),
+                        'message' => lang('File type not allowed'),
 
                     ]);
 
@@ -13805,7 +13661,7 @@ class Sms_email_manager extends Home
 
                         'status' => false,
 
-                        'message' => $this->lang->line('Something went wrong while uploading file'),
+                        'message' => lang('Something went wrong while uploading file'),
 
                     ]);
 
@@ -13823,7 +13679,7 @@ class Sms_email_manager extends Home
 
             'status' => false,
 
-            'message' => $this->lang->line('Something went wrong while uploading file'),
+            'message' => lang('Something went wrong while uploading file'),
 
         ]);
 
@@ -13857,7 +13713,7 @@ class Sms_email_manager extends Home
 
     {
 
-        $user_id = $this->input->post('user_id');
+        $user_id = $this->request->getPost('user_id');
 
 
 
@@ -13867,7 +13723,7 @@ class Sms_email_manager extends Home
 
                 'status' => false,
 
-                'message' => $this->lang->line('Invalid request'),
+                'message' => lang('Invalid request'),
 
             ]);
 
@@ -13887,7 +13743,7 @@ class Sms_email_manager extends Home
 
             'status' => true,
 
-            'message' => $this->lang->line('Email templates list updated'),
+            'message' => lang('Email templates list updated'),
 
             'data' => $email_templates_list,
 
@@ -13951,9 +13807,9 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) {
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) {
 
-            redirect('home/login_page', 'location');
+            redirect()->to('home/login_page')->send();
 
         }
 
@@ -13961,7 +13817,7 @@ class Sms_email_manager extends Home
 
         $data['body'] = 'sms_email_manager/email/email_templates/template_lists';
 
-        $data['page_title'] = ucfirst($type). ' ' .$this->lang->line('Template');
+        $data['page_title'] = ucfirst($type). ' ' .lang('Template');
 
         $data['template_type'] = $type;
 
@@ -13979,13 +13835,13 @@ class Sms_email_manager extends Home
 
 
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) exit;
 
 
 
-        $template_type = trim($this->input->post("template_type",true));
+        $template_type = trim($this->input->post("template_type", true));
 
-        $template_text  = trim($this->input->post("template_text",true));
+        $template_text  = trim($this->input->post("template_text", true));
 
 
 
@@ -13997,6 +13853,9 @@ class Sms_email_manager extends Home
 
             $display_columns = array("#",'id','template_name','template_type', 'actions');
 
+        } else {
+            // Default fallback if template_type is empty or unknown
+            $display_columns = array("#",'id','template_name','template_type', 'actions');
         }
 
 
@@ -14071,11 +13930,11 @@ class Sms_email_manager extends Home
 
                 if('rich_text_editor' == $editor_type) {
 
-                    $info[$i]['editor_type'] = "<span class='badge badge-light'><i class='fa fa-file-text'></i> " . $this->lang->line("Rich Text") . "</span>";
+                    $info[$i]['editor_type'] = "<span class='badge badge-light'><i class='fa fa-file-text'></i> " . lang("Rich Text") . "</span>";
 
                 } else {
 
-                    $info[$i]['editor_type'] = "<span class='badge badge-light'><i class='fa fa-bars'></i> " . $this->lang->line("Drag & Drop") . "</span>";
+                    $info[$i]['editor_type'] = "<span class='badge badge-light'><i class='fa fa-bars'></i> " . lang("Drag & Drop") . "</span>";
 
                 }
 
@@ -14095,25 +13954,25 @@ class Sms_email_manager extends Home
 
 
 
-                $info[$i]['actions'] = "<div><a href='#' data-toggle='tooltip' title='".$this->lang->line("View Template")."' class='btn btn-circle btn-outline-primary view-emial-template' data-email-template-data=''><i class='fas fa-eye'></i></a><div class='d-none'>{$refinedEmailTemplateData}</div>&nbsp;&nbsp;";
+                $info[$i]['actions'] = "<div><a href='#' data-toggle='tooltip' title='".lang("View Template")."' class='btn btn-circle btn-outline-primary view-emial-template' data-email-template-data=''><i class='fas fa-eye'></i></a><div class='d-none'>{$refinedEmailTemplateData}</div>&nbsp;&nbsp;";
 
 
 
-                $info[$i]['actions'] .= "<a href='" . base_url('sms_email_manager/drag_drop_email_template/' . $info[$i]['id'] . '/' . $info[$i]['location_hash']) . "' data-toggle='tooltip' title='".$this->lang->line("Edit Template")."' class='btn btn-circle btn-outline-warning' target='_BLANK'><i class='fas fa-edit'></i></a>&nbsp;&nbsp;";
+                $info[$i]['actions'] .= "<a href='" . base_url('sms_email_manager/drag_drop_email_template/' . $info[$i]['id'] . '/' . $info[$i]['location_hash']) . "' data-toggle='tooltip' title='".lang("Edit Template")."' class='btn btn-circle btn-outline-warning' target='_BLANK'><i class='fas fa-edit'></i></a>&nbsp;&nbsp;";
 
             } else {
 
-                $info[$i]['actions'] = "<div><a href='".base_url()."sms_email_manager/view_template/".$info[$i]['id']."' data-toggle='tooltip' title='".$this->lang->line("View Template")."' class='btn btn-circle btn-outline-primary'><i class='fas fa-eye'></i></a>&nbsp;&nbsp;";
+                $info[$i]['actions'] = "<div><a href='".base_url()."sms_email_manager/view_template/".$info[$i]['id']."' data-toggle='tooltip' title='".lang("View Template")."' class='btn btn-circle btn-outline-primary'><i class='fas fa-eye'></i></a>&nbsp;&nbsp;";
 
 
 
-                $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".$this->lang->line("Edit Template")."' class='btn btn-circle btn-outline-warning edit_template' table_id='".$info[$i]['id']."' type='".$tempType."'><i class='fas fa-edit'></i></a>&nbsp;&nbsp;";
+                $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".lang("Edit Template")."' class='btn btn-circle btn-outline-warning edit_template' table_id='".$info[$i]['id']."' type='".$tempType."'><i class='fas fa-edit'></i></a>&nbsp;&nbsp;";
 
             }
 
 
 
-            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".$this->lang->line("Delete Template")."' class='btn btn-circle btn-outline-danger delete_template' table_id='".$info[$i]['id']."' type='".$tempType."'><i class='fas fa-trash-alt'></i></a></div>
+            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".lang("Delete Template")."' class='btn btn-circle btn-outline-danger delete_template' table_id='".$info[$i]['id']."' type='".$tempType."'><i class='fas fa-trash-alt'></i></a></div>
 
             <script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
 
@@ -14147,7 +14006,7 @@ class Sms_email_manager extends Home
 
 
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) exit;
 
 
 
@@ -14155,21 +14014,21 @@ class Sms_email_manager extends Home
 
 
 
-        $template_type = $this->input->post("template_type",true);
+        $template_type = $this->input->post("template_type", true);
 
-        $this->form_validation->set_rules('temp_name', $this->lang->line('Template Name'), 'trim|required');
+        $this->form_validation->set_rules('temp_name', lang('Template Name'), 'trim|required');
 
 
 
         if($template_type == 'email') {
 
-            $this->form_validation->set_rules('temp_subject', $this->lang->line('Template Subject'), 'trim|required');
+            $this->form_validation->set_rules('temp_subject', lang('Template Subject'), 'trim|required');
 
         }
 
 
 
-        $this->form_validation->set_rules('temp_contents', $this->lang->line('Template Contents'), 'trim|required');
+        $this->form_validation->set_rules('temp_contents', lang('Template Contents'), 'trim|required');
 
 
 
@@ -14205,11 +14064,11 @@ class Sms_email_manager extends Home
 
         $inserted_data = [];
 
-        $inserted_data['template_name'] = strip_tags(trim($this->input->post("temp_name",true)));
+        $inserted_data['template_name'] = strip_tags(trim($this->input->post("temp_name", true)));
 
-        $inserted_data['subject'] = strip_tags(trim($this->input->post("temp_subject",true)));
+        $inserted_data['subject'] = strip_tags(trim($this->input->post("temp_subject", true)));
 
-        $inserted_data['content'] = $this->input->post("temp_contents");
+        $inserted_data['content'] = $this->request->getPost("temp_contents");
 
         $inserted_data['template_type'] = $template_type;
 
@@ -14219,13 +14078,13 @@ class Sms_email_manager extends Home
 
         if($this->basic->insert_data("email_sms_template",$inserted_data)) {
 
-            $message = $this->lang->line('Template has been Created successfully.');
+            $message = lang('Template has been Created successfully.');
 
             echo json_encode(["status"=>"1","message"=>$message]); exit;
 
         } else {
 
-            $message = $this->lang->line('Something went wrong, please try once again.');
+            $message = lang('Something went wrong, please try once again.');
 
             echo json_encode(["status"=>"0","message"=>$message]); exit;
 
@@ -14239,9 +14098,9 @@ class Sms_email_manager extends Home
 
     {
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) {
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) {
 
-            redirect('home/login_page', 'location');
+            redirect()->to('home/login_page')->send();
 
         }
 
@@ -14249,7 +14108,7 @@ class Sms_email_manager extends Home
 
         if($id == '' || $id == "0") {
 
-            redirect("home/error_404","location");
+            redirect()->to("home/error_404")->send();
 
         }
 
@@ -14261,7 +14120,7 @@ class Sms_email_manager extends Home
 
         $data['body'] = 'sms_email_manager/sms/view_template';
 
-        $data['page_title'] = $this->lang->line("View"). ' '. ucfirst($data['templateType']). ' ' .$this->lang->line('Template');
+        $data['page_title'] = lang("View"). ' '. ucfirst($data['templateType']). ' ' .lang('Template');
 
         $this->_viewcontroller($data); 
 
@@ -14275,33 +14134,33 @@ class Sms_email_manager extends Home
 
         $this->ajax_check();
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) exit;
 
         $this->csrf_token_check();
 
 
 
-        $table_id = $this->input->post("tableid",true);
+        $table_id = $this->input->post("tableid", true);
 
         if($table_id == '' || $table_id == 0) exit;
 
 
 
-        $template_type = $this->input->post("tem_type",true);
+        $template_type = $this->input->post("tem_type", true);
 
-        $this->form_validation->set_rules('updated_template_name', $this->lang->line('Template Name'), 'trim|required');
+        $this->form_validation->set_rules('updated_template_name', lang('Template Name'), 'trim|required');
 
 
 
         if($template_type == 'email') {
 
-            $this->form_validation->set_rules('updated_template_subject', $this->lang->line('Template Subject'), 'trim|required');
+            $this->form_validation->set_rules('updated_template_subject', lang('Template Subject'), 'trim|required');
 
         }
 
 
 
-        $this->form_validation->set_rules('updated_template_contents', $this->lang->line('Template Contents'), 'trim|required');
+        $this->form_validation->set_rules('updated_template_contents', lang('Template Contents'), 'trim|required');
 
 
 
@@ -14337,11 +14196,11 @@ class Sms_email_manager extends Home
 
         $updated_data = [];
 
-        $updated_data['template_name'] = strip_tags(trim($this->input->post("updated_template_name",true)));
+        $updated_data['template_name'] = strip_tags(trim($this->input->post("updated_template_name", true)));
 
-        $updated_data['subject'] = strip_tags(trim($this->input->post("updated_template_subject",true)));
+        $updated_data['subject'] = strip_tags(trim($this->input->post("updated_template_subject", true)));
 
-        $updated_data['content'] = $this->input->post("updated_template_contents");
+        $updated_data['content'] = $this->request->getPost("updated_template_contents");
 
         $updated_data['template_type'] = $template_type;
 
@@ -14351,13 +14210,13 @@ class Sms_email_manager extends Home
 
         if($this->basic->update_data("email_sms_template",['id'=>$table_id,'user_id'=>$this->user_id],$updated_data)) {
 
-            $message = $this->lang->line('Template has been Updated successfully.');
+            $message = lang('Template has been Updated successfully.');
 
             echo json_encode(["status"=>"1","message"=>$message]); exit;
 
         } else {
 
-            $message = $this->lang->line('Something went wrong, please try once again.');
+            $message = lang('Something went wrong, please try once again.');
 
             echo json_encode(["status"=>"0","message"=>$message]); exit;
 
@@ -14373,15 +14232,15 @@ class Sms_email_manager extends Home
 
         $this->ajax_check();
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['263','271']))==0) exit;
 
         $this->csrf_token_check();
 
 
 
-        $table_id = $this->input->post("table_id",true);
+        $table_id = $this->input->post("table_id", true);
 
-        $type = $this->input->post("type",true);
+        $type = $this->input->post("type", true);
 
 
 
@@ -14413,7 +14272,7 @@ class Sms_email_manager extends Home
 
 
 
-        $table_id = $this->input->post("table_id",true);
+        $table_id = $this->input->post("table_id", true);
 
         if($table_id == '' || $table_id == "0") exit;
 
@@ -14457,7 +14316,7 @@ class Sms_email_manager extends Home
 
                         <div class="form-group">
 
-                            <label>'.$this->lang->line("Template Name").'</label>
+                            <label>'.lang("Template Name").'</label>
 
                             <input type="text" class="form-control" name="updated_template_name" id="updated_template_name" value="'.$template_info['template_name'].'">
 
@@ -14469,7 +14328,7 @@ class Sms_email_manager extends Home
 
                         <div class="form-group">
 
-                            <label>'.$this->lang->line("Subject").'</label>
+                            <label>'.lang("Subject").'</label>
 
                             <input type="text" class="form-control" name="updated_template_subject" id="updated_template_subject" value="'.$template_info['subject'].'">
 
@@ -14481,17 +14340,17 @@ class Sms_email_manager extends Home
 
                         <div class="form-group">
 
-                            <label>'.$this->lang->line("content").'</label>
+                            <label>'.lang("content").'</label>
 
                             <span class="float-right"> 
 
-                              <a title="'.$this->lang->line("You can include #LAST_NAME# variable inside your message. The variable will be replaced by real names when we will send it.").'" data-toggle="tooltip" data-placement="top" class="btn-sm lead_last_name button-outline"><i class="fa fa-user"></i> '.$this->lang->line("last name").'</a>
+                              <a title="'.lang("You can include #LAST_NAME# variable inside your message. The variable will be replaced by real names when we will send it.").'" data-toggle="tooltip" data-placement="top" class="btn-sm lead_last_name button-outline"><i class="fa fa-user"></i> '.lang("last name").'</a>
 
                             </span>
 
                             <span class="float-right"> 
 
-                              <a title="'.$this->lang->line("You can include #FIRST_NAME# variable inside your message. The variable will be replaced by real names when we will send it.").'" data-toggle="tooltip" data-placement="top" class="btn-sm lead_first_name button-outline"><i class="fa fa-user"></i> '.$this->lang->line("first name").'</a>
+                              <a title="'.lang("You can include #FIRST_NAME# variable inside your message. The variable will be replaced by real names when we will send it.").'" data-toggle="tooltip" data-placement="top" class="btn-sm lead_first_name button-outline"><i class="fa fa-user"></i> '.lang("first name").'</a>
 
                             </span>
 

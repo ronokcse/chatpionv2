@@ -30,7 +30,7 @@
   $THEMECOLORCODE = "#607D8B";
 
 ?>
-<?php view("include/upload_js"); ?>
+<?php echo view("include/upload_js"); ?>
 
 <style type="text/css">
   .card .card-header {

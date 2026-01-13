@@ -1,6 +1,6 @@
 <?php
 $redirect_url = site_url('');
-view("include/upload_js");
+echo view("include/upload_js");
 $full_message_json = $xdata['message'];
 $full_message_array = json_decode($full_message_json,true);
 

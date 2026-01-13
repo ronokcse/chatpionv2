@@ -44,6 +44,7 @@ class Home extends BaseController
     public $app_product_id;
     public $APP_VERSION;
     public $strict_ajax_call = true;
+    public $pagination;
 
     protected $basic;
     protected $db;
@@ -1158,6 +1159,10 @@ class Home extends BaseController
         $data['module_access'] = $this->module_access ?? [];
         $data['basic'] = $this->basic; // Pass basic library
         $data['APP_VERSION'] = $this->config->product_version ?? '1.0.0';
+        
+        // Optional properties used by some modules/controllers (CI3 -> CI4 view compatibility)
+        $data['sms_email_drip_exist'] = property_exists($this, 'sms_email_drip_exist') ? ($this->sms_email_drip_exist ?? false) : false;
+        $data['is_sms_email_drip_campaigner_exist'] = property_exists($this, 'is_sms_email_drip_campaigner_exist') ? ($this->is_sms_email_drip_campaigner_exist ?? false) : false;
 
         if (isset($data['iframe']) && $data['iframe'] == '1') {
             echo view('admin/theme/theme_iframe', $data);

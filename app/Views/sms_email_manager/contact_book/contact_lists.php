@@ -1,4 +1,4 @@
-<?php include("application/views/sms_email_manager/contact_book/contact_book_js.php"); ?>
+<?php include(APPPATH . "Views/sms_email_manager/contact_book/contact_book_js.php"); ?>
 
 <style>
 	#contact_list_searching{max-width: 100% !important;}
@@ -61,8 +61,8 @@
 								        <a class="dropdown-item has-icon pointer" id="import_contact" href=""><i class="fas fa-cloud-upload-alt"></i> <?php echo lang('Import'); ?></a>
 								        <a class="dropdown-item has-icon pointer" id="export_contact" href=""><i class="fas fa-cloud-download-alt"></i> <?php echo lang('Export'); ?></a>
 
-								        <?php if($this->sms_email_drip_exist) : ?>
-								          <?php if(session()->get('user_type') == 'Admin' || count(array_intersect($this->module_access, array(270,271))) > 0 ) :  ?>
+								        <?php if (!empty($sms_email_drip_exist)) : ?>
+								          <?php if (session()->get('user_type') == 'Admin' || (isset($module_access) && is_array($module_access) && count(array_intersect($module_access, array(270,271))) > 0)) :  ?>
 								            <a class="dropdown-item has-icon pointer" id="assign_sms_email_sequence" href=""><i class="fas fa-plug"></i> <?php echo lang('Assign Sequence'); ?></a>
 								          <?php endif; ?>
 								        <?php endif; ?>
@@ -306,9 +306,9 @@
 
 <?php 
 	$modal_width = 'style="min-width:40%"';
-	if($this->sms_email_drip_exist) {
-		if($this->basic->is_exist("modules",array("id"=>270)) && $this->basic->is_exist("modules",array("id"=>271))) {  
-		  if(session()->get('user_type') == 'Admin' || count(array_intersect($this->module_access, array('270','271'))) !=0) {
+	if (!empty($sms_email_drip_exist)) {
+		if (isset($basic) && $basic->is_exist("modules",array("id"=>270)) && $basic->is_exist("modules",array("id"=>271))) {  
+		  if (session()->get('user_type') == 'Admin' || (isset($module_access) && is_array($module_access) && count(array_intersect($module_access, array('270','271'))) != 0)) {
 					$modal_width = 'style="min-width:70%"';
 			}
 		}

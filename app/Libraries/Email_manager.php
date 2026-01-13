@@ -90,6 +90,15 @@ class Email_manager{
 		
 		   
 	}
+
+	/**
+	 * CI3/CI4 compatibility alias (typo fix).
+	 * Some controllers call send_mandrill_email() but the original method name was send_madrill_email().
+	 */
+	public function send_mandrill_email($from_email,$from_name,$to_emails,$subject,$message,$api_id,$attachment_file='',$filename='')
+	{
+		return $this->send_madrill_email($from_email,$from_name,$to_emails,$subject,$message,$api_id,$attachment_file,$filename);
+	}
 	
 	
 	/******This api return just one response like $email_status_info['status']= "success/error" ******/

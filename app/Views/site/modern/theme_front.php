@@ -40,7 +40,7 @@
     <link href="<?php echo base_url();?>assets/site_new/css/material-icons.css" rel="stylesheet">
 
     <!--====== MAIN STYLESHEETS ======-->
-    <?php include("application/views/site/modern/css/style.php"); ?>
+    <?php include(APPPATH . "Views/site/modern/css/style.php"); ?>
     <link href="<?php echo base_url();?>assets/site_new/css/responsive.css" rel="stylesheet">
 
     <?php include(APPPATH."views/include/js_variables_front.php");?>
