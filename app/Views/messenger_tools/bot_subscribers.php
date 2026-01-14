@@ -36,7 +36,8 @@ else
         <div class="card-header">
           <div class="col-6 padding-0">
             <h4> 
-            <?php echo $this->using_media_type =='ig' ? lang('Accounts') : lang('Pages'); ?></h4>
+            <?php $using_media_type = isset($using_media_type) ? $using_media_type : 'fb'; ?>
+            <?php echo $using_media_type =='ig' ? lang('Accounts') : lang('Pages'); ?></h4>
           </div>
           <div class="col-6 padding-0">            
             <input type="text" class="form-control float-right" id="search_page_list" onkeyup="search_in_ul(this,'page_list_ul')" autofocus placeholder="<?php echo lang('Search...'); ?>">
@@ -57,7 +58,7 @@ else
                   <div class="row">
                     <div class="col-3 col-md-2"><img width="45px" class="rounded-circle" src="<?php echo $value['page_profile'];?>"></div>
                     <div class="col-9 col-md-10">
-                      <h6 class="page_name"><?php echo $this->using_media_type=="ig" ?  $value['insta_username']:  $value['page_name'];?></h6>
+                      <h6 class="page_name"><?php echo $using_media_type=="ig" ?  $value['insta_username']:  $value['page_name'];?></h6>
                       <small class="gray"><?php echo $value['page_id']; ?></small>
                       <!-- <code class="pl-2 text-dark text-small" data-toggle="tooltip" title="<?php echo lang('Last Scanned') ?>"><i class="far fa-clock"> <?php echo $last_lead_sync; ?></i></code> -->
                       </div>
@@ -243,7 +244,7 @@ else
 
 
 <script type="text/javascript">
-    var is_webview_exist = "<?php echo $this->is_webview_exist; ?>"
+    var is_webview_exist = "<?php echo (isset($is_webview_exist) && $is_webview_exist) ? '1' : '0'; ?>"
     var base_url="<?php echo base_url();?>";    
     var youhavenotselected = "<?php echo $youhavenotselected;?>";
     var youhavenotselectanysubscribertoassignsequence = "<?php echo $youhavenotselectanysubscribertoassignsequence; ?>";
@@ -293,7 +294,7 @@ else
       $(elem).addClass('active');   
 
       $("#page_id").val(page_table_id).blur();  
-      var media_type = "<?php echo $this->using_media_type; ?>"
+      var media_type = "<?php echo isset($using_media_type) ? $using_media_type : 'fb'; ?>"
       $.ajax({
         type:'POST' ,
         url:"<?php echo site_url();?>subscriber_manager/get_page_details",
@@ -336,7 +337,7 @@ else
             responsive: true,
             language: 
             {
-              url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+              url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
             },
             dom: '<"top"f>rt<"bottom"lip><"clear">',
             columnDefs: [
@@ -397,7 +398,7 @@ else
           },
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [
@@ -865,7 +866,7 @@ else
             },
             language: 
             {
-              url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
             },
             dom: '<"top"f>rt<"bottom"lip><"clear">',
             columnDefs: [
@@ -1085,7 +1086,7 @@ else
  
 </script>
 
-<?php include(FCPATH.'application/views/messenger_tools/subscriber_actions_common_js.php');?>
+<?php include(APPPATH . "Views/messenger_tools/subscriber_actions_common_js.php");?>
 
 
 
@@ -1174,7 +1175,7 @@ else
             </div>
             
             <div class="modal-body">   
-              <div class="text-center" style="padding:20px;margin-bottom:20px;border:.5px solid #dee2e6; color:var(--blue);background: #fff;"><?php echo $this->lang->line("Bulk sequence assign is available for Email & SMS cmapaign. For Messenger, bulk campaign isn't available due to safety & avoiding breaking 24 Hours policy. "); ?></div>
+              <div class="text-center" style="padding:20px;margin-bottom:20px;border:.5px solid #dee2e6; color:var(--blue);background: #fff;"><?php echo lang("Bulk sequence assign is available for Email & SMS cmapaign. For Messenger, bulk campaign isn't available due to safety & avoiding breaking 24 Hours policy. "); ?></div>
               <div id="sequence_campaigns"></div>
             </div>
             <div class="modal-footer bg-whitesmoke">
@@ -1366,7 +1367,7 @@ else
             <div class="modal-body">    
               <div class="section">                
                 <h2 class="section-title"><?php echo lang('Conversation Subscribers'); ?></h2>
-                <p><?php echo $this->lang->line("Conversation Subscribers are, who have conversation in your page inbox. These users may come from Messenger Bot, Comment Private Reply, Click to Messenger Ads or Send Message CTA Post.  These users are eligible to get Conversation Broadcast message. Even if after getting private reply, users doesn't reply back will be counted for Conversation Broadcast."); ?></p>
+                <p><?php echo lang("Conversation Subscribers are, who have conversation in your page inbox. These users may come from Messenger Bot, Comment Private Reply, Click to Messenger Ads or Send Message CTA Post.  These users are eligible to get Conversation Broadcast message. Even if after getting private reply, users doesn't reply back will be counted for Conversation Broadcast."); ?></p>
               </div>
               <div class="section">                
                 <h2 class="section-title"><?php echo lang('BOT Subscribers'); ?></h2>
@@ -1374,7 +1375,7 @@ else
                 <ol>
                   <li><?php echo lang('The user deactivated their account.'); ?></li>
                   <li><?php echo lang('The user blocked your page.'); ?></li>
-                  <li><?php echo $this->lang->line("The user don't have activity for long days with your page."); ?></li>
+                  <li><?php echo lang("The user don't have activity for long days with your page."); ?></li>
                   <li><?php echo lang('The user may in conversation subscriber list as got private reply of comment but never reply may not eligible for BOT Subscriber.'); ?></li>
                 </ol>
               </div>

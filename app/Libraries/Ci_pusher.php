@@ -17,21 +17,21 @@
  * @version     2.0.0
  */
 
-Use Pusher\Pusher;
+use Pusher\Pusher;
 
 Class Ci_pusher
 {
 
     public function __construct()
     {
-        // Load config
-        $this->load->config('pusher');
-
+        // CI4: Get config from MyConfig
+        $config = config('MyConfig');
+        
         // Get config variables
-        $app_id     = $this->config->item('pusher_app_id');
-        $app_key    = $this->config->item('pusher_app_key');
-        $app_secret = $this->config->item('pusher_app_secret');
-        $options    = $this->options();
+        $app_id     = $config->pusher_app_id ?? '';
+        $app_key    = $config->pusher_app_key ?? '';
+        $app_secret = $config->pusher_app_secret ?? '';
+        $options    = $this->options($config);
 
         // Create Pusher object only if we don't already have one
         if (!isset($this->pusher))
@@ -42,7 +42,7 @@ Class Ci_pusher
 
             // Set logger if debug is set to true
             // Tried making it true in config/pusher.php,does not work (alamin)
-            /*if ($this->config->item('pusher_debug') === TRUE )
+            /*if (($config->pusher_debug ?? false) === TRUE )
             {
                 $this->pusher->set_logger(new Ci_pusher_logger());
                 log_message('debug', 'CI Pusher library debug ON');
@@ -67,16 +67,24 @@ Class Ci_pusher
     /**
      * Build optional options array
      *
+     * @param object $config Config object
      * @return  array
      */
-    private function options()
+    private function options($config)
     {
-        $options['scheme']    = ($this->config->item('pusher_scheme')) ?: NULL;
-        $options['host']      = ($this->config->item('pusher_host')) ?: NULL;
-        $options['port']      = ($this->config->item('pusher_port')) ?: NULL;
-        $options['timeout']   = ($this->config->item('pusher_timeout')) ?: NULL;
-        $options['encrypted'] = ($this->config->item('pusher_encrypted')) ?: NULL;
-        $options['cluster']   = ($this->config->item('pusher_cluster')) ?: NULL;
+        $options = [];
+        
+        // CI4: Get config values from MyConfig
+        if (!empty($config->pusher_cluster)) {
+            $options['cluster'] = $config->pusher_cluster;
+        }
+        
+        // Optional pusher settings (if needed in future)
+        // $options['scheme']    = $config->pusher_scheme ?? null;
+        // $options['host']      = $config->pusher_host ?? null;
+        // $options['port']      = $config->pusher_port ?? null;
+        // $options['timeout']   = $config->pusher_timeout ?? null;
+        // $options['encrypted'] = $config->pusher_encrypted ?? null;
 
         $options = array_filter($options);
 

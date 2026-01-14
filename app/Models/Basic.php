@@ -170,7 +170,34 @@ class Basic extends Model
 				{
 					$field=$keys_inner[$j]; // grabs the field names
 					$value=$where['where_in'][$keys_inner[$j]];	 // grabs the array values of the grabed field to be find in
-					$builder->whereIn($field,$value);	//genereates the where_in clause	s				
+					
+					// CI4: Ensure $value is an array for whereIn()
+					if (!is_array($value)) {
+						if (is_string($value) && !empty($value)) {
+							// Handle comma-separated string
+							$value = explode(',', $value);
+						} elseif (is_numeric($value)) {
+							// Handle single numeric value
+							$value = [(int)$value];
+						} else {
+							// Skip if not a valid array/string/numeric
+							continue;
+						}
+					}
+					
+					// Filter and ensure all values are valid
+					$value = array_values(array_filter(array_map(function($v) {
+						if (is_array($v)) return null;
+						$v = is_string($v) ? trim($v) : $v;
+						return is_numeric($v) ? (int)$v : (is_string($v) && !empty($v) ? $v : null);
+					}, $value), function($v) {
+						return $v !== null;
+					}));
+					
+					// Only call whereIn if we have valid values
+					if (!empty($value) && is_array($value)) {
+						$builder->whereIn($field, $value);	//genereates the where_in clause
+					}
 				} //end for
 				
 			} //end else if
@@ -182,7 +209,34 @@ class Basic extends Model
 				{
 					$field=$keys_inner[$j];
 					$value=$where['where_not_in'][$keys_inner[$j]];	
-					$builder->whereNotIn($field,$value);	// genereates the where_not_in clauses					
+					
+					// CI4: Ensure $value is an array for whereNotIn()
+					if (!is_array($value)) {
+						if (is_string($value) && !empty($value)) {
+							// Handle comma-separated string
+							$value = explode(',', $value);
+						} elseif (is_numeric($value)) {
+							// Handle single numeric value
+							$value = [(int)$value];
+						} else {
+							// Skip if not a valid array/string/numeric
+							continue;
+						}
+					}
+					
+					// Filter and ensure all values are valid
+					$value = array_values(array_filter(array_map(function($v) {
+						if (is_array($v)) return null;
+						$v = is_string($v) ? trim($v) : $v;
+						return is_numeric($v) ? (int)$v : (is_string($v) && !empty($v) ? $v : null);
+					}, $value), function($v) {
+						return $v !== null;
+					}));
+					
+					// Only call whereNotIn if we have valid values
+					if (!empty($value) && is_array($value)) {
+						$builder->whereNotIn($field, $value);	// genereates the where_not_in clauses
+					}
 				} // end for
 				
 			} // end else if

@@ -1,21 +1,26 @@
 <?php
 
-require_once("Home.php"); // loading home controller
+namespace App\Controllers;
+
+use App\Controllers\Home;
 
 class Subscriber_manager extends Home
 {
-
-    public function __construct()
+    public $input;
+    public $is_webview_exist;
+    public $is_ecommerce_exist;
+    public $is_drip_campaigner_exist;
+    public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
     {
-        parent::__construct();         
+        parent::initController($request, $response, $logger);
 
         check_module_access($module_id=66);
 
-        $function_name=$this->uri->segment(2);
+        $function_name = $this->uri->getSegment(2);
         if($function_name!="" && $function_name!="index" && $function_name!="sync_subscribers" && $function_name!="bot_subscribers" && $function_name!="bot_subscribers_data" &&  $function_name!="contact_group" &&  $function_name!="contact_group_data")
         {
-          if($this->session->userdata("facebook_rx_fb_user_info")==0)
-          redirect('social_accounts/index','refresh');
+          if(session()->get("facebook_rx_fb_user_info")==0)
+          return redirect()->to(base_url('social_accounts/index'))->send();
           $this->load->library("fb_rx_login");
         }
         $this->important_feature();
@@ -26,7 +31,7 @@ class Subscriber_manager extends Home
     public function index()
     {
         $data['body'] = 'messenger_tools/subscriber_manager_menu_block';
-        $data['page_title'] = $this->lang->line('Subscriber Manager');
+        $data['page_title'] = lang('Subscriber Manager');
         $this->_viewcontroller($data);
     }
 
@@ -60,11 +65,10 @@ class Subscriber_manager extends Home
 
       if($page_id !='') $where_simple['messenger_bot_broadcast_contact_group.page_id'] = $page_id;
 
-      $sql = '';
-      if($searching != '') $sql = " messenger_bot_broadcast_contact_group.group_name LIKE  '%".$searching."%' ";
-      if($sql != '') $this->db->where($sql);
-
       $where = array("where"=> $where_simple);
+      if($searching != '') {
+        $where['where'] = " messenger_bot_broadcast_contact_group.group_name LIKE  '%".$this->db->escapeLikeString($searching)."%' ";
+      }
 
       $select = array("messenger_bot_broadcast_contact_group.*","facebook_rx_fb_page_info.page_name","facebook_rx_fb_page_info.insta_username","facebook_rx_fb_page_info.page_id AS pageid");
       $join  = array("facebook_rx_fb_page_info"=>"messenger_bot_broadcast_contact_group.page_id=facebook_rx_fb_page_info.id,left");
@@ -82,7 +86,6 @@ class Subscriber_manager extends Home
       foreach($subscribers_data as $subscriber_count)
         $subscribers_group[$subscriber_count['contact_group_id']] = $subscriber_count['total_subscriber'];
 
-      if($sql != '') $this->db->where($sql);
       $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,'group_name');
       $total_result=$total_rows_array[0]['total_rows'];
 
@@ -90,9 +93,9 @@ class Subscriber_manager extends Home
       for($i=0;$i<count($info);$i++) 
       {
         if($info[$i]['unsubscribe'] == '1')
-          $actions = "<a href='javascript:void(0)' class='text-muted disabled mr-1' title='".$this->lang->line("Delete Label")."'><i class='fas fa-trash-alt'></i></a>";
+          $actions = "<a href='javascript:void(0)' class='text-muted disabled mr-1' title='".lang("Delete Label")."'><i class='fas fa-trash-alt'></i></a>";
         else 
-          $actions = "<a href='#' class='text-dark delete_label mr-1' social_media='".$info[$i]['social_media']."'  table_id='".$info[$i]['id']."' title='".$this->lang->line("Delete Label")."'><i class='fas fa-trash-alt'></i></a>";
+          $actions = "<a href='#' class='text-dark delete_label mr-1' social_media='".$info[$i]['social_media']."'  table_id='".$info[$i]['id']."' title='".lang("Delete Label")."'><i class='fas fa-trash-alt'></i></a>";
         $subscriber_count = $subscribers_group[$info[$i]['id']] ?? 0;
         $subscriber_count = custom_number_format($subscriber_count,3);
         $info[$i]['group_name'] = $actions.' '.$info[$i]['group_name'].' ['.$subscriber_count.']';
@@ -134,10 +137,10 @@ class Subscriber_manager extends Home
         try {
           $this->basic->insert_data("messenger_bot_broadcast_contact_group",$inserted_data);          
           $return['status'] = "1";
-          $return['message'] = $this->lang->line("Label has been created successfully.");                 
+          $return['message'] = lang("Label has been created successfully.");                 
         } 
-        catch (Exception $e) {
-            $response['error'] = $this->lang->line("Label already exists. Try a different name."); 
+        catch (\Exception $e) {
+            $response['error'] = lang("Label already exists. Try a different name."); 
         }        
         
       }
@@ -175,7 +178,7 @@ class Subscriber_manager extends Home
       if($this->basic->is_exist("messenger_bot_broadcast_contact_group",array("unsubscribe"=>"1","id"=>$primary_key)))
       {   
         $return['status'] = 'failed';
-        $return['message'] = $this->lang->line('Sorry, Unsubscribe label can not be deleted.');
+        $return['message'] = lang('Sorry, Unsubscribe label can not be deleted.');
 
       } 
       else
@@ -187,7 +190,7 @@ class Subscriber_manager extends Home
         {
           $this->basic->delete_data("messenger_bot_broadcast_contact_group",array("id"=>$primary_key));
           $return['status'] = 'successfull';
-          $return['message'] = $this->lang->line('Label has been deleted Successfully.');
+          $return['message'] = lang('Label has been deleted Successfully.');
 
         }
         else if(isset($response['error']))
@@ -199,7 +202,7 @@ class Subscriber_manager extends Home
         } else
         {
           $return['status'] = 'wrong';
-          $return['message'] = $this->lang->line("Something Went Wrong, please try once again.");
+          $return['message'] = lang("Something Went Wrong, please try once again.");
 
         }
 
@@ -215,14 +218,14 @@ class Subscriber_manager extends Home
         $page_table_id = $this->input->post('page_table_id',true);
         // $social_media = $this->using_media_type;
         $social_media = $this->input->post('media_type',true);
-        $facebook_rx_fb_user_info_id  =  $this->session->userdata('facebook_rx_fb_user_info');
-        $this->session->set_userdata('selected_global_page_table_id',$page_table_id);
+        $facebook_rx_fb_user_info_id  =  session()->get('facebook_rx_fb_user_info');
+        session()->set('selected_global_page_table_id',$page_table_id);
 
         $table_name = "facebook_rx_fb_page_info";
         $where['where'] = array('facebook_rx_fb_user_info_id' => $facebook_rx_fb_user_info_id,'id'=>$page_table_id);
         $page_info = $this->basic->get_data($table_name,$where,'','','','','page_name asc');
 
-        $last_lead_sync = $this->lang->line("Never Synced");
+        $last_lead_sync = lang("Never Synced");
         if($page_info[0]['last_lead_sync']!='0000-00-00 00:00:00') $last_lead_sync = date_time_calculator($page_info[0]['last_lead_sync'],true);
 
         $unsubscribed = 0;
@@ -275,31 +278,31 @@ class Subscriber_manager extends Home
 
        
         if($social_media=='ig')
-        $details = "<a target='_BLANK' href='".base_url('message_manager/instagram_message_dashboard/').$page_info[0]['id']."' class='btn btn-outline-danger'><i class='fas fa-eye'></i> ".$this->lang->line("Details")."</a>";
-        else $details = "<a target='_BLANK' href='".base_url('message_manager/message_dashboard/').$page_info[0]['id']."' class='btn btn-outline-danger'><i class='fas fa-eye'></i> ".$this->lang->line("Details")."</a>";
+        $details = "<a target='_BLANK' href='".base_url('message_manager/instagram_message_dashboard/').$page_info[0]['id']."' class='btn btn-outline-danger'><i class='fas fa-eye'></i> ".lang("Details")."</a>";
+        else $details = "<a target='_BLANK' href='".base_url('message_manager/message_dashboard/').$page_info[0]['id']."' class='btn btn-outline-danger'><i class='fas fa-eye'></i> ".lang("Details")."</a>";
 
-        $scan_now = '<a href="#" id ="'.$page_info[0]['id'].'" style="margin-top:-5px" class="float-right btn btn-outline-primary btn-sm import_data"><i class="fas fa-search"></i> '.$this->lang->line("Scan").'</a>';
+        $scan_now = '<a href="#" id ="'.$page_info[0]['id'].'" style="margin-top:-5px" class="float-right btn btn-outline-primary btn-sm import_data"><i class="fas fa-search"></i> '.lang("Scan").'</a>';
 
         $popover="";
         if($page_info[0]['auto_sync_lead']=="0" || $page_info[0]['auto_sync_lead']=="3")
         {
           $enable_disable = 1;
           $enable_disable_class = "auto_sync_lead_page btn-outline-warning";
-          $enable_disable_text = "<i class='fas fa-check-circle'></i> ".$this->lang->line("Enable Auto Scan");
+          $enable_disable_text = "<i class='fas fa-check-circle'></i> ".lang("Enable Auto Scan");
         }
         if($page_info[0]['auto_sync_lead']=="1")
         {
           $enable_disable = 0;
           $enable_disable_class = "btn-outline-danger disabled";
-          $enable_disable_text = "<i class='fas fa-clock-o'></i> ".$this->lang->line("Auto Scan Queued");
-          $popover=' <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Queued").'" data-content="'.$this->lang->line("Background scanning will be completed by multiple steps depending on total number of subscribers. Queued means it is waiting for the next step. Background scanning will scan page's inbox in background with multiple step & once all subscribers from inbox is imported, it will turn into default state again with Enable button.This option mostly used for pages that has a big subscribers list & possibly get error during Scan page inbox option").'"><i class="fas fa-info-circle"></i> </a>';
+          $enable_disable_text = "<i class='fas fa-clock-o'></i> ".lang("Auto Scan Queued");
+          $popover=' <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="'.lang("Queued").'" data-content="'.lang("Background scanning will be completed by multiple steps depending on total number of subscribers. Queued means it is waiting for the next step. Background scanning will scan page's inbox in background with multiple step & once all subscribers from inbox is imported, it will turn into default state again with Enable button.This option mostly used for pages that has a big subscribers list & possibly get error during Scan page inbox option").'"><i class="fas fa-info-circle"></i> </a>';
         }
         if($page_info[0]['auto_sync_lead']=="2")
         {
           $enable_disable = 1;
           $enable_disable_class = "btn-outline-warning auto_sync_lead_page";
-          $enable_disable_text = "<i class='fas fa-spinner'></i> ".$this->lang->line("Force Auto Scan");
-          $popover=' <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Processing, Force Restart").'" data-content="'.$this->lang->line("Background scanning is processing. Due to any unexpected server unavailability this process can be corrupted and can run forever. If you think this is processing forever, then you can force restart it.").'"><i class="fas fa-info-circle"></i> </a>';
+          $enable_disable_text = "<i class='fas fa-spinner'></i> ".lang("Force Auto Scan");
+          $popover=' <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="'.lang("Processing, Force Restart").'" data-content="'.lang("Background scanning is processing. Due to any unexpected server unavailability this process can be corrupted and can run forever. If you think this is processing forever, then you can force restart it.").'"><i class="fas fa-info-circle"></i> </a>';
         }
 
         $insta_user = $page_info[0]['has_instagram']=='1' ? '<a href="https://instagram.com/'.$page_info[0]['insta_username'].'" target="_BLANK"><i class="fab fa-instagram"></i> '.$page_info[0]['insta_username'].'</a>' : ''; 
@@ -315,10 +318,10 @@ class Subscriber_manager extends Home
                         </div>
                         <div class="card-wrap">
                           <div class="card-header">
-                            <h4>'.$this->lang->line("Bot Subscriber").'</h4>
+                            <h4>'.lang("Bot Subscriber").'</h4>
                           </div>
                           <div class="card-body">
-                            '.$bot_subscriber.'<span class="red" data-toggle="tooltip" data-placement="bottom" title="'.$this->lang->line('Unsubscribed').'"> ('.$unsubscribed.')</span>
+                            '.$bot_subscriber.'<span class="red" data-toggle="tooltip" data-placement="bottom" title="'.lang('Unsubscribed').'"> ('.$unsubscribed.')</span>
                           </div>
                         </div>
                       </div>
@@ -330,7 +333,7 @@ class Subscriber_manager extends Home
                         </div>
                         <div class="card-wrap">
                           <div class="card-header">
-                            <h4>'. $this->lang->line("24H Subscriber").'</h4>
+                            <h4>'. lang("24H Subscriber").'</h4>
                           </div>
                           <div class="card-body">
                             '.$subscriber_24.'
@@ -348,7 +351,7 @@ class Subscriber_manager extends Home
           </script>
           ';        
 
-        $label_id=array(''=>$this->lang->line("Label"));
+        $label_id=array(''=>lang("Label"));
         $labelinfo = $this->basic->get_data("messenger_bot_broadcast_contact_group",array("where"=>array('user_id'=>$this->user_id,"invisible"=>"0","page_id"=>$page_table_id)));
         foreach ($labelinfo as $key => $value) {
             $result = $value['id'];
@@ -447,7 +450,7 @@ class Subscriber_manager extends Home
         $new_label_names = implode(',', $temp);    
         // messenger bot label data block
 
-        $response =array('button'=>'','label'=>$new_label_names,'status'=>'0','message'=>$this->lang->line("Something went wrong, please try again."));
+        $response =array('button'=>'','label'=>$new_label_names,'status'=>'0','message'=>lang("Something went wrong, please try again."));
         if($this->basic->update_data('messenger_bot_subscriber', $where, $data))
         {    
             if($permission=="0")
@@ -458,9 +461,9 @@ class Subscriber_manager extends Home
                 //   $this->fb_rx_login->assign_label($page_access_token,$subscriber_id,$label_id);    
                 // }
 
-                $response['button'] = "<a href='' id ='".$id."-".$permission."' social_media='".$social_media."' title='".$this->lang->line("Subscribe")."' class='client_thread_subscribe_unsubscribe btn btn-circle btn-primary'><i class='fas fa-user-check'></i></a>";
-                $response['button2'] ='<span class="subsribe_unsubscribe_container"><a class="text-primary">'.$this->lang->line("Unsubscribed").'</a> <a class="text-muted pointer client_thread_subscribe_unsubscribe" social_media="'.$social_media.'" id="'.$id."-".$permission.'">('.$this->lang->line("Subscribe").')</a></span>'; // called from subscriber action page
-                $response['message'] = $this->lang->line("Subscriber has been unsubscribed successfully.");
+                $response['button'] = "<a href='' id ='".$id."-".$permission."' social_media='".$social_media."' title='".lang("Subscribe")."' class='client_thread_subscribe_unsubscribe btn btn-circle btn-primary'><i class='fas fa-user-check'></i></a>";
+                $response['button2'] ='<span class="subsribe_unsubscribe_container"><a class="text-primary">'.lang("Unsubscribed").'</a> <a class="text-muted pointer client_thread_subscribe_unsubscribe" social_media="'.$social_media.'" id="'.$id."-".$permission.'">('.lang("Subscribe").')</a></span>'; // called from subscriber action page
+                $response['message'] = lang("Subscriber has been unsubscribed successfully.");
                 $response['status'] = "1";
                 $this->basic->execute_complex_query("UPDATE facebook_rx_fb_page_info SET current_subscribed_lead_count = current_subscribed_lead_count-1,current_unsubscribed_lead_count = current_unsubscribed_lead_count+1 WHERE user_id = '$login_user_id' AND page_id = '$page_id'");
             }
@@ -472,10 +475,10 @@ class Subscriber_manager extends Home
                 //   $this->fb_rx_login->deassign_label($page_access_token,$subscriber_id,$label_id);
                 // }
 
-                $response['button'] = "<a href=''  social_media='".$social_media."' id ='".$id."-".$permission."' title='".$this->lang->line("Unsubscribe")."' class='client_thread_subscribe_unsubscribe btn btn-circle btn-danger'><i class='fas fa-user-times'></i></a>";
-                $response['button2'] ='<span class="subsribe_unsubscribe_container"><a class="text-primary">'.$this->lang->line("Subscribed").'</a> <a class="text-muted pointer client_thread_subscribe_unsubscribe" social_media="'.$social_media.'" id="'.$id."-".$permission.'">('.$this->lang->line("Unsubscribe").')</a></span>'; // called from subscriber action page
+                $response['button'] = "<a href=''  social_media='".$social_media."' id ='".$id."-".$permission."' title='".lang("Unsubscribe")."' class='client_thread_subscribe_unsubscribe btn btn-circle btn-danger'><i class='fas fa-user-times'></i></a>";
+                $response['button2'] ='<span class="subsribe_unsubscribe_container"><a class="text-primary">'.lang("Subscribed").'</a> <a class="text-muted pointer client_thread_subscribe_unsubscribe" social_media="'.$social_media.'" id="'.$id."-".$permission.'">('.lang("Unsubscribe").')</a></span>'; // called from subscriber action page
     
-                $response['message'] = $this->lang->line("Subscriber has been subscribed back successfully.");
+                $response['message'] = lang("Subscriber has been subscribed back successfully.");
                 $response['status'] = "1";
 
                 if($social_media=='fb')
@@ -489,14 +492,14 @@ class Subscriber_manager extends Home
     public function bot_subscribers($auto_selected_subscriber=0,$auto_selected_page=0)
     {
       
-      if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array(66))) == 0)
-      redirect('home/login_page', 'location'); 
+      if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array(66))) == 0)
+      return redirect()->to(base_url('home/login_page'))->send(); 
 
       $this->is_webview_exist=$this->webview_exist();
       $this->is_ecommerce_exist=$this->ecommerce_exist();
       $switch_to_instagram = $this->using_media_type=='ig' ? '1' : '0';
 
-      $facebook_rx_fb_user_info_id  =  $this->session->userdata('facebook_rx_fb_user_info');
+      $facebook_rx_fb_user_info_id  =  session()->get('facebook_rx_fb_user_info');
 
       $table_name = "facebook_rx_fb_page_info";
       $where['where'] = array('facebook_rx_fb_user_info_id' => $facebook_rx_fb_user_info_id,"bot_enabled"=>"1");
@@ -512,7 +515,7 @@ class Subscriber_manager extends Home
       {
           $i = 1;
           $selected_page_id = $auto_selected_page;
-          if($auto_selected_page==0) $selected_page_id = $this->session->userdata('selected_global_page_table_id');
+          if($auto_selected_page==0) $selected_page_id = session()->get('selected_global_page_table_id');
           foreach($page_list as $value)
           {
               if($switch_to_instagram=='1' && $value['has_instagram']=='0') continue;
@@ -525,27 +528,29 @@ class Subscriber_manager extends Home
       ksort($page_info);
 
       $data['page_info'] = $page_info;
-      $data['page_title'] = $switch_to_instagram=='1' ? $this->lang->line('Instagram - Sync Subscribers') :  $this->lang->line('Facebook - Sync Subscribers');  
+      $data['page_title'] = $switch_to_instagram=='1' ? lang('Instagram - Sync Subscribers') :  lang('Facebook - Sync Subscribers');  
 
       $data['user_input_flow_exist'] = 'no';
       if($this->basic->is_exist("add_ons",array("project_id"=>49)))
       {
-        if($this->session->userdata('user_type') == 'Admin' || in_array(292,$this->module_access))
+        if(session()->get('user_type') == 'Admin' || in_array(292,$this->module_access))
           $data['user_input_flow_exist'] = 'yes';
         else
           $data['user_input_flow_exist'] = 'no';
       }
 
-      //$data['page_dropdown'] = $this->get_facebook_instagram_dropdown($this->session->userdata("facebook_rx_fb_user_info"));      
+      //$data['page_dropdown'] = $this->get_facebook_instagram_dropdown(session()->get("facebook_rx_fb_user_info"));      
 
       $data['body'] = 'messenger_tools/bot_subscribers';
-      $data['page_title'] = $this->lang->line('Subscriber Manager');
+      $data['page_title'] = lang('Subscriber Manager');
       $data['auto_selected_subscriber'] = $auto_selected_subscriber; // used for showing single subscriber data
       $data['auto_selected_page'] = $auto_selected_page; // used for showing single page data
       if($this->is_webview_exist) $data['webview_access'] = 'yes';
       else $data['webview_access'] = 'no';
 
       $data['ecommerce_exist'] = $this->is_ecommerce_exist ? 'yes' : 'no';
+      $data['is_webview_exist'] = $this->is_webview_exist ?? false;
+      $data['is_ecommerce_exist'] = $this->is_ecommerce_exist ?? false;
 
       $data['status_list'] = $this->get_payment_status();
 
@@ -592,13 +597,15 @@ class Subscriber_manager extends Home
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'desc';
         $order_by=$sort." ".$order;
 
-        if($search_status!="") $this->db->where(array("ecommerce_cart.status"=>$search_status));    
-        $where_custom="ecommerce_cart.subscriber_id = '".$subscriber_id."'";
-
+        $where_simple = array();
+        if($search_status!="") $where_simple["ecommerce_cart.status"] = $search_status;
+        $where_simple["ecommerce_cart.subscriber_id"] = $subscriber_id;
+        
+        $where_custom="";
         if ($search_value != '') 
         {
             foreach ($search_columns as $key => $value) 
-            $temp[] = $value." LIKE "."'%$search_value%'";
+            $temp[] = $value." LIKE "."'%".$this->db->escapeLikeString($search_value)."%'";
             $imp = implode(" OR ", $temp);
             $where_custom .=" AND (".$imp.") ";
         }
@@ -608,18 +615,20 @@ class Subscriber_manager extends Home
             $from_date = isset($exp[0])?$exp[0]:"";
             $to_date = isset($exp[1])?$exp[1]:"";
             if($from_date!="Invalid date" && $to_date!="Invalid date")
-            $where_custom .= " AND ecommerce_cart.updated_at >= '{$from_date}' AND ecommerce_cart.updated_at <='{$to_date}'";
+            $where_custom .= " AND ecommerce_cart.updated_at >= '".$this->db->escape($from_date)."' AND ecommerce_cart.updated_at <='".$this->db->escape($to_date)."'";
         }
-        $this->db->where($where_custom);      
+        
+        $where = array("where" => $where_simple);
+        if($where_custom != "") {
+          $where['where'] = "ecommerce_cart.subscriber_id = '".$this->db->escape($subscriber_id)."'".$where_custom;
+        }
         
         $table="ecommerce_cart";
         $select = "ecommerce_cart.id,action_type,ecommerce_cart.user_id,store_id,subscriber_id,coupon_code,coupon_type,discount,payment_amount,currency,ordered_at,transaction_id,card_ending,payment_method,manual_additional_info,manual_filename,paid_at,ecommerce_cart.status,ecommerce_cart.updated_at,status_changed_note";
-        $info=$this->basic->get_data($table,$where='',$select,$join='',$limit,$start,$order_by,$group_by='');
-        // echo $this->db->last_query();
+        $info=$this->basic->get_data($table,$where,$select,$join='',$limit,$start,$order_by,$group_by='');
+        // echo $this->db->lastQuery();
         
-        if($search_status!="") $this->db->where(array("ecommerce_cart.status"=>$search_status));
-        $this->db->where($where_custom);
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join='',$group_by='');
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join='',$group_by='');
 
         $total_result=$total_rows_array[0]['total_rows'];
         
@@ -659,25 +668,25 @@ class Subscriber_manager extends Home
             $st1 = ($value['payment_method']=='Manual') ? $this->handle_attachment($value['id'], $file):"";
             
             if($value['payment_method']=='Manual')
-            $st2 = ' <a data-id="'.$value['id'].'" href="#"  class="btn btn-outline-primary additional_info" data-toggle="tooltip" title="" data-original-title="'.$this->lang->line("Additional Info").'"><i class="fas fa-info-circle"></i></a>';
+            $st2 = ' <a data-id="'.$value['id'].'" href="#"  class="btn btn-outline-primary additional_info" data-toggle="tooltip" title="" data-original-title="'.lang("Additional Info").'"><i class="fas fa-info-circle"></i></a>';
 
             $info[$key]['manual_filename'] = ($st1=="" && $st2=="") ? "x" : "<div style='width:100px;'>".$st1.$st2."</div>"; 
             
-            $info[$key]['invoice'] =  "<a class='btn btn-outline-primary' target='_BLANK' data-toggle='tooltip' title='".$this->lang->line("Invoice")."' href='".base_url("ecommerce/order/".$value['id'])."'><i class='fas fa-receipt'></i></a>";
+            $info[$key]['invoice'] =  "<a class='btn btn-outline-primary' target='_BLANK' data-toggle='tooltip' title='".lang("Invoice")."' href='".base_url("ecommerce/order/".$value['id'])."'><i class='fas fa-receipt'></i></a>";
 
             $info[$key]["invoice"] .= '<script>$(\'[data-toggle="tooltip"]\').tooltip();</script>';
             $info[$key]["invoice"] .= '<script>$(\'[data-toggle="popover"]\').popover();</script>';
 
             $payment_status = $info[$key]['status'];
 
-            if($payment_status=='pending') $payment_status_badge = "<span class='text-danger'><i class='fas fa-spinner'></i> ".$this->lang->line("Pending")."</span>";
-            else if($payment_status=='approved') $payment_status_badge = "<span class='text-primary'><i class='fas fa-thumbs-up'></i> ".$this->lang->line("Approved")."</span>";
-            else if($payment_status=='rejected') $payment_status_badge = "<span class='text-danger'><i class='fas fa-thumbs-down'></i> ".$this->lang->line("Rejected")."</span>";
-            else if($payment_status=='shipped') $payment_status_badge = "<span class='text-info'><i class='fas fa-truck'></i> ".$this->lang->line("Shipped")."</span>";
-            else if($payment_status=='delivered') $payment_status_badge = "<span class='text-info'><i class='fas fa-truck-loading'></i> ".$this->lang->line("Delivered")."</span>";
-            else if($payment_status=='completed') $payment_status_badge = "<span class='text-success'><i class='fas fa-check-circle'></i> ".$this->lang->line("Completed")."</span>";
+            if($payment_status=='pending') $payment_status_badge = "<span class='text-danger'><i class='fas fa-spinner'></i> ".lang("Pending")."</span>";
+            else if($payment_status=='approved') $payment_status_badge = "<span class='text-primary'><i class='fas fa-thumbs-up'></i> ".lang("Approved")."</span>";
+            else if($payment_status=='rejected') $payment_status_badge = "<span class='text-danger'><i class='fas fa-thumbs-down'></i> ".lang("Rejected")."</span>";
+            else if($payment_status=='shipped') $payment_status_badge = "<span class='text-info'><i class='fas fa-truck'></i> ".lang("Shipped")."</span>";
+            else if($payment_status=='delivered') $payment_status_badge = "<span class='text-info'><i class='fas fa-truck-loading'></i> ".lang("Delivered")."</span>";
+            else if($payment_status=='completed') $payment_status_badge = "<span class='text-success'><i class='fas fa-check-circle'></i> ".lang("Completed")."</span>";
 
-            if($info[$key]['status_changed_note']!='')$payment_status_badge.='&nbsp;&nbsp;&nbsp;<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Note").'" data-content="'.htmlspecialchars($info[$key]['status_changed_note']).'"><i class="fas fa-comment text-primary"></i> </a>';
+            if($info[$key]['status_changed_note']!='')$payment_status_badge.='&nbsp;&nbsp;&nbsp;<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="'.lang("Note").'" data-content="'.htmlspecialchars($info[$key]['status_changed_note']).'"><i class="fas fa-comment text-primary"></i> </a>';
             $info[$key]['status'] = $payment_status_badge;           
 
         }
@@ -701,7 +710,7 @@ class Subscriber_manager extends Home
                 case 'zip':
                 case 'pdf':
                 case 'txt':
-                    return '<div data-id="' . $id . '" id="mp-download-file" class="btn btn-outline-info" data-toggle="tooltip" title="'.$this->lang->line("Attachment").'"><i class="fas fa-download"></i></div>';
+                    return '<div data-id="' . $id . '" id="mp-download-file" class="btn btn-outline-info" data-toggle="tooltip" title="'.lang("Attachment").'"><i class="fas fa-download"></i></div>';
             }
         }
     }
@@ -720,7 +729,7 @@ class Subscriber_manager extends Home
 
     private function get_payment_status()
     {
-      return array('pending'=>$this->lang->line('Pending'),'approved'=>$this->lang->line('Approved'),'rejected'=>$this->lang->line('Rejected'),'shipped'=>$this->lang->line('Shipped'),'delivered'=>$this->lang->line('Delivered'),'completed'=>$this->lang->line('Completed'));
+      return array('pending'=>lang('Pending'),'approved'=>lang('Approved'),'rejected'=>lang('Rejected'),'shipped'=>lang('Shipped'),'delivered'=>lang('Delivered'),'completed'=>lang('Completed'));
     }
 
     private function get_ecommerce_config($user_id='0')
@@ -735,7 +744,7 @@ class Subscriber_manager extends Home
     public function bot_subscribers_data()
     { 
         $this->ajax_check();
-        $this->session->unset_userdata("bot_subscribers_sql");
+        session()->remove("bot_subscribers_sql");
 
         $search_value = $this->input->post("search_value");
         $page_id = $this->input->post("page_id");
@@ -775,12 +784,15 @@ class Subscriber_manager extends Home
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'desc';
         $order_by=$sort." ".$order;
 
-        $where_custom="messenger_bot_subscriber.user_id = ".$this->user_id." AND facebook_rx_fb_user_info_id = ".$this->session->userdata('facebook_rx_fb_user_info');
-
+        $where_simple = array();
+        $where_simple['messenger_bot_subscriber.user_id'] = $this->user_id;
+        $where_simple['facebook_rx_fb_user_info_id'] = session()->get('facebook_rx_fb_user_info');
+        
+        $where_custom = "";
         if ($search_value != '') 
         {
             foreach ($search_columns as $key => $value) 
-            $temp[] = $value." LIKE "."'%$search_value%'";
+            $temp[] = $value." LIKE "."'%".$this->db->escapeLikeString($search_value)."%'";
             $imp = implode(" OR ", $temp);
             $where_custom .=" AND (".$imp.") ";
         }
@@ -789,52 +801,59 @@ class Subscriber_manager extends Home
         {
           foreach ($email_phone_birth as $key => $value) {
             if($value == 'has_phone')
-              $this->db->where("phone_number !=", '');
+              $where_simple['messenger_bot_subscriber.phone_number !='] = '';
             if($value == 'has_email')
-              $this->db->where("email !=", '');
+              $where_simple['messenger_bot_subscriber.email !='] = '';
             if($value == 'has_birthdate')
-              $this->db->where("birthdate !=", '0000-00-00');
+              $where_simple['messenger_bot_subscriber.birthdate !='] = '0000-00-00';
           }
         }
 
         $join = array('facebook_rx_fb_page_info'=>"facebook_rx_fb_page_info.id=messenger_bot_subscriber.page_table_id,left");  
 
-        if($social_media=='ig') $this->db->where('social_media', 'ig');
-        else $this->db->where('social_media !=', 'ig');
-        if($gender != '') $this->db->where('gender', $gender);
-        if($page_id!="") $this->db->where("page_table_id", $page_id);
-        // if($label_id!="") $this->db->where("FIND_IN_SET('$label_id',messenger_bot_subscriber.contact_group_id) !=", 0);  
+        if($social_media=='ig') $where_simple['messenger_bot_subscriber.social_media'] = 'ig';
+        else $where_simple['messenger_bot_subscriber.social_media !='] = 'ig';
+        if($gender != '') $where_simple['messenger_bot_subscriber.gender'] = $gender;
+        if($page_id!="") $where_simple['messenger_bot_subscriber.page_table_id'] = $page_id;
+        // if($label_id!="") $where_simple["FIND_IN_SET('$label_id',messenger_bot_subscriber.contact_group_id) !="] = 0;  
         $join['messenger_bot_subscribers_label'] = "messenger_bot_subscriber.id=messenger_bot_subscribers_label.subscriber_table_id,left";
         
         if($label_id != '')
-          $this->db->where('messenger_bot_subscribers_label.contact_group_id',$label_id);
+          $where_simple['messenger_bot_subscribers_label.contact_group_id'] = $label_id;
+
+        $where = array("where" => $where_simple);
+        if($where_custom != "") {
+          $where['where'] = "messenger_bot_subscriber.user_id = ".$this->user_id." AND facebook_rx_fb_user_info_id = ".session()->get('facebook_rx_fb_user_info').$where_custom;
+        }
 
         $table="messenger_bot_subscriber";
         $select = "messenger_bot_subscriber.*,page_name,insta_username,GROUP_CONCAT(messenger_bot_subscribers_label.contact_group_id separator ',') as single_contact_table_id";
         
-        $this->db->where($where_custom);
-        $info=$this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='messenger_bot_subscriber.id');
-        $this->session->set_userdata("bot_subscribers_sql",$this->db->last_query());         
-       
-        $this->db->where($where_custom);
-        if(is_array($email_phone_birth))
-        {
-          foreach ($email_phone_birth as $key => $value) {
-            if($value == 'has_phone')
-              $this->db->where("phone_number !=", '');
-            if($value == 'has_email')
-              $this->db->where("email !=", '');
-            if($value == 'has_birthdate')
-              $this->db->where("birthdate !=", '0000-00-00');
+        $info=$this->basic->get_data($table,$where,$select,$join,$limit,$start,$order_by,$group_by='messenger_bot_subscriber.id');
+        
+        // Get last query for session storage
+        $builder_temp = $this->db->table($table);
+        $builder_temp->select($select);
+        $this->basic->generate_joining_clause($join, $builder_temp);
+        $this->basic->generate_where_clause($where, $builder_temp);
+        if($this->db->fieldExists('deleted',$table)) {
+          $builder_temp->where($table.".deleted","0");
+        }
+        $builder_temp->orderBy($order_by);
+        $builder_temp->groupBy('messenger_bot_subscriber.id');
+        if(is_numeric($start) || is_numeric($limit)) {
+          $limit_int = is_numeric($limit) ? (int)$limit : null;
+          $start_int = is_numeric($start) ? (int)$start : null;
+          if($limit_int !== null) {
+            $builder_temp->limit($limit_int, $start_int);
           }
         }
-        if($social_media=='ig') $this->db->where('social_media', 'ig');
-        else $this->db->where('social_media !=', 'ig');
-        if($gender != '') $this->db->where('gender', $gender);
-        if($page_id!="") $this->db->where("page_table_id", $page_id);
-        // if($label_id!="") $this->db->where("FIND_IN_SET('$label_id',messenger_bot_subscriber.contact_group_id) !=", 0);
-        if($label_id!="") $this->db->where('messenger_bot_subscribers_label.contact_group_id',$label_id);
-        $total_rows_array=$this->basic->get_data($table,$where='',$count=$table.".id",$join,'','','',$group_by='messenger_bot_subscriber.id');
+        // Get compiled SQL before executing
+        $last_query = $builder_temp->getCompiledSelect(false);
+        $builder_temp->get(); // Execute query
+        session()->set("bot_subscribers_sql", $last_query);         
+       
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,'messenger_bot_subscriber.id');
 
         $total_result=count($total_rows_array);
 
@@ -853,14 +872,14 @@ class Subscriber_manager extends Home
             $profile_pic = ($value['profile_pic']!="") ? "<img class='rounded-circle' style='height:40px;width:40px;' src='".$value["profile_pic"]."'>" :  "<img class='rounded-circle' style='height:40px;width:40px;' src='".base_url('assets/img/avatar/avatar-1.png')."'>";
             $info[$key]['image_path']=($value["image_path"]!="") ? "<a  target='_BLANK' href='".base_url($value["image_path"])."'><img class='rounded-circle' style='height:40px;width:40px;' src='".base_url($value["image_path"])."'></a>" : $profile_pic;
 
-            if($info[$key]['gender'] == "male") $info[$key]['gender'] ="<i class='fas fa-male blue' style='font-size:18px;' title='".$this->lang->line('Male')."' data-toggle='tooltip' data-placement='bottom'></i>";
-            else if($info[$key]['gender'] == "female") $info[$key]['gender'] ="<i class='fas fa-female purple' style='font-size:18px;' title='".$this->lang->line('Female')."' data-toggle='tooltip' data-placement='bottom'></i>";
+            if($info[$key]['gender'] == "male") $info[$key]['gender'] ="<i class='fas fa-male blue' style='font-size:18px;' title='".lang('Male')."' data-toggle='tooltip' data-placement='bottom'></i>";
+            else if($info[$key]['gender'] == "female") $info[$key]['gender'] ="<i class='fas fa-female purple' style='font-size:18px;' title='".lang('Female')."' data-toggle='tooltip' data-placement='bottom'></i>";
 
-            if($info[$key]['email'] != '') $info[$key]['gender'] .= "&nbsp;&nbsp;<i class='fas fa-at blue' style='font-size:18px;' title='".$this->lang->line('Email')."' data-toggle='tooltip' data-placement='bottom'></i>";
+            if($info[$key]['email'] != '') $info[$key]['gender'] .= "&nbsp;&nbsp;<i class='fas fa-at blue' style='font-size:18px;' title='".lang('Email')."' data-toggle='tooltip' data-placement='bottom'></i>";
 
-            if($info[$key]['phone_number'] != '') $info[$key]['gender'] .= "&nbsp;&nbsp;<i class='fas fa-phone blue' style='font-size:18px;' title='".$this->lang->line('Phone')."' data-toggle='tooltip' data-placement='bottom'></i>";
+            if($info[$key]['phone_number'] != '') $info[$key]['gender'] .= "&nbsp;&nbsp;<i class='fas fa-phone blue' style='font-size:18px;' title='".lang('Phone')."' data-toggle='tooltip' data-placement='bottom'></i>";
 
-            if($info[$key]['birthdate'] != '0000-00-00') $info[$key]['gender'] .= "&nbsp;&nbsp;<i class='fas fa-birthday-cake blue' style='font-size:18px;' title='".$this->lang->line('Birthday')."' data-toggle='tooltip' data-placement='bottom'></i>";
+            if($info[$key]['birthdate'] != '0000-00-00') $info[$key]['gender'] .= "&nbsp;&nbsp;<i class='fas fa-birthday-cake blue' style='font-size:18px;' title='".lang('Birthday')."' data-toggle='tooltip' data-placement='bottom'></i>";
 
             $info[$key]['social_media'] = $info[$key]['social_media']=='fb' ? "Facebook" : "Instagram";
 
@@ -882,7 +901,7 @@ class Subscriber_manager extends Home
       $table_type = 'messenger_bot_broadcast_contact_group';
       $where_type['where'] = array('user_id'=>$this->user_id,"page_id"=>$page_id,"invisible"=>"0");
       $info_type = $this->basic->get_data($table_type,$where_type,$select='', $join='', $limit='', $start='', $order_by='group_name asc');
-      $label_info=array(''=>$this->lang->line("Label"));
+      $label_info=array(''=>lang("Label"));
       foreach($info_type as $value)
       {
           $label_info[$value['id']] = $value['group_name'];
@@ -896,7 +915,7 @@ class Subscriber_manager extends Home
     {      
 
        if(!check_module_action_access($module_id=66,$actions=4,'check')){
-          redirect('home/access_forbidden', 'location');
+          return redirect()->to(base_url('home/access_forbidden'))->send();
           exit();
        }
 
@@ -907,14 +926,14 @@ class Subscriber_manager extends Home
 
         if($this->is_demo == '1')
         {
-            if($this->session->userdata('user_type') == "Admin")
+            if(session()->get('user_type') == "Admin")
             {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
         }
 
-        $bot_subscribers_sql = $this->session->userdata("bot_subscribers_sql");
+        $bot_subscribers_sql = session()->get("bot_subscribers_sql");
         if(empty($bot_subscribers_sql)) exit();
 
         $xp = explode('LIMIT', $bot_subscribers_sql);
@@ -997,13 +1016,13 @@ class Subscriber_manager extends Home
        $group_info=$this->basic->get_data('messenger_bot_broadcast_contact_group', $where, $select='', $join='', $limit='', $start='', $order_by='group_name', $group_by='', $num_rows=0); 
              
         echo '<script>$("#label_ids").select2();</script>
-        <label>'.$this->lang->line("Choose Labels").'</label>
+        <label>'.lang("Choose Labels").'</label>
         <select name="label_ids" class="form-control" id="label_ids" multiple style="width:100%;">';
             foreach ($group_info as $key => $value) 
             {
                echo '<option value="'. $value['id'].'">'.$value['group_name'].'</option>';
             }
-            // echo '<option value="" selected="selected">'.$this->lang->line('Labels').'</option>';            
+            // echo '<option value="" selected="selected">'.lang('Labels').'</option>';            
         echo '</select>';
        
 
@@ -1022,7 +1041,7 @@ class Subscriber_manager extends Home
       $sequence_lists = $this->basic->get_data("messenger_bot_drip_campaign",['where'=>['user_id'=>$user_id,'page_id'=>$page_id,'campaign_type !='=>'messenger','media_type'=>$social_media]]);
 
       $sequence_lists_html = '
-        <label>'.$this->lang->line("Select Sequence Campaign").'</label>
+        <label>'.lang("Select Sequence Campaign").'</label>
         <select name="sequence_ids" class="form-control" id="sequence_ids" multiple style="width:100%;">';
       foreach ($sequence_lists as $key => $value) 
       {
@@ -1113,10 +1132,10 @@ class Subscriber_manager extends Home
         }
 
         $sql = "SELECT count(id) as permission_count FROM `messenger_bot_subscriber` WHERE social_media='$social_media' AND page_table_id='$page_id' AND permission='1' AND subscriber_type!='system' AND user_id=".$this->user_id;
-        $count_data = $this->db->query($sql)->row_array();
+        $count_data = $this->db->query($sql)->getRowArray();
 
         $sql2 = "SELECT count(id) as permission_count FROM `messenger_bot_subscriber` WHERE  social_media='$social_media' AND page_table_id='$page_id' AND permission='0' AND subscriber_type!='system' AND user_id=".$this->user_id;
-        $count_data2 = $this->db->query($sql2)->row_array();
+        $count_data2 = $this->db->query($sql2)->getRowArray();
 
          // how many are subscribed and how many are unsubscribed
         $subscribed = isset($count_data["permission_count"]) ? $count_data["permission_count"] : 0;
@@ -1141,15 +1160,32 @@ class Subscriber_manager extends Home
         $ids = $this->input->post("ids");   
         $page_id = $this->input->post("page_id");  
 
+        // Ensure $ids is an array for CI4 whereIn()
+        if (!is_array($ids)) {
+            if (is_string($ids) && !empty($ids)) {
+                $ids = explode(',', $ids);
+            } else {
+                $ids = [];
+            }
+        }
+        // Filter out empty values and ensure all are numeric
+        $ids = array_filter(array_map('intval', $ids));
+        
+        if (empty($ids)) {
+            echo 'error';
+            exit();
+        }
+
         $explode_page_id = explode_page_id($page_id);
         $page_id = $explode_page_id['page_id'];
         $social_media = $explode_page_id['social_media'];
 
-        $this->db->select('subscribe_id');
-        $this->db->from('messenger_bot_subscriber');
-        $this->db->where('user_id', $this->user_id);
-        $this->db->where_in('id', $ids);
-        $get_data = $this->db->get()->result_array();
+        $get_data = $this->db->table('messenger_bot_subscriber')
+            ->select('subscribe_id')
+            ->where('user_id', $this->user_id)
+            ->whereIn('id', $ids)
+            ->get()
+            ->getResultArray();
         if(empty($get_data)) {
           echo 'error';
           exit();
@@ -1160,20 +1196,20 @@ class Subscriber_manager extends Home
           $subscriber_ids[] = $val['subscribe_id'];
         }
 
-        $this->db->trans_start();
+        $this->db->transStart();
 
-        $this->db->where('user_id', $this->user_id);
-        $this->db->where_in('id', $ids);
-        $this->db->delete("messenger_bot_subscriber");
+        $this->db->table("messenger_bot_subscriber")->where('user_id', $this->user_id)->whereIn('id', $ids)->delete();
 
-        $this->db->where_in('subscriber_id', $subscriber_ids);
-        $this->db->delete("messenger_bot_subscriber_extra_info");
+        // Only delete if subscriber_ids array is not empty
+        if (!empty($subscriber_ids) && is_array($subscriber_ids)) {
+            $this->db->table("messenger_bot_subscriber_extra_info")->whereIn('subscriber_id', $subscriber_ids)->delete();
+        }
 
-        $sql = "SELECT count(id) as permission_count FROM `messenger_bot_subscriber` WHERE social_media='$social_media' AND page_table_id='$page_id' AND permission='1' AND subscriber_type!='system' AND user_id=".$this->user_id;
-        $count_data = $this->db->query($sql)->row_array();
+        $sql = "SELECT count(id) as permission_count FROM `messenger_bot_subscriber` WHERE social_media='".$this->db->escape($social_media)."' AND page_table_id='".$this->db->escape($page_id)."' AND permission='1' AND subscriber_type!='system' AND user_id=".$this->user_id;
+        $count_data = $this->db->query($sql)->getRowArray();
 
-        $sql2 = "SELECT count(id) as permission_count FROM `messenger_bot_subscriber` WHERE social_media='$social_media' AND page_table_id='$page_id' AND permission='0' AND subscriber_type!='system' AND user_id=".$this->user_id;
-        $count_data2 = $this->db->query($sql2)->row_array();
+        $sql2 = "SELECT count(id) as permission_count FROM `messenger_bot_subscriber` WHERE social_media='".$this->db->escape($social_media)."' AND page_table_id='".$this->db->escape($page_id)."' AND permission='0' AND subscriber_type!='system' AND user_id=".$this->user_id;
+        $count_data2 = $this->db->query($sql2)->getRowArray();
 
         // how many are subscribed and how many are unsubscribed
         $subscribed = isset($count_data["permission_count"]) ? $count_data["permission_count"] : 0;
@@ -1184,9 +1220,14 @@ class Subscriber_manager extends Home
 
         $this->basic->update_data("facebook_rx_fb_page_info",array("id"=>$page_id,"user_id"=>$this->user_id),$update_subscription);
 
-        $this->db->trans_complete();
+        if($this->db->transStatus() === FALSE)
+        {
+            $this->db->transRollback();
+        } else {
+            $this->db->transCommit();
+        }
 
-        if($this->db->trans_status() === FALSE) 
+        if($this->db->transStatus() === FALSE) 
         {
             echo 'error';
             exit();
@@ -1230,8 +1271,8 @@ class Subscriber_manager extends Home
               <a class="no_radius nav-link '.$active.'" id="'.$unique_id.'" data-toggle="tab" href="#'.$unique_id2.'" role="tab" aria-controls="'.$unique_id.'" aria-selected="true">'
               .$value['form_name'].
 
-              '<br/><p class="form_id">'.$this->lang->line("Form ID").': '.$value['form_id'].'</p>
-               <p class="insert_date">'.$this->lang->line("Submit Date").': '.$insert_date.'</p>
+              '<br/><p class="form_id">'.lang("Form ID").': '.$value['form_id'].'</p>
+               <p class="insert_date">'.lang("Submit Date").': '.$insert_date.'</p>
               </a>
 
             </li>
@@ -1292,7 +1333,7 @@ class Subscriber_manager extends Home
                           <div class="card-body">
                             <div class="empty-state">
                               <img class="img-fluid" style="height: 200px" src="'.base_url('assets/img/drawkit/drawkit-nature-man-colour.svg').'" alt="image">
-                              <h2 class="mt-0">'.$this->lang->line("We could not find any data.").'</h2>
+                              <h2 class="mt-0">'.lang("We could not find any data.").'</h2>
                             </div>
                           </div>
                         </div>';
@@ -1385,7 +1426,7 @@ class Subscriber_manager extends Home
           $substr = substr($value['answer'],0,8);
           if($substr == 'https://') 
           {
-            $answer = "<a target='_BLANK' href='".$value["answer"]."'>".$this->lang->line('Visit Link')."</a>";
+            $answer = "<a target='_BLANK' href='".$value["answer"]."'>".lang('Visit Link')."</a>";
           }
 
           $content .= '<tr>
@@ -1413,7 +1454,7 @@ class Subscriber_manager extends Home
                           <div class="card-body">
                             <div class="empty-state">
                               <img class="img-fluid" style="height: 200px" src="'.base_url('assets/img/drawkit/drawkit-nature-man-colour.svg').'" alt="image">
-                              <h2 class="mt-0">'.$this->lang->line("We could not find any data.").'</h2>
+                              <h2 class="mt-0">'.lang("We could not find any data.").'</h2>
                             </div>
                           </div>
                         </div>';
@@ -1448,16 +1489,16 @@ class Subscriber_manager extends Home
 
       $content = '<div class="card w-100 no_shadow">
                     <div class="card-body">
-                      <div class="section"><div class="section-title">'.$this->lang->line("Given custom field's value from subscriber").'</div></div>
+                      <div class="section"><div class="section-title">'.lang("Given custom field's value from subscriber").'</div></div>
                       
                       <div class="table-responsive">
                         <table class="table table-sm">
                           <thead>
                             <tr>
                               <th scope="col">#</th>
-                              <th scope="col">'.$this->lang->line("Custom Field").'</th>
-                              <th scope="col">'.$this->lang->line("Reply Type").'</th>
-                              <th scope="col">'.$this->lang->line("Value").'</th>
+                              <th scope="col">'.lang("Custom Field").'</th>
+                              <th scope="col">'.lang("Reply Type").'</th>
+                              <th scope="col">'.lang("Value").'</th>
                             </tr>
                           </thead>
                           <tbody>';
@@ -1468,7 +1509,7 @@ class Subscriber_manager extends Home
           $substr = substr($value['custom_field_value'],0,8);
           if($substr == 'https://') 
           {
-            $answer = "<a target='_BLANK' href='".$value["custom_field_value"]."'>".$this->lang->line('Visit Link')."</a>";
+            $answer = "<a target='_BLANK' href='".$value["custom_field_value"]."'>".lang('Visit Link')."</a>";
           }
 
           $content .= '<tr>
@@ -1493,7 +1534,7 @@ class Subscriber_manager extends Home
                           <div class="card-body">
                             <div class="empty-state">
                               <img class="img-fluid" style="height: 200px" src="'.base_url('assets/img/drawkit/drawkit-nature-man-colour.svg').'" alt="image">
-                              <h2 class="mt-0">'.$this->lang->line("We could not find any data.").'</h2>
+                              <h2 class="mt-0">'.lang("We could not find any data.").'</h2>
                             </div>
                           </div>
                         </div>';
@@ -1555,31 +1596,31 @@ class Subscriber_manager extends Home
       
       // subscribe unsubscribe blobk
       if($subscriber_data['permission'] == '1')
-      $status ='<span class="subsribe_unsubscribe_container"><a class="text-primary">'.$this->lang->line("Subscribed").'</a> <a class="text-muted pointer client_thread_subscribe_unsubscribe" social_media="'.$subscriber_data['social_media'].'" id="'.$subscriber_data['id']."-".$subscriber_data['permission'].'">('.$this->lang->line("Unsubscribe").')</a></span>';
-      else $status ='<span class="subsribe_unsubscribe_container"><a class="text-primary">'.$this->lang->line("Unsubscribed").'</a> <a class="text-muted pointer client_thread_subscribe_unsubscribe" social_media="'.$subscriber_data['social_media'].'" id="'.$subscriber_data['id']."-".$subscriber_data['permission'].'">('.$this->lang->line("Subscribe").')</a></span>';
+      $status ='<span class="subsribe_unsubscribe_container"><a class="text-primary">'.lang("Subscribed").'</a> <a class="text-muted pointer client_thread_subscribe_unsubscribe" social_media="'.$subscriber_data['social_media'].'" id="'.$subscriber_data['id']."-".$subscriber_data['permission'].'">('.lang("Unsubscribe").')</a></span>';
+      else $status ='<span class="subsribe_unsubscribe_container"><a class="text-primary">'.lang("Unsubscribed").'</a> <a class="text-muted pointer client_thread_subscribe_unsubscribe" social_media="'.$subscriber_data['social_media'].'" id="'.$subscriber_data['id']."-".$subscriber_data['permission'].'">('.lang("Subscribe").')</a></span>';
       
       // bot strat stop blbok
       $start_stop = '';
       if($subscriber_data['status'] == '1')
-      $start_stop = '<span class="client_thread_start_stop_container"><a href="" class="dropdown-item has-icon client_thread_start_stop" social_media="'.$subscriber_data['social_media'].'" button_id="'.$subscriber_data['id']."-".$subscriber_data['status'].'"><i class="far fa-pause-circle"></i> '.$this->lang->line("Pause Bot Reply").'</a></span>';
-      else $start_stop = '<span class="client_thread_start_stop_container"><a href="" class="dropdown-item has-icon client_thread_start_stop" button_id="'.$subscriber_data['id']."-".$subscriber_data['status'].'"><i class="far fa-play-circle"></i> '.$this->lang->line("Resume Bot Reply").'</a></span>';
+      $start_stop = '<span class="client_thread_start_stop_container"><a href="" class="dropdown-item has-icon client_thread_start_stop" social_media="'.$subscriber_data['social_media'].'" button_id="'.$subscriber_data['id']."-".$subscriber_data['status'].'"><i class="far fa-pause-circle"></i> '.lang("Pause Bot Reply").'</a></span>';
+      else $start_stop = '<span class="client_thread_start_stop_container"><a href="" class="dropdown-item has-icon client_thread_start_stop" button_id="'.$subscriber_data['id']."-".$subscriber_data['status'].'"><i class="far fa-play-circle"></i> '.lang("Resume Bot Reply").'</a></span>';
 
       $start_stop2 = '';
       if($subscriber_data['status'] == '1')
-      $start_stop2 = '<span class="client_thread_start_stop_container"><a class="pointer text-primary client_thread_start_stop" call-from-conversation="1" social_media="'.$subscriber_data['social_media'].'" button_id="'.$subscriber_data['id']."-".$subscriber_data['status'].'">'.$this->lang->line("Pause Bot Reply").'</a></span>';
-      else $start_stop2 = '<span class="client_thread_start_stop_container"><a class="pointer text-primary client_thread_start_stop" call-from-conversation="1" button_id="'.$subscriber_data['id']."-".$subscriber_data['status'].'">'.$this->lang->line("Resume Bot Reply").'</a></span>';
+      $start_stop2 = '<span class="client_thread_start_stop_container"><a class="pointer text-primary client_thread_start_stop" call-from-conversation="1" social_media="'.$subscriber_data['social_media'].'" button_id="'.$subscriber_data['id']."-".$subscriber_data['status'].'">'.lang("Pause Bot Reply").'</a></span>';
+      else $start_stop2 = '<span class="client_thread_start_stop_container"><a class="pointer text-primary client_thread_start_stop" call-from-conversation="1" button_id="'.$subscriber_data['id']."-".$subscriber_data['status'].'">'.lang("Resume Bot Reply").'</a></span>';
       
 
       $user_input_start_stop = '';
       if($this->addon_exist("custom_field_manager"))
       {
-        if($this->session->userdata('user_type') == 'Admin'|| in_array(292,$this->module_access))
+        if(session()->get('user_type') == 'Admin'|| in_array(292,$this->module_access))
         {
-          $user_input_start_stop = '<a href="" class="dropdown-item has-icon reset_user_input_flow" social_media="'.$subscriber_data['social_media'].'"  button_id ="'.$subscriber_data['id']."-".$subscriber_data['subscribe_id']."-".$subscriber_data['page_table_id'].'"><i class="fas fa-retweet"></i> '.$this->lang->line("Reset User Input Flow").'</a>';
+          $user_input_start_stop = '<a href="" class="dropdown-item has-icon reset_user_input_flow" social_media="'.$subscriber_data['social_media'].'"  button_id ="'.$subscriber_data['id']."-".$subscriber_data['subscribe_id']."-".$subscriber_data['page_table_id'].'"><i class="fas fa-retweet"></i> '.lang("Reset User Input Flow").'</a>';
         }
-        else if($this->session->userdata('user_type') == 'Admin') 
+        else if(session()->get('user_type') == 'Admin') 
         {
-          $user_input_start_stop = '<a href="" class="dropdown-item has-icon reset_user_input_flow" social_media="'.$subscriber_data['social_media'].'"  button_id ="'.$subscriber_data['id']."-".$subscriber_data['subscribe_id']."-".$subscriber_data['page_table_id'].'"><i class="fas fa-retweet"></i> '.$this->lang->line("Reset User Input Flow").'</a>';
+          $user_input_start_stop = '<a href="" class="dropdown-item has-icon reset_user_input_flow" social_media="'.$subscriber_data['social_media'].'"  button_id ="'.$subscriber_data['id']."-".$subscriber_data['subscribe_id']."-".$subscriber_data['page_table_id'].'"><i class="fas fa-retweet"></i> '.lang("Reset User Input Flow").'</a>';
         }
       }
      
@@ -1589,7 +1630,7 @@ class Subscriber_manager extends Home
       {
         $campaign_data=$this->basic->get_data("messenger_bot_drip_campaign",array("where"=>array("page_id"=>$page_table_id,"media_type"=>$social_media)),$select='',$join='',$limit='',$start=NULL,$order_by='created_at DESC');
         $drip_types=$this->get_drip_type();
-        $option=array('0'=>$this->lang->line('Choose Message Sequence'));
+        $option=array('0'=>lang('Choose Message Sequence'));
         foreach ($campaign_data as $key => $value) 
         {
           $option[$value['id']]="";
@@ -1608,12 +1649,12 @@ class Subscriber_manager extends Home
         $last_sent_info='';
         // if($subscriber_data['messenger_bot_drip_campaign_id']!=0)
         // {
-        //   $last_sent_info = '<small class="last_sent_info float-right" data-toggle="tooltip" title="'.$this->lang->line("Last Sent").'"><i class="fas fa-clock"></i> '.date("jS M Y H:i").' ('.$this->lang->line("Day").'-'.$subscriber_data['messenger_bot_drip_last_completed_day'].')</small>';
+        //   $last_sent_info = '<small class="last_sent_info float-right" data-toggle="tooltip" title="'.lang("Last Sent").'"><i class="fas fa-clock"></i> '.date("jS M Y H:i").' ('.lang("Day").'-'.$subscriber_data['messenger_bot_drip_last_completed_day'].')</small>';
         // }
         $sequence_block='
         <div class="section mt-3">
           <div class="section-title mt-0 mb-2 full_width">
-            '.$this->lang->line("Message Sequence").'
+            '.lang("Message Sequence").'
             '.$last_sent_info.'                         
           </div>          
           '.$sequence_dropdwon.'
@@ -1631,7 +1672,7 @@ class Subscriber_manager extends Home
       $optinpop="";
       if($optin=='FB PAGE') $optin="DIRECT";
       if($optin=='DIRECT')
-      $optinpop='<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="" data-content="'.$this->lang->line("Direct OPT-IN means the subscriber either came from your Facebook page directly or the source is unknown.").'" data-original-title="'.$this->lang->line("OPT-IN").'"><i class="fa fa-info-circle"></i> </a>';
+      $optinpop='<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="" data-content="'.lang("Direct OPT-IN means the subscriber either came from your Facebook page directly or the source is unknown.").'" data-original-title="'.lang("OPT-IN").'"><i class="fa fa-info-circle"></i> </a>';
 
       $print_name = ($subscriber_data['full_name']!="")?$subscriber_data['full_name']:$subscriber_data['first_name']." ".$subscriber_data['last_name'];
       if($subscriber_data['link']!="") $print_name_link = '<h4><a href="https://facebook.com/'.$subscriber_data['link'].'" target="_BLANK">'.$print_name.'</a></h4>';
@@ -1651,14 +1692,14 @@ class Subscriber_manager extends Home
       }
 
       $team_info = $this->get_team_member_list();
-      $team_info[''] = $this->lang->line('Select Agent');
+      $team_info[''] = lang('Select Agent');
       $team_dropdown =  form_dropdown('subscriber_teams', $team_info, $subscriber_data['assigned_used_id'], "class='form-control select2' id='subscriber_teams' style='width:100% !important;'");
 
 
       $mid_col_body = '
         <div class="section">
           <div class="section-title margin-0 pb-1">
-            '.$this->lang->line("Assigned Agent").'
+            '.lang("Assigned Agent").'
           </div>
           <div id="subscriber_teams_container">'.$team_dropdown.'</div>
         </div>';
@@ -1666,8 +1707,8 @@ class Subscriber_manager extends Home
       $mid_col_body .= '
       <div class="section mt-3">
         <div class="section-title mt-0 mb-2 full_width">
-          '.$this->lang->line("Labels").'
-          <a class="blue float-right pointer" data-id="'.$subscriber_data['id'].'" data-social-media="'.$subscriber_data['social_media'].'"  data-page-id="'.$subscriber_data['page_table_id'].'" id="create_label"><small><i class="fas fa-plus-circle"></i> '.$this->lang->line("Create Label").'</small></a>                              
+          '.lang("Labels").'
+          <a class="blue float-right pointer" data-id="'.$subscriber_data['id'].'" data-social-media="'.$subscriber_data['social_media'].'"  data-page-id="'.$subscriber_data['page_table_id'].'" id="create_label"><small><i class="fas fa-plus-circle"></i> '.lang("Create Label").'</small></a>                              
         </div>                            
         <div id="subscriber_labels_container">'.$label_dropdown.'</div>
       </div>
@@ -1677,7 +1718,7 @@ class Subscriber_manager extends Home
       <br>
       <div class="section '.$show_only_fb.'">
         <div class="section-title mt-0 mb-2 full_width">
-          '.$this->lang->line("OPT-IN Through").'    
+          '.lang("OPT-IN Through").'    
           <span class="float-right text blue">'.$optin.' '.$optinpop.'</span>
         </div>
         '.$optin_ref.'  
@@ -1690,7 +1731,7 @@ class Subscriber_manager extends Home
       // {
       //    $middle_column_content =  
       //    '<div class="'.$colmid_class.' colmid" id="middle_column" style="padding:1rem 2rem 0 2rem;">'.
-      //     $mid_col_body.'<a class="btn btn-primary float-left mt-4" href="" data-social-media="'.$subscriber_data['social_media'].'" data-subscribe-id="'.$subscriber_data['subscribe_id'].'" data-id="'.$subscriber_data['id'].'" data-page-id="'.$subscriber_data['page_table_id'].'" id="save_changes"><i class="fas fa-save"></i> '.$this->lang->line("Save Changes").'</a>
+      //     $mid_col_body.'<a class="btn btn-primary float-left mt-4" href="" data-social-media="'.$subscriber_data['social_media'].'" data-subscribe-id="'.$subscriber_data['subscribe_id'].'" data-id="'.$subscriber_data['id'].'" data-page-id="'.$subscriber_data['page_table_id'].'" id="save_changes"><i class="fas fa-save"></i> '.lang("Save Changes").'</a>
       //    </div>';
       // }
       // else
@@ -1702,12 +1743,12 @@ class Subscriber_manager extends Home
                   <div class="dropleft float-right">
                     <a href="#" data-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v" style="font-size:25px"></i></a>
                     <div class="dropdown-menu">
-                      <div class="dropdown-title">'.$this->lang->line("Options").'</div>                        
+                      <div class="dropdown-title">'.lang("Options").'</div>                        
                       <!--'.$start_stop.'-->
                       '.$user_input_start_stop.'
-                      <a href="" class="dropdown-item has-icon update_user_details"  social_media="'.$subscriber_data['social_media'].'"  button_id ="'.$subscriber_data['id']."-".$subscriber_data['subscribe_id']."-".$subscriber_data['page_table_id'].'"><i class="fas fa-sync-alt"></i> '.$this->lang->line("Sync Subscriber Data").'</a>
+                      <a href="" class="dropdown-item has-icon update_user_details"  social_media="'.$subscriber_data['social_media'].'"  button_id ="'.$subscriber_data['id']."-".$subscriber_data['subscribe_id']."-".$subscriber_data['page_table_id'].'"><i class="fas fa-sync-alt"></i> '.lang("Sync Subscriber Data").'</a>
                       <div class="dropdown-divider"></div>
-                      <a href="" class="dropdown-item has-icon red delete_user_details" social_media="'.$subscriber_data['social_media'].'" button_id ="'.$subscriber_data['id']."-".$subscriber_data['page_table_id'].'"><i class="fas fa-trash"></i> '.$this->lang->line("Delete Subscriber Data").'</a>
+                      <a href="" class="dropdown-item has-icon red delete_user_details" social_media="'.$subscriber_data['social_media'].'" button_id ="'.$subscriber_data['id']."-".$subscriber_data['page_table_id'].'"><i class="fas fa-trash"></i> '.lang("Delete Subscriber Data").'</a>
                     </div>
                   </div>
                  '.$print_name_link.'
@@ -1717,8 +1758,8 @@ class Subscriber_manager extends Home
               </div>
 
               <div class="card-footer">
-                <a class="btn btn-primary float-left '.$save_button_class.'" href="" data-social-media="'.$subscriber_data['social_media'].'" data-subscribe-id="'.$subscriber_data['subscribe_id'].'" data-id="'.$subscriber_data['id'].'" data-page-id="'.$subscriber_data['page_table_id'].'" id="save_changes"><i class="fas fa-save"></i> '.$this->lang->line("Save Changes").'</a>
-                <a class="btn btn-outline-secondary float-right '.$close_button_class.'" data-dismiss="modal"><i class="fas fa-times"></i> '.$this->lang->line("Close").'</a>
+                <a class="btn btn-primary float-left '.$save_button_class.'" href="" data-social-media="'.$subscriber_data['social_media'].'" data-subscribe-id="'.$subscriber_data['subscribe_id'].'" data-id="'.$subscriber_data['id'].'" data-page-id="'.$subscriber_data['page_table_id'].'" id="save_changes"><i class="fas fa-save"></i> '.lang("Save Changes").'</a>
+                <a class="btn btn-outline-secondary float-right '.$close_button_class.'" data-dismiss="modal"><i class="fas fa-times"></i> '.lang("Close").'</a>
               </div>
 
             </div>               
@@ -1733,19 +1774,19 @@ class Subscriber_manager extends Home
                 '.$subscriber_image_html.' 
                 <ul class="list-group list-group-flush">
                   <li class="list-group-item">
-                    <i class="fas fa-check-circle subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Status').'"></i>
+                    <i class="fas fa-check-circle subscriber_details blue" data-toggle="tooltip" title="'.lang('Status').'"></i>
                     '.$status.'                    
                   </li> 
                   <li class="list-group-item">
-                    <i class="fas fa-robot subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Bot Status').'"></i>
+                    <i class="fas fa-robot subscriber_details blue" data-toggle="tooltip" title="'.lang('Bot Status').'"></i>
                     '.$start_stop2.'                    
                   </li>                  
-                  <li class="list-group-item"><i class="fas fa-id-card subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Subscriber ID').'"></i> '.$subscribe_id.'</li>                  
+                  <li class="list-group-item"><i class="fas fa-id-card subscriber_details blue" data-toggle="tooltip" title="'.lang('Subscriber ID').'"></i> '.$subscribe_id.'</li>                  
                   ';
 
-                  if(!empty($subscriber_data['gender'])) echo '<li class="list-group-item"><i class="fas fa-mars subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Gender').'"></i> '.ucfirst($subscriber_data['gender']).'</li>';
-                  if(!empty($locale)) echo '<li class="list-group-item"><i class="fas fa-language subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Language').'"></i> '.$locale.'</li>';
-                  if(!empty($timezone)) echo '<li class="list-group-item"><i class="fas fa-globe subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Timezone').'"></i> '.$timezone.'</li>';
+                  if(!empty($subscriber_data['gender'])) echo '<li class="list-group-item"><i class="fas fa-mars subscriber_details blue" data-toggle="tooltip" title="'.lang('Gender').'"></i> '.ucfirst($subscriber_data['gender']).'</li>';
+                  if(!empty($locale)) echo '<li class="list-group-item"><i class="fas fa-language subscriber_details blue" data-toggle="tooltip" title="'.lang('Language').'"></i> '.$locale.'</li>';
+                  if(!empty($timezone)) echo '<li class="list-group-item"><i class="fas fa-globe subscriber_details blue" data-toggle="tooltip" title="'.lang('Timezone').'"></i> '.$timezone.'</li>';
 
                   $last_update_time = "-";
                   $phone_number_entry_time = "-";
@@ -1754,11 +1795,11 @@ class Subscriber_manager extends Home
                 
                   if($subscriber_data['email']!='')
                   echo 
-                  '<li class="list-group-item"><i class="fas fa-envelope subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Email').' - '.$this->lang->line("Last Updated").' : '.$last_update_time.'"></i>'.$subscriber_data['email'].'</li>';
+                  '<li class="list-group-item"><i class="fas fa-envelope subscriber_details blue" data-toggle="tooltip" title="'.lang('Email').' - '.lang("Last Updated").' : '.$last_update_time.'"></i>'.$subscriber_data['email'].'</li>';
 
                   if($subscriber_data['phone_number']!='')
                   echo 
-                  '<li class="list-group-item"><i class="fas fa-phone subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Phone').' - '.$this->lang->line("Last Updated").' : '.$phone_number_entry_time.'"></i>'.$subscriber_data['phone_number'].'</li>';
+                  '<li class="list-group-item"><i class="fas fa-phone subscriber_details blue" data-toggle="tooltip" title="'.lang('Phone').' - '.lang("Last Updated").' : '.$phone_number_entry_time.'"></i>'.$subscriber_data['phone_number'].'</li>';
 
                   if($subscriber_data['user_location']!='')
                   {
@@ -1773,16 +1814,16 @@ class Subscriber_manager extends Home
                     }
                     else $user_loc = "";
                     echo 
-                    '<li class="list-group-item"><i class="fas fa-map-marker subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Location').'"></i>'.$user_loc.'</li>';
+                    '<li class="list-group-item"><i class="fas fa-map-marker subscriber_details blue" data-toggle="tooltip" title="'.lang('Location').'"></i>'.$user_loc.'</li>';
                   }
 
                   if($subscriber_data['birthdate']!='0000-00-00')
                   echo 
-                  '<li class="list-group-item"><i class="fas fa-birthday-cake subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line('Birthday').' - '.$this->lang->line("Last Updated").' : '.$birthdate_entry_time.'"></i>'.date('jS M Y', strtotime($subscriber_data['birthdate'])).'</li>';
+                  '<li class="list-group-item"><i class="fas fa-birthday-cake subscriber_details blue" data-toggle="tooltip" title="'.lang('Birthday').' - '.lang("Last Updated").' : '.$birthdate_entry_time.'"></i>'.date('jS M Y', strtotime($subscriber_data['birthdate'])).'</li>';
 
                   if($subscriber_data['last_subscriber_interaction_time']!='0000-00-00 00:00:00')
                   echo 
-                  '<li class="list-group-item"><i class="far fa-clock subscriber_details blue" data-toggle="tooltip" title="'.$this->lang->line("Last Interacted at").'"></i>'.$last_subscriber_interaction_time.'</li>';
+                  '<li class="list-group-item"><i class="far fa-clock subscriber_details blue" data-toggle="tooltip" title="'.lang("Last Interacted at").'"></i>'.$last_subscriber_interaction_time.'</li>';
 
               echo    
               '</ul>
@@ -1799,12 +1840,12 @@ class Subscriber_manager extends Home
           $("#subscriber_teams").select2();
 
           $("#subscriber_labels").select2({
-              placeholder: "'.$this->lang->line('Choose Label').'",
+              placeholder: "'.lang('Choose Label').'",
               allowClear: true
           });
 
           $("#assign_campaign_id").select2({
-               placeholder: "'.$this->lang->line('Choose Sequence').'",
+               placeholder: "'.lang('Choose Sequence').'",
               allowClear: true
           });
           $(\'[data-toggle="popover"]\').popover(); 
@@ -1841,7 +1882,7 @@ class Subscriber_manager extends Home
       $label_dropdown.='
       <script>
       $("#subscriber_labels").select2({
-          placeholder: "'.$this->lang->line('Choose Label').'",
+          placeholder: "'.lang('Choose Label').'",
           allowClear: true
       });
       </script>';
@@ -1850,30 +1891,30 @@ class Subscriber_manager extends Home
       $broadcast_block='';
       if($this->drip_campaigner_exist()) 
       {
-        $availablility='<span class="blue">'.$this->lang->line("Available").'</span>';
-        if($subscriber_data['unavailable']=='1' || $subscriber_data['permission']=='0') $availablility='<span class="red">'.$this->lang->line("Unavailable").'</span>';
+        $availablility='<span class="blue">'.lang("Available").'</span>';
+        if($subscriber_data['unavailable']=='1' || $subscriber_data['permission']=='0') $availablility='<span class="red">'.lang("Unavailable").'</span>';
         if($subscriber_data['unavailable']=='1') 
         {
-          $reason=$this->lang->line("Error in last send");
+          $reason=lang("Error in last send");
           $reason_deatils=$subscriber_data['last_error_message'];
         }
         else if($subscriber_data['permission']=='0')
         {
-          $reason =$this->lang->line("Unsubscribed");
-          $reason_deatils = $this->lang->line("Unsubscribed at")." : ".date("jS M Y H:i:s",strtotime($subscriber_data['unsubscribed_at']));
+          $reason =lang("Unsubscribed");
+          $reason_deatils = lang("Unsubscribed at")." : ".date("jS M Y H:i:s",strtotime($subscriber_data['unsubscribed_at']));
         }
         $broadcast_block='
           <br>
           <div class="section">
             <div class="section-title mt-0 mb-2 full_width">
-              '.$this->lang->line("Broadcasting Availablity").'  : '.$availablility;
+              '.lang("Broadcasting Availablity").'  : '.$availablility;
 
               if($subscriber_data['unavailable']=='1' || $subscriber_data['permission']=='0') {
                 $broadcast_block.='
                 <div class="alert alert-light alert-has-icon" style="margin-top: 10px;margin-left:45px;">
                   <div class="alert-icon"><i class="far fa-lightbulb"></i></div>
                   <div class="alert-body">
-                    <div class="alert-title"><small><b>'.$this->lang->line("Reason")." : </b>".$reason.'</small></div>
+                    <div class="alert-title"><small><b>'.lang("Reason")." : </b>".$reason.'</small></div>
                     <small>'.$reason_deatils.'</small>
                   </div>
                 </div>';
@@ -1908,7 +1949,7 @@ class Subscriber_manager extends Home
       $assigned_used_id = $this->input->post("assigned_used_id") ?? null;
       if(!isset($assigned_used_id)) $assigned_used_id = null;
 
-      $agent_name = $this->is_manager==1 ? $this->session->userdata("team_username") : $this->session->userdata("username");
+      $agent_name = $this->is_manager==1 ? session()->get("team_username") : session()->get("username");
       $assigned_name = "";
       if(!empty($assigned_used_id)){
         $agent_name_info = $this->addon_exist("team_member") ? $this->basic->get_data("team_members",["where"=>["id"=>$assigned_used_id]],["name"]) : [];
@@ -1930,7 +1971,7 @@ class Subscriber_manager extends Home
       foreach ($subscriber_data as $key => $value) // it's a single loop :p
       {
 
-      	 $this->db->trans_start();
+      	 $this->db->transStart();
          $id = $value["id"];
          $subscribe_id = $value["subscribe_id"];
 
@@ -1953,7 +1994,7 @@ class Subscriber_manager extends Home
          // updating team separately as we need check if data updated
          if(!empty($assigned_used_id)){
             $this->basic->update_data("messenger_bot_subscriber",array("id"=>$id,"user_id"=>$this->user_id),["assigned_used_id"=>$assigned_used_id]);
-            if($this->db->affected_rows()>=0){
+            if($this->db->affectedRows()>=0){
               $message_content="Conversation was assigned to ".$assigned_name;
               $this->system_message_insert_into_conversation($subscribe_id,$page_auto_id,$agent_name,$message_content,$social_media,$this->user_id);
               // Send notification to agent about new conversation assigning.
@@ -1962,7 +2003,24 @@ class Subscriber_manager extends Home
          }
 
          $drip_data = array();
-         if(!empty($campaign_id) && $this->is_drip_campaigner_exist) $drip_data = $this->basic->get_data("messenger_bot_drip_campaign",array("where_in"=>array("id"=>$campaign_id,"user_id"=>$this->user_id)));
+         if(!empty($campaign_id) && $this->is_drip_campaigner_exist) {
+             // Ensure campaign_id is an array
+             if (!is_array($campaign_id)) {
+                 if (is_string($campaign_id) && !empty($campaign_id)) {
+                     $campaign_id = explode(',', $campaign_id);
+                 } elseif (is_numeric($campaign_id)) {
+                     $campaign_id = [(int)$campaign_id];
+                 } else {
+                     $campaign_id = [];
+                 }
+             }
+             // Filter and validate campaign_id array
+             $campaign_id = array_values(array_filter(array_map('intval', $campaign_id)));
+             
+             if (!empty($campaign_id)) {
+                 $drip_data = $this->basic->get_data("messenger_bot_drip_campaign",array("where_in"=>array("id"=>$campaign_id),"where"=>array("user_id"=>$this->user_id)));
+             }
+         }
 
          $eligible_drip_ids = array();
          foreach ($drip_data as $key => $value2) 
@@ -1973,13 +2031,19 @@ class Subscriber_manager extends Home
 
          if($this->is_drip_campaigner_exist )
          {
-            if(!empty($eligible_drip_ids)) $this->db->where_not_in("messenger_bot_drip_campaign_id",$eligible_drip_ids);         
-            $this->db->where("subscribe_id",$subscribe_id);
-            $this->db->delete("messenger_bot_drip_campaign_assign");
+            $builder = $this->db->table("messenger_bot_drip_campaign_assign");
+            $builder->where("subscribe_id",$subscribe_id);
+            if(!empty($eligible_drip_ids)) $builder->whereNotIn("messenger_bot_drip_campaign_id",$eligible_drip_ids);
+            $builder->delete();
          }
 
-        $this->db->trans_complete();
-        if ($this->db->trans_status() === FALSE)
+        if($this->db->transStatus() === FALSE)
+        {
+            $this->db->transRollback();
+        } else {
+            $this->db->transCommit();
+        }
+        if ($this->db->transStatus() === FALSE)
         {
             echo "0";
             exit();
@@ -2014,7 +2078,7 @@ class Subscriber_manager extends Home
       {
         $insert_data = array("page_id"=>$page_table_id,"group_name"=>$label_name,"user_id"=>$this->user_id,"social_media"=>$social_media);
         $this->basic->insert_data("messenger_bot_broadcast_contact_group",$insert_data);
-        $insert_id = $this->db->insert_id();
+        $insert_id = $this->db->insertID();
       }
 
       echo json_encode(array('status'=>'1','id'=>$insert_id,"text"=>$label_name));
@@ -2046,22 +2110,22 @@ class Subscriber_manager extends Home
             
         if($permission=="0")
         {
-            $message = $this->lang->line("Bot reply has been paused successfully.");
+            $message = lang("Bot reply has been paused successfully.");
 
-            if($call_from_conversation=='0') $response ='<a href="" class="dropdown-item has-icon client_thread_start_stop" button_id="'.$id."-".$permission.'"><i class="far fa-play-circle"></i> '.$this->lang->line('Resume Bot Reply').'</a>';
+            if($call_from_conversation=='0') $response ='<a href="" class="dropdown-item has-icon client_thread_start_stop" button_id="'.$id."-".$permission.'"><i class="far fa-play-circle"></i> '.lang('Resume Bot Reply').'</a>';
             
-            else $response = '<span class="client_thread_start_stop_container"><a class="pointer text-primary client_thread_start_stop" call-from-conversation="1"  button_id="'.$id."-".$permission.'">'.$this->lang->line("Resume Bot Reply").'</a></span>';
+            else $response = '<span class="client_thread_start_stop_container"><a class="pointer text-primary client_thread_start_stop" call-from-conversation="1"  button_id="'.$id."-".$permission.'">'.lang("Resume Bot Reply").'</a></span>';
 
             $this->basic->update_data("messenger_bot_subscriber",$where, $data);
 
         }
         else  
         {  
-            $message = $this->lang->line("Bot reply has been resumed successfully.");
+            $message = lang("Bot reply has been resumed successfully.");
 
-            if($call_from_conversation=='0') $response ='<a href="" class="dropdown-item has-icon client_thread_start_stop" button_id="'.$id."-".$permission.'"><i class="far fa-pause-circle"></i> '.$this->lang->line('Pause Bot Reply').'</a>';
+            if($call_from_conversation=='0') $response ='<a href="" class="dropdown-item has-icon client_thread_start_stop" button_id="'.$id."-".$permission.'"><i class="far fa-pause-circle"></i> '.lang('Pause Bot Reply').'</a>';
 
-            else $response = '<span class="client_thread_start_stop_container"><a class="pointer text-primary client_thread_start_stop" call-from-conversation="1"  button_id="'.$id."-".$permission.'">'.$this->lang->line("Pause Bot Reply").'</a></span>';
+            else $response = '<span class="client_thread_start_stop_container"><a class="pointer text-primary client_thread_start_stop" call-from-conversation="1"  button_id="'.$id."-".$permission.'">'.lang("Pause Bot Reply").'</a></span>';
 
             $this->basic->update_data("messenger_bot_subscriber",$where, $data);
         }
@@ -2088,7 +2152,7 @@ class Subscriber_manager extends Home
       $this->basic->update_data('messenger_bot_subscriber_extra_info',$where,$data);
 
       $response['status'] = '1';
-      $response['message'] = $this->lang->line("User Input Flow for this subscriber has been reset successfully.");
+      $response['message'] = lang("User Input Flow for this subscriber has been reset successfully.");
       echo json_encode($response);
     }
 
@@ -2168,14 +2232,14 @@ class Subscriber_manager extends Home
             $this->basic->update_data('messenger_bot_subscriber', array('id' => $id,"user_id"=>$this->user_id), $data);
 
             $response['status'] = '1';
-            $response['message'] = $this->lang->line("Subscriber data has been synced successfully.");
+            $response['message'] = lang("Subscriber data has been synced successfully.");
         }
         else 
         {
             $data = array('last_name_update_time' => date('Y-m-d H:i:s'),'is_updated_name' => '1'); 
             $this->basic->update_data('messenger_bot_subscriber', array('id' => $id), $data);
             $response['status'] = '0';
-            $response['message'] = $this->lang->line($update_data['error']['message']);
+            $response['message'] = lang($update_data['error']['message']);
         }
 
         echo json_encode($response);
@@ -2200,10 +2264,10 @@ class Subscriber_manager extends Home
         $this->basic->delete_data('messenger_bot_subscriber',array('id'=>$id,"user_id"=>$this->user_id));
 
         $sql = "SELECT count(id) as permission_count FROM `messenger_bot_subscriber` WHERE social_media='$social_media' AND page_table_id='$page_id' AND permission='1' AND subscriber_type!='system' AND user_id=".$this->user_id;
-        $count_data = $this->db->query($sql)->row_array();
+        $count_data = $this->db->query($sql)->getRowArray();
 
         $sql2 = "SELECT count(id) as permission_count FROM `messenger_bot_subscriber` WHERE social_media='$social_media' AND page_table_id='$page_id' AND permission='0' AND subscriber_type!='system' AND user_id=".$this->user_id;
-        $count_data2 = $this->db->query($sql2)->row_array();
+        $count_data2 = $this->db->query($sql2)->getRowArray();
 
         // how many are subscribed and how many are unsubscribed
         $subscribed = isset($count_data["permission_count"]) ? $count_data["permission_count"] : 0;

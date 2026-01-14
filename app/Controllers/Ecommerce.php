@@ -10796,10 +10796,6 @@ public function order_list_data()
 
   }
 
-  $this->db->where($where_custom);      
-
-  
-
   $table="ecommerce_cart";
 
   $select = "ecommerce_cart.id,ecommerce_cart.user_id,store_id,subscriber_id,coupon_code,coupon_type,discount,payment_amount,currency,ordered_at,transaction_id,card_ending,payment_method,manual_additional_info,manual_filename,paid_at,ecommerce_cart.status,ecommerce_cart.updated_at,ecommerce_cart.action_type,ecommerce_store.store_name,ecommerce_store.store_type";
@@ -10810,11 +10806,28 @@ public function order_list_data()
 
   $info=$this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='');
 
-  // echo $this->db->last_query();exit;
-
-  
-
-  $last_query = $this->db->last_query();
+  // Get compiled SQL for session storage
+  $builder_temp = $this->db->table($table);
+  $builder_temp->select($select);
+  $this->basic->generate_joining_clause($join, $builder_temp);
+  if($where_custom != "") {
+    $builder_temp->where($where_custom, null, false);
+  }
+  if($this->db->fieldExists('deleted',$table)) {
+    $builder_temp->where($table.".deleted","0");
+  }
+  $builder_temp->orderBy($order_by);
+  if($group_by != '') {
+    $builder_temp->groupBy($group_by);
+  }
+  if(is_numeric($start) || is_numeric($limit)) {
+    $limit_int = is_numeric($limit) ? (int)$limit : null;
+    $start_int = is_numeric($start) ? (int)$start : null;
+    if($limit_int !== null) {
+      $builder_temp->limit($limit_int, $start_int);
+    }
+  }
+  $last_query = $builder_temp->getCompiledSelect(false);
 
   $xp1 = explode('WHERE', $last_query);
 
@@ -17289,11 +17302,30 @@ public function ajax_get_category_update_info()
 
 
 
-              $this->db->where($where_custom);
-
               $info=$this->basic->get_data($table='messenger_bot_subscriber',$where='',$select='id,image_path,profile_pic,subscribe_id,first_name,last_name,email,subscribed_at',$join='',$limit,$start,$order_by,$group_by='');
 
-              $this->session->set_userdata("customer_list_sql",$this->db->last_query());
+              // Get compiled SQL for session storage
+              $builder_temp = $this->db->table('messenger_bot_subscriber');
+              $builder_temp->select('id,image_path,profile_pic,subscribe_id,first_name,last_name,email,subscribed_at');
+              if($where_custom != "") {
+                $builder_temp->where($where_custom, null, false);
+              }
+              if($this->db->fieldExists('deleted','messenger_bot_subscriber')) {
+                $builder_temp->where('messenger_bot_subscriber.deleted',"0");
+              }
+              $builder_temp->orderBy($order_by);
+              if($group_by != '') {
+                $builder_temp->groupBy($group_by);
+              }
+              if(is_numeric($start) || is_numeric($limit)) {
+                $limit_int = is_numeric($limit) ? (int)$limit : null;
+                $start_int = is_numeric($start) ? (int)$start : null;
+                if($limit_int !== null) {
+                  $builder_temp->limit($limit_int, $start_int);
+                }
+              }
+              $last_query = $builder_temp->getCompiledSelect(false);
+              session()->set("customer_list_sql", $last_query);
 
       // echo $this->db->last_query();      
 

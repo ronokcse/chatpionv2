@@ -210,7 +210,7 @@ class Home extends BaseController
         //     if(!is_bool($strict_ajax_call)) $strict_ajax_call = true;
         // }
 
-        if (in_array($hostname, ['localhost', 'chatpion.test'])) $this->strict_ajax_call = false;
+        if (in_array($hostname, ['localhost', 'chatpion.test', 'chatpion2.test'])) $this->strict_ajax_call = false;
         if (!$this->strict_ajax_call) {
             header('Access-Control-Allow-Origin: *');
             header('Access-Control-Allow-Headers: *');
@@ -347,7 +347,7 @@ class Home extends BaseController
                 // Pusher config loading - CI4 uses config files directly
                 if (!empty(($this->config->pusher_app_key ?? null))) {
                     // Load pusher library if needed
-                    // $this->ci_pusher = new \App\Libraries\Ci_pusher();
+                    $this->load->library('ci_pusher');
                     $pusher = $this->ci_pusher->get_pusher();
                     $pusher->trigger('livechat_assigned_agent_channel', 'livechat_assigned_agent_event', $pusher_data);
                 }

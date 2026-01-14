@@ -1,4 +1,5 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+// CI4 Helper - No BASEPATH check needed
 
 if ( ! function_exists('mec_display_price'))
 {

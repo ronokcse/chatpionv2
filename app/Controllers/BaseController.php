@@ -215,6 +215,13 @@ abstract class BaseController extends Controller
                 return true;
             }
             
+            public function helpers($helperNames) {
+                // CI3 -> CI4 compatibility: $this->load->helpers(array('helper1', 'helper2'))
+                // In CI4, helper() accepts both string and array
+                helper($helperNames);
+                return true;
+            }
+            
             public function view($view, $data = [], $return = false) {
                 return view($view, $data);
             }
