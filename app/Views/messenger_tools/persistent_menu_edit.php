@@ -2,7 +2,7 @@
 $item_json_array=json_decode($xdata["item_json"],true);
 $current_postbacks=json_decode($xdata["poskback_id_json"],true);
 $text_with_button_counter_level1_js=isset($item_json_array['call_to_actions'])?count($item_json_array['call_to_actions']):0;
-$media_type = $this->using_media_type;
+$media_type = $using_media_type ?? 'fb';
 ?>    
 
 <div class="clearfix"></div>

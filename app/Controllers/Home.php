@@ -68,7 +68,89 @@ class Home extends BaseController
 
         // Load services
         $this->db = \Config\Database::connect();
-        $this->session = \Config\Services::session();
+        // Use compatibility wrapper for session to support CI3 methods like set_flashdata()
+        $sessionService = \Config\Services::session();
+        $this->session = new class($sessionService) {
+            private $session;
+            
+            public function __construct($session) {
+                $this->session = $session;
+            }
+            
+            public function userdata($key = null) {
+                if ($key === null) {
+                    return $this->session->get();
+                }
+                return $this->session->get($key);
+            }
+            
+            public function set_userdata($key, $value = null) {
+                if (is_array($key)) {
+                    foreach ($key as $k => $v) {
+                        $this->session->set($k, $v);
+                    }
+                } else {
+                    $this->session->set($key, $value);
+                }
+                return true;
+            }
+            
+            public function unset_userdata($key) {
+                if (is_array($key)) {
+                    foreach ($key as $k) {
+                        $this->session->remove($k);
+                    }
+                } else {
+                    $this->session->remove($key);
+                }
+                return true;
+            }
+            
+            public function all_userdata() {
+                return $this->session->get();
+            }
+            
+            public function sess_destroy() {
+                return $this->session->destroy();
+            }
+            
+            public function set_flashdata($key, $value = null) {
+                return $this->session->setFlashdata($key, $value);
+            }
+            
+            public function flashdata($key = null) {
+                return $this->session->getFlashdata($key);
+            }
+            
+            public function get_flashdata($key = null) {
+                return $this->session->getFlashdata($key);
+            }
+            
+            // Pass through CI4 methods
+            public function get($key = null) {
+                return $this->session->get($key);
+            }
+            
+            public function set($key, $value = null) {
+                return $this->session->set($key, $value);
+            }
+            
+            public function remove($key) {
+                return $this->session->remove($key);
+            }
+            
+            public function destroy() {
+                return $this->session->destroy();
+            }
+            
+            // Pass through other methods
+            public function __call($method, $args) {
+                if (method_exists($this->session, $method)) {
+                    return call_user_func_array([$this->session, $method], $args);
+                }
+                return null;
+            }
+        };
         $this->request = $request;
         $this->config = config('MyConfig');
         $this->basic = new Basic();
@@ -1163,6 +1245,37 @@ class Home extends BaseController
         // Optional properties used by some modules/controllers (CI3 -> CI4 view compatibility)
         $data['sms_email_drip_exist'] = property_exists($this, 'sms_email_drip_exist') ? ($this->sms_email_drip_exist ?? false) : false;
         $data['is_sms_email_drip_campaigner_exist'] = property_exists($this, 'is_sms_email_drip_campaigner_exist') ? ($this->is_sms_email_drip_campaigner_exist ?? false) : false;
+        
+        // CI4 compatibility: Create $controller object for views (like CI3's $this) so $controller->user_id works in views
+        // Note: We can't use $this in views as it's reserved, so we use $controller instead
+        // Views can use either $user_id (direct variable) or $controller->user_id (object property)
+        $data['controller'] = new class($this) {
+            public $user_id;
+            public $language;
+            public $is_demo;
+            public $is_manager;
+            public $module_access;
+            public $using_media_type;
+            public $basic;
+            public $uri;
+            public $is_rtl;
+            public $sms_email_drip_exist;
+            public $is_sms_email_drip_campaigner_exist;
+            
+            public function __construct($controller) {
+                $this->user_id = $controller->user_id ?? 0;
+                $this->language = $controller->language ?? 'english';
+                $this->is_demo = $controller->is_demo ?? '0';
+                $this->is_manager = $controller->is_manager ?? 0;
+                $this->module_access = $controller->module_access ?? [];
+                $this->using_media_type = $controller->using_media_type ?? 'fb';
+                $this->basic = $controller->basic ?? null;
+                $this->uri = $controller->uri ?? null;
+                $this->is_rtl = $controller->is_rtl ?? false;
+                $this->sms_email_drip_exist = property_exists($controller, 'sms_email_drip_exist') ? ($controller->sms_email_drip_exist ?? false) : false;
+                $this->is_sms_email_drip_campaigner_exist = property_exists($controller, 'is_sms_email_drip_campaigner_exist') ? ($controller->is_sms_email_drip_campaigner_exist ?? false) : false;
+            }
+        };
 
         if (isset($data['iframe']) && $data['iframe'] == '1') {
             echo view('admin/theme/theme_iframe', $data);

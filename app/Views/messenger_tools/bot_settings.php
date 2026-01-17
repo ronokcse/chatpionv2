@@ -1,5 +1,5 @@
 <?php
-  $redirect_url = site_url('messenger_bot/bot_settings/').$page_info['id'].'/1?media_type='.$this->using_media_type;
+  $redirect_url = site_url('messenger_bot/bot_settings/').$page_info['id'].'/1?media_type='.($using_media_type ?? 'fb');
   echo view("include/upload_js");
 
   $image_upload_limit = 1; 
@@ -225,7 +225,7 @@
                             <?php 
                              foreach ($templates as $key => $value)
                              {
-                                echo '<option value="'.$value.'">'.$this->lang->line($value).'</option>';
+                                echo '<option value="'.$value.'">'.lang($value).'</option>';
                              } 
                             ?>
                           </select>
@@ -282,7 +282,7 @@
 
                           <div class="col-12"> 
                             <div class="form-group">
-                              <label><?php echo $this->lang->line("Please provide 'Buy Now' button text"); ?></label>
+                              <label><?php echo lang("Please provide 'Buy Now' button text"); ?></label>
                               <input type="text" name="ecommerce_button_text<?php echo $k; ?>" id="ecommerce_button_text<?php echo $k; ?>" class="form-control">
                             </div>       
                           </div>
@@ -431,11 +431,11 @@
                                     <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                                     <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                                     <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                                    <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                    <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                                    <option value="web_url_email"><?php echo $this->lang->line("User's Email"); ?></option>
-                                    <option value="web_url_phone"><?php echo $this->lang->line("User's Phone"); ?></option>
-                                    <option value="web_url_location"><?php echo $this->lang->line("User's Location"); ?></option>
+                                    <option value="web_url_email"><?php echo lang("User's Email"); ?></option>
+                                    <option value="web_url_phone"><?php echo lang("User's Phone"); ?></option>
+                                    <option value="web_url_location"><?php echo lang("User's Location"); ?></option>
 
                                     <option value="post_back" id="unsubscribe_postback"><?php echo lang('Unsubscribe'); ?></option>
                                     <option value="post_back" id="resubscribe_postback"><?php echo lang('Re-subscribe'); ?></option>
@@ -532,7 +532,7 @@
                                     <option value="phone_number"><?php echo lang('User Phone Number'); ?></option>
                                     <option value="user_email"><?php echo lang('User E-mail Address'); ?></option>
                                     <?php endif; ?>
-                                    <!-- <option value="location"><?php echo $this->lang->line("User's Location"); ?></option> -->
+                                    <!-- <option value="location"><?php echo lang("User's Location"); ?></option> -->
                                   </select>
                                 </div>
                               </div>
@@ -611,11 +611,11 @@
                                     <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                                     <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                                     <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                                    <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                    <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                                    <option value="web_url_email"><?php echo $this->lang->line("User's Email"); ?></option>
-                                    <option value="web_url_phone"><?php echo $this->lang->line("User's Phone"); ?></option>
-                                    <option value="web_url_location"><?php echo $this->lang->line("User's Location"); ?></option>
+                                    <option value="web_url_email"><?php echo lang("User's Email"); ?></option>
+                                    <option value="web_url_phone"><?php echo lang("User's Phone"); ?></option>
+                                    <option value="web_url_location"><?php echo lang("User's Location"); ?></option>
 
                                     <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                                     
@@ -731,11 +731,11 @@
                                         <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                                         <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                                         <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                                        <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                        <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                                        <option value="web_url_email"><?php echo $this->lang->line("User's Email"); ?></option>
-                                        <option value="web_url_phone"><?php echo $this->lang->line("User's Phone"); ?></option>
-                                        <option value="web_url_location"><?php echo $this->lang->line("User's Location"); ?></option>
+                                        <option value="web_url_email"><?php echo lang("User's Email"); ?></option>
+                                        <option value="web_url_phone"><?php echo lang("User's Phone"); ?></option>
+                                        <option value="web_url_location"><?php echo lang("User's Location"); ?></option>
 
                                         <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                                         
@@ -865,11 +865,11 @@
                                         <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                                         <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                                         <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                                        <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                        <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                                        <option value="web_url_email"><?php echo $this->lang->line("User's Email"); ?></option>
-                                        <option value="web_url_phone"><?php echo $this->lang->line("User's Phone"); ?></option>
-                                        <option value="web_url_location"><?php echo $this->lang->line("User's Location"); ?></option>
+                                        <option value="web_url_email"><?php echo lang("User's Email"); ?></option>
+                                        <option value="web_url_phone"><?php echo lang("User's Phone"); ?></option>
+                                        <option value="web_url_location"><?php echo lang("User's Location"); ?></option>
 
                                         <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                                         
@@ -956,7 +956,7 @@
                   <button id="submit" class="btn btn-lg btn-primary"><i class="fa fa-send"></i> <?php echo lang('submit'); ?></button>
                 </div>
                 <div class="col-6">
-                  <a class="btn btn-lg btn-secondary float-right" href="<?php echo base_url("messenger_bot/bot_settings/").$page_info['id']."/1?media_type=".$this->using_media_type; ?>"><i class="fas fa-times"></i> <?php echo lang('Back'); ?></a>
+                  <a class="btn btn-lg btn-secondary float-right" href="<?php echo base_url("messenger_bot/bot_settings/").$page_info['id']."/1?media_type=".($using_media_type ?? 'fb'); ?>"><i class="fas fa-times"></i> <?php echo lang('Back'); ?></a>
                 </div>
               </div>
 
@@ -1163,7 +1163,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
   var table = $("#mytable").DataTable({
       language: 
       {
-        url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+        url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? 'english').'.json'); ?>"
       },
       dom: '<"top"f>rt<"bottom"lip><"clear">',
       columnDefs: [
@@ -3067,7 +3067,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
           <p><?php echo lang('To get the Facebook URL for an image or video, do the following:'); ?></p>
           <ul>
             <li><?php echo lang('Click the image or video thumbnail to open the full-size view');?>.</li>
-            <li><?php echo $this->lang->line("Copy the URL from your browser's address bar.<");?>/li>
+            <li><?php echo lang("Copy the URL from your browser's address bar.<");?>/li>
           </ul>
           <p><?php echo lang('Facebook URLs should be in the following base format:');?></p>
           <div class="table-responsive2">

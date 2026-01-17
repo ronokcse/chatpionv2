@@ -75,6 +75,18 @@ if (!function_exists('get_instance')) {
                             return $this->session->destroy();
                         }
                         
+                        public function set_flashdata($key, $value = null) {
+                            return $this->session->setFlashdata($key, $value);
+                        }
+                        
+                        public function flashdata($key = null) {
+                            return $this->session->getFlashdata($key);
+                        }
+                        
+                        public function get_flashdata($key = null) {
+                            return $this->session->getFlashdata($key);
+                        }
+                        
                         // Pass through other methods
                         public function __call($method, $args) {
                             if (method_exists($this->session, $method)) {

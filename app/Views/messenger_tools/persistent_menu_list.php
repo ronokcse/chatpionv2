@@ -36,9 +36,9 @@
     if($page_info["started_button_enabled"]=='0')
     {
       $started_button_enabled=' disabled';
-      $started_button_enabled_msg="<p style='text-decoration:none;'>".$this->lang->line("To create persistent menu you must enable get started button first. You can enable it going to 'Get Started Settings' menu from the left menu list.")."</p>";
+      $started_button_enabled_msg="<p style='text-decoration:none;'>".lang("To create persistent menu you must enable get started button first. You can enable it going to 'Get Started Settings' menu from the left menu list.")."</p>";
     }    
-    $media_type = $this->using_media_type;    
+    $media_type = $using_media_type ?? 'fb';    
    ?>
   <?php if($started_button_enabled_msg!="") echo "<div class='alert alert-danger text-center'>".$started_button_enabled_msg."</div>";?>
   <div class="box box-widget widget-user-2" >
@@ -167,7 +167,7 @@
   var table = $("#mytable").DataTable({
       language: 
       {
-        url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+        url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? 'english').'.json'); ?>"
       },
       dom: '<"top"f>rt<"bottom"lip><"clear">',
       columnDefs: [

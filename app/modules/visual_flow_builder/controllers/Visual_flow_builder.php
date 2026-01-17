@@ -19,7 +19,12 @@ Version: 1.6.9
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Visual_flow_builder\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Visual_flow_builder extends Home
 {
@@ -48,14 +53,18 @@ class Visual_flow_builder extends Home
     public $postbacks_for_otn_single = [];
     public $postbacks_for_rcn_single = [];
 
-    public function __construct()
+    /**
+     * Initialize controller
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
         // getting addon information in array and storing to public variable
         // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
         //------------------------------------------------------------------------------------------
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path=APPPATH."modules/".strtolower($controller_name)."/controllers/".ucfirst($controller_name).".php"; // path of addon controller
         $addondata=$this->get_addon_data($addon_path);
         $this->addon_data=$addondata;
 
@@ -63,7 +72,9 @@ class Visual_flow_builder extends Home
         // all addon must be login protected
         // but we need allow ajax cors and ajax check for flowbuilder development environment
         //------------------------------------------------------------------------------------------
-        if ($this->session->userdata('logged_in')!= 1 && $this->strict_ajax_call) redirect('home/login', 'location'); 
+        if (session()->get('logged_in') != 1 && $this->strict_ajax_call) {
+            redirect()->to('home/login')->send();
+        }
         if(!$this->strict_ajax_call) {
             $this->user_id = 1;
             $this->module_access = [213,214,215,217,219,292,315,325,330];
@@ -73,9 +84,9 @@ class Visual_flow_builder extends Home
         //-------------------------------------------------------------------------------------------
         if(isset($addondata['module_id']) && is_array($addondata['module_id']) && !empty($addondata['module_id']))
         {
-          if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($addondata['module_id'],$this->module_access))==0)
+          if(session()->get('user_type') != 'Admin' && count(array_intersect($addondata['module_id'],$this->module_access))==0)
             {
-                  redirect('home/login_page', 'location');
+                  redirect()->to('home/login_page')->send();
                   exit();
             }
         }
@@ -88,7 +99,7 @@ class Visual_flow_builder extends Home
     {
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         $purchase_code=$this->input->post('purchase_code');
         $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
         
@@ -118,7 +129,7 @@ class Visual_flow_builder extends Home
     {        
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);      
     }
@@ -127,7 +138,7 @@ class Visual_flow_builder extends Home
     {        
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
         $sql=array
@@ -309,7 +320,7 @@ class Visual_flow_builder extends Home
 
         $team_member_access = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>65)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(350),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(350),$this->module_access))>0)
                 $team_member_access = 1;
 
         if($team_member_access)
@@ -476,12 +487,12 @@ class Visual_flow_builder extends Home
 
         $message_sent_stat_addon = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>64)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(330),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(330),$this->module_access))>0)
                 $message_sent_stat_addon = 1;
 
         $messenger_bot_connectivity_thirdparty_webhook = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>31)))
-            if($this->session->userdata('user_type') == 'Admin' || in_array(258,$this->module_access))
+            if(session()->get('user_type') == 'Admin' || in_array(258,$this->module_access))
                 $messenger_bot_connectivity_thirdparty_webhook = 1;
 
         $builder_table_id=$this->input->post('builder_table_id',true);
@@ -2716,36 +2727,36 @@ class Visual_flow_builder extends Home
     {
         
         if(!check_module_action_access($module_id=315,$actions=1,'check')){
-          redirect('home/access_forbidden', 'location');
+          redirect()->to('home/access_forbidden')->send();
           exit();
         }
 
         $info = $this->basic->get_data('facebook_rx_fb_page_info',['where'=>['id'=>$page_table_id,'user_id'=>$this->user_id]],['id', 'page_id', 'page_name', 'insta_username']);
 
         if($page_table_id == '' || empty($info))
-            redirect('visual_flow_builder/flowbuilder_manager', 'location');
+            redirect()->to('visual_flow_builder/flowbuilder_manager')->send();
 
         $user_input_flow_addon = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>49)))
-            if($this->session->userdata('user_type') == 'Admin' || in_array(292,$this->module_access))
+            if(session()->get('user_type') == 'Admin' || in_array(292,$this->module_access))
                 $user_input_flow_addon = 1;
         $data['user_input_flow_addon'] = $user_input_flow_addon;
 
         $messenger_bot_connectivity_thirdparty_webhook = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>31)))
-            if($this->session->userdata('user_type') == 'Admin' || in_array(258,$this->module_access))
+            if(session()->get('user_type') == 'Admin' || in_array(258,$this->module_access))
                 $messenger_bot_connectivity_thirdparty_webhook = 1;
         $data['messenger_bot_connectivity_thirdparty_webhook'] = $messenger_bot_connectivity_thirdparty_webhook;
 
         $messenger_engagement_plugin = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>30)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(213,214,215,217),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(213,214,215,217),$this->module_access))>0)
                 $messenger_engagement_plugin = 1;
         $data['messenger_engagement_plugin'] = $messenger_engagement_plugin;
 
         $sequence_addon = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>30)))
-            if($this->session->userdata('user_type') == 'Admin' || in_array(219,$this->module_access))
+            if(session()->get('user_type') == 'Admin' || in_array(219,$this->module_access))
                 $sequence_addon = 1;
         $data['sequence_addon'] = $sequence_addon;
 
@@ -2758,7 +2769,7 @@ class Visual_flow_builder extends Home
         }
 
         $data['body'] = 'index';
-        $data['page_title'] = $this->lang->line('Add new flow');
+        $data['page_title'] = lang('Add new flow');
         $data['page_table_id'] = $page_table_id;
         $data['json_data'] = null;
         $data['builder_table_id'] = 0;
@@ -2774,13 +2785,13 @@ class Visual_flow_builder extends Home
 
         $team_member_access = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>65)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(350),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(350),$this->module_access))>0)
                 $team_member_access = 1;
         $data['team_member_access'] = $team_member_access;
 
         $messenger_bot_condition = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>63)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(325),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(325),$this->module_access))>0)
                 $messenger_bot_condition = 1;
         $data['messenger_bot_condition'] = $messenger_bot_condition;
 
@@ -2788,19 +2799,19 @@ class Visual_flow_builder extends Home
         $data['message_sent_stat'] = json_encode($message_sent_stat);
         $message_sent_stat_addon = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>64)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(330),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(330),$this->module_access))>0)
                 $message_sent_stat_addon = 1;
         $data['message_sent_stat_addon'] = $message_sent_stat_addon;
 
         $google_sheet_access = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>70)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(351),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(351),$this->module_access))>0)
                 $google_sheet_access = 1;
         $data['google_sheet_access'] = $google_sheet_access;
 
         $http_api_module = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>71)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(352),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(352),$this->module_access))>0)
                 $http_api_module = 1;
         $data['http_api_module'] = $http_api_module;
 
@@ -2823,13 +2834,13 @@ class Visual_flow_builder extends Home
     public function edit_builder_data($table_id = 0, $go_back_link=1, $media_type='fb')
     {
         if(!check_module_action_access($module_id=315,$actions=2,'check')){
-          redirect('home/access_forbidden', 'location');
+          redirect()->to('home/access_forbidden')->send();
           exit();
         }
 
         $info = $this->basic->get_data('visual_flow_builder_campaign',['where'=>['user_id'=>$this->user_id,'id'=>$table_id]]);
         if(empty($info) || $table_id==0)
-            redirect('visual_flow_builder/flowbuilder_manager', 'location');
+            redirect()->to('visual_flow_builder/flowbuilder_manager')->send();
 
         $data = [];
 
@@ -2868,43 +2879,43 @@ class Visual_flow_builder extends Home
 
         $message_sent_stat_addon = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>64)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(330),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(330),$this->module_access))>0)
                 $message_sent_stat_addon = 1;
         $data['message_sent_stat_addon'] = $message_sent_stat_addon;
 
         $google_sheet_access = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>70)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(351),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(351),$this->module_access))>0)
                 $google_sheet_access = 1;
         $data['google_sheet_access'] = $google_sheet_access;
 
         $http_api_module = 0;
         if ($this->basic->is_exist("add_ons", array("project_id" => 71)))
-        if ($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(352), $this->module_access)) > 0)
+        if (session()->get('user_type') == 'Admin' || count(array_intersect(array(352), $this->module_access)) > 0)
             $http_api_module = 1;
         $data['http_api_module'] = $http_api_module;
 
         $user_input_flow_addon = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>49)))
-            if($this->session->userdata('user_type') == 'Admin' || in_array(292,$this->module_access))
+            if(session()->get('user_type') == 'Admin' || in_array(292,$this->module_access))
                 $user_input_flow_addon = 1;
         $data['user_input_flow_addon'] = $user_input_flow_addon;
 
         $messenger_bot_connectivity_thirdparty_webhook = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>31)))
-            if($this->session->userdata('user_type') == 'Admin' || in_array(258,$this->module_access))
+            if(session()->get('user_type') == 'Admin' || in_array(258,$this->module_access))
                 $messenger_bot_connectivity_thirdparty_webhook = 1;
         $data['messenger_bot_connectivity_thirdparty_webhook'] = $messenger_bot_connectivity_thirdparty_webhook;
 
         $sequence_addon = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>30)))
-            if($this->session->userdata('user_type') == 'Admin' || in_array(219,$this->module_access))
+            if(session()->get('user_type') == 'Admin' || in_array(219,$this->module_access))
                 $sequence_addon = 1;
         $data['sequence_addon'] = $sequence_addon;
 
         $messenger_engagement_plugin = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>30)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(213,214,215,217),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(213,214,215,217),$this->module_access))>0)
                 $messenger_engagement_plugin = 1;
         $data['messenger_engagement_plugin'] = $messenger_engagement_plugin;
 
@@ -2922,18 +2933,18 @@ class Visual_flow_builder extends Home
 
         $team_member_access = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>65)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(350),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(350),$this->module_access))>0)
                 $team_member_access = 1;
         $data['team_member_access'] = $team_member_access;
 
         $messenger_bot_condition = 0;
         if($this->basic->is_exist("add_ons",array("project_id"=>63)))
-            if($this->session->userdata('user_type') == 'Admin' || count(array_intersect(array(325),$this->module_access))>0)
+            if(session()->get('user_type') == 'Admin' || count(array_intersect(array(325),$this->module_access))>0)
                 $messenger_bot_condition = 1;
         $data['messenger_bot_condition'] = $messenger_bot_condition;
 
         $data['body'] = 'index';
-        $data['page_title'] = $this->lang->line('Edit flow');
+        $data['page_title'] = lang('Edit flow');
         $data['page_table_id'] = $info[0]['page_id'] ?? 0;
         $data['json_data'] = $info[0]['json_data'] ?? null;
         $data['builder_table_id'] = $table_id;
@@ -2954,13 +2965,13 @@ class Visual_flow_builder extends Home
     public function duplicate_builder_data($table_id = 0, $go_back_link=1, $media_type='fb')
 	{
 		if(!check_module_action_access($module_id=315,$actions=1,'check')){
-          redirect('home/access_forbidden', 'location');
+          redirect()->to('home/access_forbidden')->send();
           exit();
         }
 
         $check_info = $this->basic->get_data('visual_flow_builder_campaign',['where'=>['user_id'=>$this->user_id,'id'=>$table_id]]);
 
-		if(empty($check_info))  redirect('visual_flow_builder/flowbuilder_manager', 'location');
+		if(empty($check_info))  redirect()->to('visual_flow_builder/flowbuilder_manager')->send();
 
 		$json_data = json_decode($check_info[0]['json_data'],true) ;
 
@@ -2987,13 +2998,13 @@ class Visual_flow_builder extends Home
         $last_insert_id = $this->db->insert_id();
         $url = 'visual_flow_builder/edit_builder_data'.'/'.$last_insert_id.'/1/'.$media_type;
 
-		redirect($url, 'location');
+		redirect()->to($url)->send();
 
 	}
     public function copy_builder_data()
 	{
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            redirect('home/access_forbidden', 'location');
+            redirect()->to('home/access_forbidden')->send();
         }
         $this->ajax_check();
 
@@ -3003,7 +3014,7 @@ class Visual_flow_builder extends Home
         $page_id = $this->input->post('page_id', true);
         $media_type = $this->input->post('media_type', true);
 		$check_info = $this->basic->get_data('visual_flow_builder_campaign',['where'=>['user_id'=>$this->user_id,'id'=>$table_id]]);
-		if(empty($check_info))  redirect('visual_flow_builder/flowbuilder_manager', 'location');
+		if(empty($check_info))  redirect()->to('visual_flow_builder/flowbuilder_manager')->send();
 
 		$json_data = json_decode($check_info[0]['json_data'],true) ;
 
@@ -3036,12 +3047,12 @@ class Visual_flow_builder extends Home
 	{
 
 		if(!check_module_action_access($module_id=315,$actions=4,'check')){
-            redirect('home/access_forbidden', 'location');
+            redirect()->to('home/access_forbidden')->send();
         }
 
         $check_info = $this->basic->get_data('visual_flow_builder_campaign',['where'=>['user_id'=>$this->user_id,'id'=>$table_id]]);
 
-		if(empty($check_info))  redirect('visual_flow_builder/flowbuilder_manager', 'location');
+		if(empty($check_info))  redirect()->to('visual_flow_builder/flowbuilder_manager')->send();
 
 		$json_data = json_decode($check_info[0]['json_data'],true) ;
 
@@ -3082,7 +3093,7 @@ class Visual_flow_builder extends Home
     public function flowbuilder_manager($page_id=0,$iframe='0')
     {
         $data['body'] = 'flow_builder_list';
-        $data['page_title'] = $this->lang->line('Visual Flow Builder');
+        $data['page_title'] = lang('Visual Flow Builder');
         $data['iframe'] = '1';
 
         $join = array('facebook_rx_fb_user_info'=>'facebook_rx_fb_page_info.facebook_rx_fb_user_info_id=facebook_rx_fb_user_info.id,left');
@@ -3094,7 +3105,7 @@ class Visual_flow_builder extends Home
 
         $flow_page_list = array();
         if(isset($page_info) && count($page_info) > 0) {
-            $flow_page_list['media_name'] = $this->lang->line("Facebook");
+            $flow_page_list['media_name'] = lang("Facebook");
             foreach($page_info as $value)
             {                
                 if(!empty($this->team_allowed_pages) && !in_array($value['id'], $this->team_allowed_pages)) continue;
@@ -3105,7 +3116,7 @@ class Visual_flow_builder extends Home
 
         $ig_flow_page_list = array();
         if(isset($ig_page_info) && count($ig_page_info) > 0) {
-            $ig_flow_page_list['media_name'] = $this->lang->line("Instagram");
+            $ig_flow_page_list['media_name'] = lang("Instagram");
             foreach($ig_page_info as $ig_value)
             {                
                 if(!empty($this->team_allowed_pages) && !in_array($ig_value['id'], $this->team_allowed_pages)) continue;
@@ -3132,7 +3143,7 @@ class Visual_flow_builder extends Home
     {
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            redirect('home/access_forbidden', 'location');
+            redirect()->to('home/access_forbidden')->send();
         }
 
         $this->ajax_check();

@@ -1,5 +1,22 @@
 <?php
 
+// Start output buffering immediately to catch any warnings/errors before headers are sent
+// This prevents the max_input_vars warning from sending headers
+if (!ob_get_level()) {
+    ob_start();
+}
+
+// Suppress max_input_vars warning to prevent headers from being sent before session initialization
+// This warning occurs when form has more than 1000 input fields
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    // Suppress only the max_input_vars warning
+    if (strpos($errstr, 'Input variables exceeded') !== false || 
+        strpos($errstr, 'max_input_vars') !== false) {
+        return true; // Suppress this warning
+    }
+    return false; // Let other errors through
+}, E_WARNING | E_NOTICE);
+
 use CodeIgniter\Boot;
 use Config\Paths;
 

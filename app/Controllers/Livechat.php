@@ -1,68 +1,83 @@
 <?php
 
-require_once("Home.php"); // loading home controller
+namespace App\Controllers;
 
-class livechat extends Home
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
+class Livechat extends Home
 {
 
-    public function __construct()
+    /**
+     * Initialize controller
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
-        if ($this->session->userdata('logged_in') != 1)
-        redirect('home/login_page', 'location');   
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(82,$this->module_access))
-        redirect('home/login_page', 'location'); 
+        parent::initController($request, $response, $logger);
 
-        if($this->session->userdata("facebook_rx_fb_user_info")==0)
-        redirect('social_accounts/index','refresh');
-    
+        // CI4-style session access (no userdata())
+        if (session()->get('logged_in') != 1) {
+            redirect()->to('home/login_page')->send();
+        }
+
+        if (session()->get('user_type') != 'Admin' && !in_array(82, $this->module_access)) {
+            redirect()->to('home/login_page')->send();
+        }
+
+        if (session()->get("facebook_rx_fb_user_info") == 0) {
+            redirect()->to('social_accounts/index')->send();
+        }
+
         $this->load->library("fb_rx_login");
         $this->load->helper("bot_helper");
         $this->important_feature();
-        $this->member_validity();        
+        $this->member_validity();
     }
 
     public function load_livechat()
     {
-        $this->config->load('pusher');
-        $pusher_status = !empty( $this->config->item("pusher_app_key")) ? '1' : '0';
+        // CI4 style: pusher config comes from Config\MyConfig, no load()/item()
+        $pusher_key   = $this->config->pusher_app_key ?? null;
+        $pusher_status = !empty($pusher_key) ? '1' : '0';
         $media_type = $this->input->get('media_type') ?? 'fb';
         $message_type = $this->input->get('message') ?? 'all';
         if(empty($message_type)) $message_type = 'all';
 
-        $this->db->from('facebook_rx_fb_page_info');
-        $this->db->where('facebook_rx_fb_page_info.user_id', $this->user_id);
-        $this->db->where('facebook_rx_fb_page_info.bot_enabled', '1');
-        $this->db->where('facebook_rx_fb_user_info_id', $this->session->userdata('facebook_rx_fb_user_info'));
-        if(!empty($this->team_allowed_pages)){
-            $this->db->where_in('facebook_rx_fb_page_info.id', $this->team_allowed_pages);
+        // CI4 query builder for page info
+        $builder = $this->db->table('facebook_rx_fb_page_info');
+        $builder->where('facebook_rx_fb_page_info.user_id', $this->user_id);
+        $builder->where('facebook_rx_fb_page_info.bot_enabled', '1');
+        $builder->where('facebook_rx_fb_user_info_id', session()->get('facebook_rx_fb_user_info'));
+        if (!empty($this->team_allowed_pages)) {
+            $builder->whereIn('facebook_rx_fb_page_info.id', $this->team_allowed_pages);
         }
-        if($media_type == 'ig'){
-            $this->db->where('has_instagram', '1');
+        if ($media_type == 'ig') {
+            $builder->where('has_instagram', '1');
         }
 
-        $bot_info = $this->db->get()->result();
+        $bot_info = $builder->get()->getResult();
         $first_bot_id = '';
         if($media_type == 'fb'){
-            if($this->session->userdata('selected_global_page_table_id_fb')){
-                $first_bot_id = $this->session->userdata('selected_global_page_table_id_fb');
+            if(session()->get('selected_global_page_table_id_fb')){
+                $first_bot_id = session()->get('selected_global_page_table_id_fb');
             }
             if(empty($first_bot_id)) $first_bot_id = $bot_info[0]->id ?? '';
             if(empty($first_bot_id)) {
                 $first_bot_id = $bot_info[0]->id ?? '';
-                $this->session->set_userdata('selected_global_page_table_id_fb',$first_bot_id);
-                $this->session->set_userdata('bot_manager_get_bot_details_tab_menu_id_messanger','v-pills-bot-settings-tab');
+                session()->set('selected_global_page_table_id_fb', $first_bot_id);
+                session()->set('bot_manager_get_bot_details_tab_menu_id_messanger', 'v-pills-bot-settings-tab');
             }
         }
         else{
-            if($this->session->userdata('selected_global_page_table_id_ig')){
-                $first_bot_id = $this->session->userdata('selected_global_page_table_id_ig');
+            if(session()->get('selected_global_page_table_id_ig')){
+                $first_bot_id = session()->get('selected_global_page_table_id_ig');
             }
             if(empty($first_bot_id)) $first_bot_id = $bot_info[0]->id ?? '';
             if(empty($first_bot_id)) {
                 $first_bot_id = $bot_info[0]->id ?? '';
-                $this->session->set_userdata('selected_global_page_table_id_ig',$first_bot_id);
-                $this->session->set_userdata('bot_manager_get_bot_details_tab_menu_id_messanger','v-pills-bot-settings-tab');
+                session()->set('selected_global_page_table_id_ig', $first_bot_id);
+                session()->set('bot_manager_get_bot_details_tab_menu_id_messanger', 'v-pills-bot-settings-tab');
             }
         }
 
@@ -101,7 +116,7 @@ class livechat extends Home
         $data['body'] = 'livechat/livechat';
         $data['page_title'] = $media_type.' - '.$this->lang->line('Live Chat');
         //$data['postback_list'] = $first_bot_id>0 ? $this->get_dropdown_postback($first_bot_id) : '';
-        $data['whatsapp_business_id'] = $first_bot_id > 0 ? $this->session->userdata('facebook_rx_fb_user_info')  : '';
+        $data['whatsapp_business_id'] = $first_bot_id > 0 ? session()->get('facebook_rx_fb_user_info')  : '';
         $data['load_datatable']=true;
         $data['pusher_status']=$pusher_status;
         return $this->_viewcontroller($data);
@@ -115,12 +130,12 @@ class livechat extends Home
         $message_type = $this->input->post('message_type') ?? 'all';
         $start = $this->input->post('start') ?? 0;
         if($media_type == 'fb'){
-            $this->session->set_userdata('selected_global_page_table_id_fb',$page_id);
-            $this->session->set_userdata(['bot_manager_get_bot_details_tab_menu_id_messanger'=>'v-pills-bot-settings-tab']);
+            session()->set('selected_global_page_table_id_fb', $page_id);
+            session()->set('bot_manager_get_bot_details_tab_menu_id_messanger', 'v-pills-bot-settings-tab');
         }
         else{
-            $this->session->set_userdata('selected_global_page_table_id_ig',$page_id);
-            $this->session->set_userdata(['bot_manager_get_bot_details_tab_menu_id_messanger'=>'v-pills-bot-settings-tab']);
+            session()->set('selected_global_page_table_id_ig', $page_id);
+            session()->set('bot_manager_get_bot_details_tab_menu_id_messanger', 'v-pills-bot-settings-tab');
         }
         $response= $this->get_subscriber_list($page_id,$message_type,$start,$media_type);
 
@@ -138,37 +153,37 @@ class livechat extends Home
         
         $where['where'] = array(
             'user_id' => $this->user_id,
-            'facebook_rx_fb_user_info_id' => $this->session->userdata('facebook_rx_fb_user_info'),
+            'facebook_rx_fb_user_info_id' => session()->get('facebook_rx_fb_user_info'),
             'bot_enabled' => '1',
             'id' => $page_id
-            );
+        );
         $select = array('id','page_name','page_profile','page_id as fb_page_id');
-        $page_list = $this->basic->get_data('facebook_rx_fb_page_info',$where,$select,'','','', $order_by='page_name asc');
-        if(empty($page_list))
-        {
+        $page_list = $this->basic->get_data('facebook_rx_fb_page_info', $where, $select, '', '', '', $order_by='page_name asc');
+        if (empty($page_list)) {
             echo '<br><div class="alert alert-danger text-center w-100"><b class="m-0">'.$this->lang->line("You do not have any bot enabled page").'</b></div>';
             exit();
         }
-            
-        $this->db->select('*');
-        $this->db->from('messenger_bot_subscriber');
-        $this->db->where(['page_table_id' => $page_id, 'user_id' => $this->user_id, 'social_media'=>$media_type]);
+
+        // CI4 query builder for subscriber list
+        $builder = $this->db->table('messenger_bot_subscriber');
+        $builder->select('*');
+        $builder->where(['page_table_id' => $page_id, 'user_id' => $this->user_id, 'social_media' => $media_type]);
 
         if ($message_type == 'unread') {
-            $this->db->where('unseen_count >', 0);
+            $builder->where('unseen_count >', 0);
         } elseif ($message_type == 'archived') {
-            $this->db->where('is_archived', '1');
+            $builder->where('is_archived', '1');
         } elseif ($message_type == 'mine') {
             // $user_id = $this->is_manager ? $this->manager_id : $this->user_id;
-            $this->db->where('assigned_used_id', $this->real_user_id);
+            $builder->where('assigned_used_id', $this->real_user_id);
         } else {
-            $this->db->where('is_archived !=', '1');
+            $builder->where('is_archived !=', '1');
         }
 
-        $this->db->order_by('last_communicated_at', 'DESC');
-        $this->db->limit(20, $start);
+        $builder->orderBy('last_communicated_at', 'DESC');
+        $builder->limit(20, $start);
 
-        $subscriber_list = $this->db->get()->result();
+        $subscriber_list = $builder->get()->getResult();
 
         $str = '';
         foreach($subscriber_list as $conversion_info){
@@ -232,20 +247,20 @@ class livechat extends Home
         $select = '*';
         $where = ['page_table_id' => $page_id, 'user_id' => $this->user_id];
 
-        $this->db->select($select);
-        $this->db->from('messenger_bot_subscriber');
-        $this->db->where($where);
+        $builder = $this->db->table('messenger_bot_subscriber');
+        $builder->select($select);
+        $builder->where($where);
 
         if ($search_value != '') {
-            $this->db->group_start();
+            $builder->groupStart();
             foreach ($search_columns as $key => $value) {
-                $this->db->or_like($value, $search_value);
+                $builder->orLike($value, $search_value);
             }
-            $this->db->group_end();
+            $builder->groupEnd();
         }
 
-        $this->db->order_by('last_communicated_at', 'DESC');
-        $subscriber_list = $this->db->get()->result();
+        $builder->orderBy('last_communicated_at', 'DESC');
+        $subscriber_list = $builder->get()->getResult();
 
 
         $str = '';
@@ -265,18 +280,18 @@ class livechat extends Home
         $last_message_id = $this->input->post('last_message_id');
         $conversations = null;
         // dd($messageStart);
-        $this->db->select('*');
-        $this->db->from('livechat_messages');
-        $this->db->where('subscriber_id ', $from_user_id);
+        $builder = $this->db->table('livechat_messages');
+        $builder->select('*');
+        $builder->where('subscriber_id', $from_user_id);
 
         if (!empty($last_message_id)) {
-            $this->db->where('id >', $last_message_id);
+            $builder->where('id >', $last_message_id);
         }
 
-        $this->db->order_by('id', 'desc');
-        // $this->db->limit(10 ,$messageStart);
-        $this->db->limit(100);
-        $conversation = $this->db->get()->result();
+        $builder->orderBy('id', 'desc');
+        // $builder->limit(10, $messageStart);
+        $builder->limit(100);
+        $conversation = $builder->get()->getResult();
         $conversation = array_reverse($conversation);
 
         if(!check_module_action_access($module_id=82,$actions=2)){
@@ -336,10 +351,10 @@ class livechat extends Home
             $thread_id = preg_replace('/[^0-9]/i', '', $thread_id);
             $from_user_id = $thread_id.'-'.$whatsapp_bot_id;
 
-            $this->db->select($select_subscriber);
-            $this->db->from('messenger_bot_subscriber');
-            $this->db->where(['user_id' => $this->user_id, 'subscribe_id' => $from_user_id,'social_media'=>$media_type]);
-            $subscriber_data = $this->db->get()->row();
+            $builder = $this->db->table('messenger_bot_subscriber');
+            $builder->select($select_subscriber);
+            $builder->where(['user_id' => $this->user_id, 'subscribe_id' => $from_user_id, 'social_media' => $media_type]);
+            $subscriber_data = $builder->get()->getRow();
 
             if(empty($subscriber_data)){
                 // $limit_exceed = $this->check_subscriber_limit("1",$this->user_id);
@@ -361,10 +376,10 @@ class livechat extends Home
         }
 
         if (empty($subscriber_data)) {
-            $this->db->select($select_subscriber);
-            $this->db->from('messenger_bot_subscriber');
-            $this->db->where(['user_id' => $this->user_id, 'subscribe_id' => $from_user_id]);
-            $subscriber_data = $this->db->get()->row();
+            $builder = $this->db->table('messenger_bot_subscriber');
+            $builder->select($select_subscriber);
+            $builder->where(['user_id' => $this->user_id, 'subscribe_id' => $from_user_id]);
+            $subscriber_data = $builder->get()->getRow();
         }
 
         $last_interacted_at = $subscriber_data->last_subscriber_interaction_time ?? null;
@@ -534,15 +549,13 @@ class livechat extends Home
             $return = false;
         }
 
-        $this->db->select('*');
-        $this->db->from('messenger_bot_postback');
-        $this->db->where('page_id', $page_id);
-        $this->db->where('is_template', '1');
-        $this->db->where('template_for', 'reply_message');
-        $this->db->order_by('postback_type', 'asc');
-        $query = $this->db->get();
-
-        $postback_data = $query->result();
+        $builder = $this->db->table('messenger_bot_postback');
+        $builder->select('*');
+        $builder->where('page_id', $page_id);
+        $builder->where('is_template', '1');
+        $builder->where('template_for', 'reply_message');
+        $builder->orderBy('postback_type', 'asc');
+        $postback_data = $builder->get()->getResult();
         
         $push_postback = '<div class="list-group">';
         foreach ($postback_data as $key => $value)
@@ -571,10 +584,10 @@ class livechat extends Home
             "media_type" => $media_type
         ];
         
-        $this->db->where($where);
-        $this->db->order_by('postback_type', 'asc');
-        $query = $this->db->get('messenger_bot_postback');
-        $postback_data = $query->result();
+        $builder = $this->db->table('messenger_bot_postback');
+        $builder->where($where);
+        $builder->orderBy('postback_type', 'asc');
+        $postback_data = $builder->get()->getResult();
         echo json_encode($postback_data);
     }
 
@@ -607,10 +620,10 @@ class livechat extends Home
         else {  // called from api
             $thread_id = preg_replace('/[^0-9]/i', '', $thread_id);
             $from_user_id = $thread_id.'-'.$whatsapp_bot_id;
-            $this->db->select($select_subscriber);
-            $this->db->from('messenger_bot_subscriber');
-            $this->db->where(['user_id' => $this->user_id, 'subscribe_id' => $from_user_id]);
-            $subscriber_data = $this->db->get()->row();
+            $builder = $this->db->table('messenger_bot_subscriber');
+            $builder->select($select_subscriber);
+            $builder->where(['user_id' => $this->user_id, 'subscribe_id' => $from_user_id]);
+            $subscriber_data = $builder->get()->getRow();
             if(empty($subscriber_data)){
                 // $limit_exceed = $this->check_subscriber_limit("1",$this->user_id);
                 // if($limit_exceed) {
@@ -630,10 +643,10 @@ class livechat extends Home
         }
 
         if (empty($subscriber_data)) {
-            $this->db->select($select_subscriber);
-            $this->db->from('messenger_bot_subscriber');
-            $this->db->where(['user_id' => $this->user_id, 'subscribe_id' => $from_user_id]);
-            $subscriber_data = $this->db->get()->row();
+            $builder = $this->db->table('messenger_bot_subscriber');
+            $builder->select($select_subscriber);
+            $builder->where(['user_id' => $this->user_id, 'subscribe_id' => $from_user_id]);
+            $subscriber_data = $builder->get()->getRow();
         }
 
         $last_interacted_at = $subscriber_data->last_subscriber_interaction_time ?? null;
@@ -755,16 +768,16 @@ class livechat extends Home
         if($user_id==0) $user_id = $this->user_id;
         if(empty($select)) $select = '*';
         $where = ['facebook_rx_fb_page_info.id' => $id];
-        $this->db->select($select);
-        $this->db->from('facebook_rx_fb_page_info');
-        $this->db->where($where);
+        $builder = $this->db->table('facebook_rx_fb_page_info');
+        $builder->select($select);
+        $builder->where($where);
         if (!empty($user_id) && $user_id > 0) {
-            $this->db->where(['facebook_rx_fb_page_info.user_id' => $user_id]);
+            $builder->where(['facebook_rx_fb_page_info.user_id' => $user_id]);
         }
-        if($media_type == 'ig'){
-            $this->db->where(['facebook_rx_fb_page_info.has_instagram' => '1']);
+        if ($media_type == 'ig') {
+            $builder->where(['facebook_rx_fb_page_info.has_instagram' => '1']);
         }
-        $bot_data = $this->db->get()->row();
+        $bot_data = $builder->get()->getRow();
         return $bot_data;
     }
 

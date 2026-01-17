@@ -28,6 +28,12 @@ abstract class BaseController extends Controller
     // protected $session;
     
     /**
+     * CI3-style language library compatibility
+     * Provides $this->lang->line() and $this->lang->load()
+     */
+    protected $lang;
+    
+    /**
      * URI compatibility object for CI3 -> CI4 migration
      * Provides $this->uri->segment() method
      */
@@ -61,6 +67,26 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
         // $this->session = service('session');
         
+        // CI3-style language compatibility wrapper
+        $this->lang = new class {
+            public function line(string $key)
+            {
+                $result = lang($key);
+                return ($result === $key) ? $key : $result;
+            }
+
+            public function load(string $file, string $lang = null)
+            {
+                $langService = \Config\Services::language();
+                if ($lang) {
+                    $langService->setLocale($lang);
+                }
+                // CI3 load() usually just prepares language lines;
+                // CI4's lang() will read them based on locale.
+                return true;
+            }
+        };
+
         // Load compatibility object for CI3 -> CI4 migration
         $controller = $this;
         $this->load = new class($controller) {

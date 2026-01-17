@@ -1,4 +1,4 @@
-<?php $this->load->view('admin/theme/message'); ?>
+<?php echo view('admin/theme/message'); ?>
 
 <style type="text/css">
     .button{
@@ -26,10 +26,10 @@
                           <div class="col-12"> 
                             <?php if(addon_exist($module_id=320,$addon_unique_name="instagram_bot")) : ?>
                             <div class="form-group">
-                              <label><?php echo $this->lang->line("Please select a page"); ?></label>
+                              <label><?php echo lang("Please select a page"); ?></label>
                                 <select class="form-control select2" id="page_table_id" name="page_table_id" style="width:100%;">
                                   <?php 
-                                    echo "<option value=''>".$this->lang->line('Choose a Page')."</option>";
+                                    echo "<option value=''>".lang('Choose a Page')."</option>";
                                     foreach ($group_page_list as $key => $value) 
                                     {
                                       echo '<optgroup label="'.$value['media_name'].'">';
@@ -43,27 +43,27 @@
                                 </select>
                             </div>
                             <!-- <div class="form-group">
-                              <label class="d-block"><?php echo $this->lang->line('Media'); ?></label>
+                              <label class="d-block"><?php echo lang('Media'); ?></label>
                               <div class="row">
                                 <div class="col-12 col-md-6">
                                   <div class="custom-control custom-radio custom-control-inline">
                                     <input type="radio" id="media_type_fb" name="media_type" value="fb" class="custom-control-input">
-                                    <label class="custom-control-label" for="media_type_fb"><?php echo $this->lang->line('Facebook'); ?></label>
+                                    <label class="custom-control-label" for="media_type_fb"><?php echo lang('Facebook'); ?></label>
                                   </div>
                                 </div>
                                 <div class="col-12 col-md-6">
                                   <div class="custom-control custom-radio custom-control-inline">
                                     <input type="radio" id="media_type_ig" name="media_type" value="ig" class="custom-control-input">
-                                    <label class="custom-control-label" for="media_type_ig"><?php echo $this->lang->line('Instagram'); ?></label>
+                                    <label class="custom-control-label" for="media_type_ig"><?php echo lang('Instagram'); ?></label>
                                   </div>
                                 </div>
                               </div>
                             </div> -->
                             <?php else : ?>
                               <div class="form-group">
-                                <label><?php echo $this->lang->line("Please select a page"); ?></label>
+                                <label><?php echo lang("Please select a page"); ?></label>
                                 <?php 
-                                  $page_list[''] = $this->lang->line("Choose a Page");
+                                  $page_list[''] = lang("Choose a Page");
                                   echo form_dropdown('page_table_id',$page_list,'','id="page_table_id" class="form-control select2" style="width:100%;"'); 
                                 ?>
                               </div>       
@@ -72,8 +72,8 @@
                     </div>
                 </div>
                 <div class="modal-footer" style="margin-top: 10px;">
-                    <button class="btn btn-lg btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> <?php echo $this->lang->line("Cancel"); ?></button>
-                    <button id="submit" class="btn btn-primary btn-lg"><i class="fas fa-check"></i> <?php echo $this->lang->line('Ok'); ?></button>
+                    <button class="btn btn-lg btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> <?php echo lang("Cancel"); ?></button>
+                    <button id="submit" class="btn btn-primary btn-lg"><i class="fas fa-check"></i> <?php echo lang('Ok'); ?></button>
                     
                 </div>
             </form>
@@ -87,7 +87,7 @@
         <button class="close" data-dismiss="alert">
             <span>×</span>
         </button>
-        <?php echo $this->lang->line('Action button like Get Started, No Match etc are available in Action Button Settings Tab.'); ?>
+        <?php echo lang('Action button like Get Started, No Match etc are available in Action Button Settings Tab.'); ?>
     </div>
 </div>
 
@@ -96,11 +96,11 @@
     <thead>
       <tr>
         <th>#</th>      
-        <th><?php echo $this->lang->line("Template ID"); ?></th>      
-        <th><?php echo $this->lang->line("Reference Name"); ?></th>
-        <th><?php echo $this->lang->line("Page Name"); ?></th>
-        <th><?php echo $this->lang->line("Media Type"); ?></th>
-        <th style="min-width: 300px"><?php echo $this->lang->line("Actions"); ?></th>
+        <th><?php echo lang("Template ID"); ?></th>      
+        <th><?php echo lang("Reference Name"); ?></th>
+        <th><?php echo lang("Page Name"); ?></th>
+        <th><?php echo lang("Media Type"); ?></th>
+        <th style="min-width: 300px"><?php echo lang("Actions"); ?></th>
       </tr>
     </thead>
     <tbody>
@@ -112,7 +112,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title"><?php echo $this->lang->line('Page Selections'); ?></h3>
+        <h3 class="modal-title"><?php echo lang('Page Selections'); ?></h3>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -122,16 +122,16 @@
       <input type="hidden" id="pageselcetion-update-mediatype" value="fb">
 
           <div class="form-group">
-            <label><?php echo $this->lang->line("Please select a page"); ?></label>
+            <label><?php echo lang("Please select a page"); ?></label>
             <?php 
-            $page_list[''] = $this->lang->line("Choose a Page");
+            $page_list[''] = lang("Choose a Page");
             echo form_dropdown('page_list_option',$page_list,'','id="page_list_option" class="form-control select2" style="width:100%;"'); 
           ?>
           </div>  
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->lang->line('Close'); ?></button>
-        <button type="button" class="btn btn-primary" id="page-change-save"><?php echo $this->lang->line('Save changes'); ?></button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo lang('Close'); ?></button>
+        <button type="button" class="btn btn-primary" id="page-change-save"><?php echo lang('Save changes'); ?></button>
       </div>
     </div>
   </div>
@@ -140,9 +140,9 @@
 
 
 <?php 
-$areyousure=$this->lang->line("are you sure");
+$areyousure=lang("are you sure");
 $builder_load_url = base_url("visual_flow_builder/load_builder/{$page_auto_id}/1/{$media_type}");
-$drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary" type="button" target="_BLANK"><i class="fas fa-plus-circle"></i> '.$this->lang->line("Create New Flow").'</a>';
+$drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary" type="button" target="_BLANK"><i class="fas fa-plus-circle"></i> '.lang("Create New Flow").'</a>';
 ?> 
 
 <script>
@@ -211,11 +211,11 @@ $(document).ready(function(){
                 {
                     var id = row[1];
                     var media_type = row[4];
-                    var copy_str="<?php echo $this->lang->line('Copy to other Page');?>";
-                    var duplicate_str="<?php echo $this->lang->line('Duplicate');?>";
-                    var export_str="<?php echo $this->lang->line('Export flow data');?>";
-                    var edit_str="<?php echo $this->lang->line('Edit');?>";
-                    var delete_str="<?php echo $this->lang->line('Delete');?>";
+                    var copy_str="<?php echo lang('Copy to other Page');?>";
+                    var duplicate_str="<?php echo lang('Duplicate');?>";
+                    var export_str="<?php echo lang('Export flow data');?>";
+                    var edit_str="<?php echo lang('Edit');?>";
+                    var delete_str="<?php echo lang('Delete');?>";
                     var str="";   
                     var duplicate_url = base_url + "visual_flow_builder/duplicate_builder_data/" + id + "/1/" + media_type;
                     var export_url = base_url + "visual_flow_builder/export_builder_data/" + id + "/1/" + media_type;
@@ -262,7 +262,7 @@ $(document).ready(function(){
 
        if(page_table_id == '')
        {
-          swal('<?php echo $this->lang->line("Warning"); ?>', '<?php echo $this->lang->line("You have to select a page"); ?>', 'warning');
+          swal('<?php echo lang("Warning"); ?>', '<?php echo lang("You have to select a page"); ?>', 'warning');
           return false;
        }
        else
@@ -306,7 +306,7 @@ $(document).ready(function(){
                     window.open(final_url, '_blank');
                 }
                 else{
-                    swal('<?php echo $this->lang->line("Error"); ?>', response.message, 'error');
+                    swal('<?php echo lang("Error"); ?>', response.message, 'error');
                 }
             },
 
@@ -317,8 +317,8 @@ $(document).ready(function(){
     $(document).on('click', '.delete_data', function(event) {
         event.preventDefault();
         swal({
-            title: '<?php echo $this->lang->line("Warning"); ?>',
-            text: '<?php echo $this->lang->line("Are you sure you want to delete this campaign"); ?>',
+            title: '<?php echo lang("Warning"); ?>',
+            text: '<?php echo lang("Are you sure you want to delete this campaign"); ?>',
             icon: 'warning',
             buttons: true,
             dangerMode: true,
@@ -340,19 +340,19 @@ $(document).ready(function(){
                     if(response.status == 1)
                     {
                         
-                        swal('<?php echo $this->lang->line("Success"); ?>', response.message, 'success').then((value) => {
+                        swal('<?php echo lang("Success"); ?>', response.message, 'success').then((value) => {
                           table.draw();
                       });
                     }
                     else
                     {
-                        swal('<?php echo $this->lang->line("Error"); ?>', response.message, 'error');
+                        swal('<?php echo lang("Error"); ?>', response.message, 'error');
                     }
                 },
                 error:function(response){
                     var span = document.createElement("span");
                     span.innerHTML = response.responseText;
-                    swal({ title:'<?php echo $this->lang->line("Error!"); ?>', content:span,icon:'error'});
+                    swal({ title:'<?php echo lang("Error!"); ?>', content:span,icon:'error'});
                 }
             });
             } 

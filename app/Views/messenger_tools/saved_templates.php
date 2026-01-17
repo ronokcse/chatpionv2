@@ -161,7 +161,7 @@
                   <a class="" href="<?php echo base_url("messenger_bot/saved_templates/".$media_type."/?category={$category['id']}"); ?>" title="<?php echo $category['category_name']; ?>">
                     <i class="fas fa-book-open"></i> <?php echo (strlen($category['category_name']) > 10) ? substr($category['category_name'], 0, 12).'...' : $category['category_name']; ?>
                   </a>
-                  <?php if($this->user_id == $category['user_id']) : ?>
+                  <?php if($user_id == $category['user_id']) : ?>
                   <a href="#" class="float-right text-danger delete_template_category" title="<?php echo lang('Delete Category') ?>" cat_id="<?php echo $category['id']; ?>"><i class="fas fa-trash-alt"></i></a>
                   <?php else : ?>
                   <a href="#" class="float-right text-secondary" disabled="disabled" title="<?php echo lang('You do not have permission to delete this.') ?>"><i class="fas fa-trash-alt"></i></a>
@@ -206,7 +206,7 @@
                       <?php $action_width = (4*47)+20; ?>
                       <div class="dropdown-menu mini_dropdown text-center" style="width:<?php echo $action_width.'px !important'; ?>">
                         <a target="_BLANK" data-toggle='tooltip' title='<?php echo lang('View Template'); ?>' href='<?php echo base_url('messenger_bot/saved_template_view/'.$template['id']); ?>' class='btn btn-circle btn-outline-primary'><i class='fas fa-eye'></i></a>
-                        <?php if($template['user_id'] == $this->user_id) { ?>
+                        <?php if($template['user_id'] == $user_id) { ?>
                         <a data-toggle='tooltip' title='<?php echo lang('Edit Template'); ?>' href='' class='btn btn-circle btn-outline-warning export_bot_edit' table_id="<?php echo $template['id']?>"><i class='fas fa-edit'></i></a>
                         <?php } ?>
                         <a data-toggle='tooltip' title='<?php echo lang('Download Template'); ?>' href='<?php echo base_url("messenger_bot/export_bot_download/".$template['id'])?>' class='btn btn-circle btn-outline-success' table_id="<?php echo $template['id']?>"><i class='fas fa-cloud-download-alt'></i></a>
@@ -552,7 +552,7 @@
         e.preventDefault();
         var item_type = $(this).attr('item_type');
         var file_path = $(this).parent().next().val();
-        var user_id = "<?php echo $this->user_id; ?>";
+        var user_id = "<?php echo $user_id; ?>";
 
         var res = file_path.match(/http/g);
         if(file_path != '' && res === null)
@@ -574,7 +574,7 @@
         e.preventDefault();
         var item_type = $(this).attr('item_type');
         var file_path = $(this).parent().next().val();
-        var user_id = "<?php echo $this->user_id; ?>";
+        var user_id = "<?php echo $user_id; ?>";
 
         var res = file_path.match(/http/g);
         if(file_path != '' && res === null)

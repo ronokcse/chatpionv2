@@ -1,26 +1,38 @@
 <?php
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
 class Messenger_bot extends Home
 {
     public $addon_data = array();
     public $postback_info;
     public $postback_array = array();
     public $postback_done = array();
-    public function __construct()
+    
+    /**
+     * Initialize controller
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
-        $this->user_id = $this->session->userdata('user_id'); // user_id of logged in user, we may need it
-        $function_name = $this->uri->segment(2);
+        parent::initController($request, $response, $logger);
+        
+        $function_name = $this->uri->getSegment(2);
         if ($function_name != "webhook_callback" && $function_name != "webhook_callback_main" && $function_name != "update_first_name_last_name" && $function_name != "send_message_bot_reply") {
             // all addon must be login protected
             //------------------------------------------------------------------------------------------
-            if ($this->session->userdata('logged_in') != 1) redirect('home/login', 'location');
+            if (session()->get('logged_in') != 1) {
+                redirect()->to('home/login')->send();
+            }
             // if you want the addon to be accessed by admin and member who has permission to this addon
             //-------------------------------------------------------------------------------------------
 
-            if ($this->session->userdata('user_type') != 'Admin' && count(array_intersect([199], $this->module_access)) == 0) {
-                redirect('home/login_page', 'location');
+            if (session()->get('user_type') != 'Admin' && count(array_intersect([199], $this->module_access)) == 0) {
+                redirect()->to('home/login_page')->send();
                 exit();
             }
 
@@ -383,7 +395,7 @@ class Messenger_bot extends Home
             }
             $this->basic->execute_complex_query($sql);
 
-            $last_insert_id = $this->db->insert_id();
+            $last_insert_id = $this->db->insertID();
 
             if ($last_insert_id == '' || $last_insert_id == 0)
                 $last_insert_id = $subscriber_info[0]['id'];
@@ -2422,7 +2434,7 @@ class Messenger_bot extends Home
         $custom_field_exist = 'no';
         if ($this->addon_exist("custom_field_manager")) {
             $custom_field_exist = 'yes';
-            if ($this->session->userdata('user_type') != 'Admin' && !in_array(292, $this->module_access))
+            if (session()->get('user_type') != 'Admin' && !in_array(292, $this->module_access))
                 $custom_field_exist = 'no';
         }
         $data['custom_field_exist'] = $custom_field_exist;
@@ -2443,12 +2455,12 @@ class Messenger_bot extends Home
         // }
 
         $table_name = "facebook_rx_fb_page_info";
-        $where['where'] = array('bot_enabled' => "1", 'facebook_rx_fb_page_info.facebook_rx_fb_user_info_id' => $this->session->userdata('facebook_rx_fb_user_info'));
+        $where['where'] = array('bot_enabled' => "1", 'facebook_rx_fb_page_info.facebook_rx_fb_user_info_id' => session()->get('facebook_rx_fb_user_info'));
 
 
         if ($this->instagram_bot_addon_exist) {
             if ($media_type == "ig") {
-                $where['where'] = array('bot_enabled' => "1", 'facebook_rx_fb_page_info.facebook_rx_fb_user_info_id' => $this->session->userdata('facebook_rx_fb_user_info'), "has_instagram" => "1");
+                $where['where'] = array('bot_enabled' => "1", 'facebook_rx_fb_page_info.facebook_rx_fb_user_info_id' => session()->get('facebook_rx_fb_user_info'), "has_instagram" => "1");
             }
         }
         if (!empty($this->team_allowed_pages)) {
@@ -2481,7 +2493,7 @@ class Messenger_bot extends Home
         $sequence_email_campaign_id = 0;
         if (!empty($page_info)) {
             $i = 1;
-            $selected_page_id = $this->session->userdata('selected_global_page_table_id');
+            $selected_page_id = session()->get('selected_global_page_table_id');
             foreach ($page_info as $value) {
                 if ($value['id'] == $selected_page_id) {
                     if ($value['mail_service_id'] != '') {
@@ -2515,18 +2527,18 @@ class Messenger_bot extends Home
         $data['package_list'] = $this->package_list(); // get user package
 
         // get eligible saved templates
-        if ($this->db->table_exists('messenger_bot_saved_templates')) {
-            if ($this->session->userdata("user_type") == "Member") {
-                $package_info = $this->session->userdata('package_info');
+        if ($this->db->tableExists('messenger_bot_saved_templates')) {
+            if (session()->get("user_type") == "Member") {
+                $package_info = session()->get('package_info');
                 $search_package_id = isset($package_info['id']) ? $package_info['id'] : '0';
                 $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public') OR (template_access='private' AND user_id='" . $this->user_id . "'))";
             } else $where_custom = "user_id='" . $this->user_id . "'";
 
-            $this->db->select('*');
-            $this->db->where($where_custom);
-            $this->db->order_by("saved_at DESC");
-            $query = $this->db->get('messenger_bot_saved_templates');
-            $template_data = $query->result_array();
+            $builder = $this->db->table('messenger_bot_saved_templates');
+            $builder->select('*');
+            $builder->where($where_custom);
+            $builder->orderBy("saved_at", "DESC");
+            $template_data = $builder->get()->getResultArray();
             $data["saved_template_list"] = $template_data;
         } else $data["saved_template_list"] = array();
         // ----------------------------------
@@ -2621,7 +2633,7 @@ class Messenger_bot extends Home
         $apiAccess = $this->config->item('sms_api_access');
         if ($this->config->item('sms_api_access') == "") $apiAccess = "0";
 
-        if (isset($apiAccess) && $apiAccess == '1' && $this->session->userdata("user_type") == 'Member') {
+        if (isset($apiAccess) && $apiAccess == '1' && session()->get("user_type") == 'Member') {
             $join = array('users' => 'sms_api_config.user_id=users.id,left');
             $select = array('sms_api_config.*', 'users.id AS usersId', 'users.user_type');
             $where_in = array('sms_api_config.user_id' => array('1', $temp_userid), 'users.user_type' => array('Admin', 'Member'));
@@ -2690,12 +2702,12 @@ class Messenger_bot extends Home
         /* Google Sheet List */
         if ($this->basic->is_exist("add_ons", array("project_id" => 70))) {
             $google_sheet = $this->db
+                ->table('google_sheets')
                 ->select(['google_sheets.id', 'google_sheets.name', 'google_accounts.email', 'google_sheets.sheet_names'])
-                ->from('google_sheets')
                 ->where('google_sheets.user_id', $this->user_id)
                 ->join('google_accounts', 'google_sheets.google_account_id = google_accounts.id', 'left')
                 ->get()
-                ->result_array();
+                ->getResultArray();
             $google_sheet_list = [];
             foreach ($google_sheet as $row) {
                 $email = $row['email'];
@@ -2725,7 +2737,7 @@ class Messenger_bot extends Home
         if (isset($_FILES['file']) && !empty($_FILES['file']['tmp_name'])) {
             $uploadedFile = $_FILES['file']['tmp_name'];
             $media_type = $this->using_media_type;
-            $page_id = $this->session->userdata('selected_global_page_table_id');
+            $page_id = session()->get('selected_global_page_table_id');
 
             $fileContent = file_get_contents($uploadedFile);
             $jsonData = json_decode($fileContent, true);
@@ -2781,8 +2793,8 @@ class Messenger_bot extends Home
             $only_for_ig = 'show';
         }
 
-        $facebook_rx_fb_user_info_id  =  $this->session->userdata('facebook_rx_fb_user_info');
-        $this->session->set_userdata('selected_global_page_table_id', $page_table_id);
+        $facebook_rx_fb_user_info_id  =  session()->get('facebook_rx_fb_user_info');
+        session()->set('selected_global_page_table_id', $page_table_id);
 
         $where = array();
         $table_name = "facebook_rx_fb_page_info";
@@ -3076,7 +3088,7 @@ class Messenger_bot extends Home
         $surl = base_url('subscriber_manager/bot_subscribers/0/') . $page_table_id;
 
         $user_input_url = $custom_field_url = '';
-        if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access)) {
+        if (session()->get('user_type') == 'Admin' || in_array(292, $this->module_access)) {
             $user_input_url = base_url('custom_field_manager/campaign_list/') . $page_table_id . '/1/' . $media_type;
             $custom_field_url = base_url('custom_field_manager/custom_field_list/') . $page_table_id . '/1/' . $media_type;
         }
@@ -3303,7 +3315,7 @@ class Messenger_bot extends Home
 
         $response['action_buttons_str'] = $action_buttons_str;
 
-        if ($this->session->userdata('user_type') == 'Admin' || in_array(197, $this->module_access)) :
+        if (session()->get('user_type') == 'Admin' || in_array(197, $this->module_access)) :
             $pm_str = "";
 
             if ($media_type == "ig") $persistent_field = "ig_persistent_enabled";
@@ -3386,7 +3398,7 @@ class Messenger_bot extends Home
         endif;
 
         if ($this->basic->is_exist("add_ons", array("project_id" => 31))) :
-            if ($this->session->userdata('user_type') == 'Admin' || in_array(261, $this->module_access)) :
+            if (session()->get('user_type') == 'Admin' || in_array(261, $this->module_access)) :
                 $webform_view_loader = base_url("messenger_bot_connectivity/webview_builder_manager/") . $page_info[0]['id'] . "/1";
                 $middle_column_content .= '
             <div class="row ' . $hide_sections . '">
@@ -3407,7 +3419,7 @@ class Messenger_bot extends Home
             endif;
         endif;
 
-        if ($this->session->userdata('user_type') == 'Admin' || in_array(257, $this->module_access)) :
+        if (session()->get('user_type') == 'Admin' || in_array(257, $this->module_access)) :
             $middle_column_content .= '
                 <div class="row">
                     <div class="col-12">
@@ -3448,7 +3460,7 @@ class Messenger_bot extends Home
         if (
             $this->is_drip_campaigner_exist
             || ($this->addon_exist("sms_email_sequence") &&
-                ($this->session->userdata('user_type') == 'Admin' ||
+                (session()->get('user_type') == 'Admin' ||
                     count(array_intersect($this->module_access, array(270, 271))) > 0
                 )
             )
@@ -3469,7 +3481,7 @@ class Messenger_bot extends Home
 
             // SMS/Email Sequence
             if ($this->addon_exist("sms_email_sequence") && $media_type != 'ig') {
-                if ($this->session->userdata('user_type') == 'Admin' || count(array_intersect($this->module_access, array(270, 271))) > 0) {
+                if (session()->get('user_type') == 'Admin' || count(array_intersect($this->module_access, array(270, 271))) > 0) {
                     $sms_email_sequence_create_url_classic = '';
                     $sms_email_sequence_create_url_builder = '';
                     $sms_email_sequence_lists = base_url('sms_email_sequence/sms_email_sequence_message_campaign/') . $page_table_id . '/1';;
@@ -3507,7 +3519,7 @@ class Messenger_bot extends Home
                 $create_checkbox_classic = $create_checkbox_builder = $checkbox_lists = $create_send_to_msngr_classic = $create_send_to_msngr_builder = $send_to_msngr_lists = $create_mme_classic = $create_mme_builder = $mme_lists = $create_customer_chat_classic = $create_customer_chat_builder = $custom_chat_lists = '';
 
                 // checkbox plugin
-                if ($this->session->userdata('user_type') == 'Admin' || in_array(213, $this->module_access)) {
+                if (session()->get('user_type') == 'Admin' || in_array(213, $this->module_access)) {
                     $create_checkbox_classic = base_url("messenger_bot_enhancers/checkbox_plugin_add/" . $page_table_id . '/1');
                     $create_checkbox_builder = base_url("visual_flow_builder/load_builder/" . $page_table_id . '/1/' . $media_type . '?type=messenger-engagement&plugin=checkbox_plugin&action=messenger_engagement_plugin');
                     $checkbox_lists = base_url('messenger_bot_enhancers/checkbox_plugin_list/') . $page_table_id . '/1';
@@ -3520,7 +3532,7 @@ class Messenger_bot extends Home
                 }
 
                 // send to messenger
-                if ($this->session->userdata('user_type') == 'Admin' || in_array(214, $this->module_access)) {
+                if (session()->get('user_type') == 'Admin' || in_array(214, $this->module_access)) {
 
                     $create_send_to_msngr_classic = base_url("messenger_bot_enhancers/send_to_messenger_add/" . $page_table_id . '/1');
                     $create_send_to_msngr_builder = base_url("visual_flow_builder/load_builder/" . $page_table_id . '/1/' . $media_type . '?type=messenger-engagement&plugin=send_to_messenger&action=messenger_engagement_plugin');
@@ -3534,7 +3546,7 @@ class Messenger_bot extends Home
                 }
 
                 // m.me link
-                if ($this->session->userdata('user_type') == 'Admin' || in_array(215, $this->module_access)) {
+                if (session()->get('user_type') == 'Admin' || in_array(215, $this->module_access)) {
 
                     $create_mme_classic = base_url("messenger_bot_enhancers/mme_link_add/" . $page_table_id . '/1');
                     $create_mme_builder = base_url("visual_flow_builder/load_builder/" . $page_table_id . '/1/' . $media_type . '?type=messenger-engagement&plugin=m_me_link&action=messenger_engagement_plugin');
@@ -3548,7 +3560,7 @@ class Messenger_bot extends Home
                 }
 
                 // customer chat plugin
-                if ($this->session->userdata('user_type') == 'Admin' || in_array(217, $this->module_access)) {
+                if (session()->get('user_type') == 'Admin' || in_array(217, $this->module_access)) {
 
                     $create_customer_chat_classic = base_url("messenger_bot_enhancers/customer_chat_add/" . $page_table_id . '/1');
                     $create_customer_chat_builder = base_url("visual_flow_builder/load_builder/" . $page_table_id . '/1/' . $media_type . '?type=messenger-engagement&plugin=customer_chat_plugin&action=messenger_engagement_plugin');
@@ -3583,7 +3595,7 @@ class Messenger_bot extends Home
 
         $user_input_flow_str = '';
         if ($this->basic->is_exist("add_ons", array("project_id" => 49))) :
-            if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access)) :
+            if (session()->get('user_type') == 'Admin' || in_array(292, $this->module_access)) :
 
                 $create_user_input_flow_classic = base_url("custom_field_manager/input_flow_builder/" . $page_table_id . '/1/' . $media_type);
                 $create_user_input_flow_builder = base_url("visual_flow_builder/load_builder/" . $page_table_id . '/1/' . $media_type);
@@ -3754,7 +3766,7 @@ class Messenger_bot extends Home
                 ("' . $user_id . '", "' . $page_table_id . '", "' . $page_id . '", "text", "generic", "story-mention","", \'{"1":{"recipient":{"id":"replace_id"},"message":{"template_type":"text","typing_on_settings":"off","delay_in_reply":"0","text":"Thanks for mentioning me."}}}\', "", "", "", "", "", "1", "STORY MENTION", "STORY_MENTION", "", "0", "ig");';
                 $this->db->query($sql);
             }
-            $bot_id = $this->db->insert_id();
+            $bot_id = $this->db->insertID();
         }
 
         if ($bot_id == 0)
@@ -3802,7 +3814,7 @@ class Messenger_bot extends Home
             if ($key !== false)
                 unset($template_types[$key]);
         }
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
+        if (session()->get('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
             $key = array_search('User Input Flow', $template_types);
             if ($key !== false)
                 unset($template_types[$key]);
@@ -3905,7 +3917,7 @@ class Messenger_bot extends Home
             if ($key !== false)
                 unset($template_types[$key]);
         }
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
+        if (session()->get('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
             $key = array_search('User Input Flow', $template_types);
             if ($key !== false)
                 unset($template_types[$key]);
@@ -3914,9 +3926,21 @@ class Messenger_bot extends Home
 
         $data["keyword_types"] = $this->basic->get_enum_values("messenger_bot", "keyword_type");
         $data['body'] = 'messenger_tools/bot_settings';
-        $data['page_title'] = $this->lang->line('Bot Settings');
+        $data['page_title'] = lang('Bot Settings');
         $data['page_info'] = isset($page_info[0]) ? $page_info[0] : array();
         $data['bot_settings'] = $bot_settings;
+        
+        // Set THEMECOLORCODE for view
+        $loadthemebody = "purple";
+        if (($this->config->theme_front ?? null) != "") $loadthemebody = ($this->config->theme_front ?? null);
+        $themecolorcode = "#545096";
+        if ($loadthemebody == 'blue') $themecolorcode = "#1193D4";
+        if ($loadthemebody == 'white') $themecolorcode = "#303F42";
+        if ($loadthemebody == 'black') $themecolorcode = "#1A2226";
+        if ($loadthemebody == 'green') $themecolorcode = "#00A65A";
+        if ($loadthemebody == 'red') $themecolorcode = "#E55053";
+        if ($loadthemebody == 'yellow') $themecolorcode = "#F39C12";
+        $data['THEMECOLORCODE'] = $themecolorcode;
 
         $postback_id_list = $this->basic->get_data('messenger_bot_postback', array('where' => array('user_id' => $this->user_id, 'page_id' => $page_auto_id)));
         $data['postback_ids'] = $postback_id_list;
@@ -3978,7 +4002,7 @@ class Messenger_bot extends Home
             if ($key !== false)
                 unset($template_types[$key]);
         }
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
+        if (session()->get('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
             $key = array_search('User Input Flow', $template_types);
             if ($key !== false)
                 unset($template_types[$key]);
@@ -4001,7 +4025,7 @@ class Messenger_bot extends Home
         $data["keyword_types"] = $this->basic->get_enum_values("messenger_bot", "keyword_type");
         $data['body'] = 'messenger_tools/ig_bot_settings';
         $data['media_type'] = $media_type;
-        $data['page_title'] = $this->lang->line('Bot Settings');
+        $data['page_title'] = lang('Bot Settings');
         $data['page_info'] = isset($page_info[0]) ? $page_info[0] : array();
         $data['bot_settings'] = $bot_settings;
 
@@ -4133,7 +4157,7 @@ class Messenger_bot extends Home
     public function edit_generate_messenger_bot()
     {
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
@@ -4983,9 +5007,10 @@ class Messenger_bot extends Home
         }
 
         if ($keyword_type == 'post-back' && !empty($keywordtype_postback_id)) {
-            $this->db->where("page_id", $page_table_id);
-            $this->db->where_in("postback_id", $keywordtype_postback_id);
-            $this->db->update('messenger_bot_postback', array('use_status' => '1'));
+            $builder = $this->db->table('messenger_bot_postback');
+            $builder->where("page_id", $page_table_id);
+            $builder->whereIn("postback_id", $keywordtype_postback_id);
+            $builder->update(array('use_status' => '1'));
         }
 
         // if(!empty($postback_insert_data_modified))
@@ -4999,7 +5024,7 @@ class Messenger_bot extends Home
     public function ajax_generate_messenger_bot()
     {
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
@@ -5812,7 +5837,7 @@ class Messenger_bot extends Home
         $insert_data['message'] = json_encode($reply_bot_filtered, true);
         $insert_data['user_id'] = $this->user_id;
         $this->basic->insert_data('messenger_bot', $insert_data);
-        $messenger_bot_table_id = $this->db->insert_id();
+        $messenger_bot_table_id = $this->db->insertID();
         $postback_insert_data_modified = array();
         $m = 0;
         foreach ($postback_insert_data as $value) {
@@ -5825,9 +5850,10 @@ class Messenger_bot extends Home
         }
 
         if ($keyword_type == 'post-back' && !empty($keywordtype_postback_id)) {
-            $this->db->where("page_id", $page_table_id);
-            $this->db->where_in("postback_id", $keywordtype_postback_id);
-            $this->db->update('messenger_bot_postback', array('use_status' => '1'));
+            $builder = $this->db->table('messenger_bot_postback');
+            $builder->where("page_id", $page_table_id);
+            $builder->whereIn("postback_id", $keywordtype_postback_id);
+            $builder->update(array('use_status' => '1'));
         }
 
         // if(!empty($postback_insert_data_modified))
@@ -5893,7 +5919,7 @@ class Messenger_bot extends Home
 
         if ($this->addon_exist("visual_flow_builder")) {
             $data['visual_flow_builder_exist'] = 'yes';
-            if ($this->session->userdata('user_type') == 'Admin' || in_array(315, $this->module_access))
+            if (session()->get('user_type') == 'Admin' || in_array(315, $this->module_access))
                 $data['builder_access'] = 'yes';
             else
                 $data['builder_access'] = 'no';
@@ -5990,7 +6016,7 @@ class Messenger_bot extends Home
         $custom_field_exist = 'no';
         if ($this->addon_exist("custom_field_manager")) {
             $custom_field_exist = 'yes';
-            if ($this->session->userdata('user_type') != 'Admin' && !in_array(292, $this->module_access))
+            if (session()->get('user_type') != 'Admin' && !in_array(292, $this->module_access))
                 $custom_field_exist = 'no';
         }
         $data['custom_field_exist'] = $custom_field_exist;
@@ -6004,7 +6030,7 @@ class Messenger_bot extends Home
             if ($key !== false)
                 unset($template_types[$key]);
         }
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
+        if (session()->get('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
             $key = array_search('User Input Flow', $template_types);
             if ($key !== false)
                 unset($template_types[$key]);
@@ -6087,7 +6113,7 @@ class Messenger_bot extends Home
         $main_reply_final_order = $main_reply_sort_order_array['multiple_template_div'];
 
 
-        $this->db->trans_start();
+        $this->db->transStart();
         $user_all_postback = array();
         $postback_id_list = $this->basic->get_data('messenger_bot_postback', array('where' => array('user_id' => $this->user_id, 'page_id' => $page_table_id)));
 
@@ -6911,7 +6937,7 @@ class Messenger_bot extends Home
         $insert_data['user_id'] = $this->user_id;
         $insert_data_to_bot['user_id'] = $this->user_id;
         $this->basic->insert_data('messenger_bot', $insert_data_to_bot);
-        $messenger_bot_table_id = $this->db->insert_id();
+        $messenger_bot_table_id = $this->db->insertID();
 
 
         if ($postback_type == 'child') {
@@ -6924,7 +6950,7 @@ class Messenger_bot extends Home
         } else {
             $insert_data['messenger_bot_table_id'] = $messenger_bot_table_id;
             $this->basic->insert_data('messenger_bot_postback', $insert_data);
-            $template_id = $this->db->insert_id();
+            $template_id = $this->db->insertID();
         }
 
 
@@ -6950,8 +6976,8 @@ class Messenger_bot extends Home
 
         if (!empty($postback_insert_data_modified))
             $this->db->insert_batch('messenger_bot_postback', $postback_insert_data_modified);
-        $this->db->trans_complete();
-        if ($this->db->trans_status() === FALSE) {
+        // CI4: transComplete() is not needed, transaction auto-commits/rolls back
+        if ($this->db->transStatus() === FALSE) {
             echo json_encode(array("status" => "0", "message" => $this->lang->line("Creating template was unsuccessful. Database error occured during creating template.")));
             exit();
         } else {
@@ -6996,9 +7022,9 @@ class Messenger_bot extends Home
         $data['all_products'] = $all_products;
 
         $data['body'] = 'messenger_tools/edit_template';
-        $data['page_title'] = $this->lang->line('Edit Facebook Post-back template');
+        $data['page_title'] = lang('Edit Facebook Post-back template');
         if ($media_type == "ig") {
-            $data['page_title'] = $this->lang->line('Edit Instagram Post-back Template');
+            $data['page_title'] = lang('Edit Instagram Post-back Template');
         }
 
         $template_types = $this->basic->get_enum_values("messenger_bot", "template_type");
@@ -7010,7 +7036,7 @@ class Messenger_bot extends Home
             if ($key !== false)
                 unset($template_types[$key]);
         }
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
+        if (session()->get('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
             $key = array_search('User Input Flow', $template_types);
             if ($key !== false)
                 unset($template_types[$key]);
@@ -7097,11 +7123,11 @@ class Messenger_bot extends Home
             $flow_campaign_info = [];
         $data['flow_campaigns'] = $flow_campaign_info;
 
-
         $data['iframe'] = $iframe;
         $data['is_default'] = $is_default;
+        $data['is_drip_campaigner_exist'] = $this->is_drip_campaigner_exist ?? false;
+        $data['is_broadcaster_exist'] = $this->is_broadcaster_exist ?? false;
 
-        $data['iframe'] = $iframe;
         $this->_viewcontroller($data);
     }
 
@@ -7123,7 +7149,7 @@ class Messenger_bot extends Home
         parse_str($main_reply_sort_order_serialize, $main_reply_sort_order_array);
         $main_reply_final_order = $main_reply_sort_order_array['multiple_template_div'];
 
-        $this->db->trans_start();
+        $this->db->transStart();
         // $template_type = trim($template_type);
         $insert_data = array();
         $insert_data['bot_name'] = $bot_name;
@@ -7968,9 +7994,9 @@ class Messenger_bot extends Home
         if (!empty($postback_insert_data_modified))
             $this->db->insert_batch('messenger_bot_postback', $postback_insert_data_modified);
 
-        $this->db->trans_complete();
+        // CI4: transComplete() is not needed, transaction auto-commits/rolls back
 
-        if ($this->db->trans_status() === FALSE) {
+        if ($this->db->transStatus() === FALSE) {
             echo json_encode(array("status" => "0", "message" => $this->lang->line("Template update was unsuccessful. Database error occured during update.")));
             exit();
         } else {
@@ -8003,7 +8029,7 @@ class Messenger_bot extends Home
             if ($key !== false)
                 unset($template_types[$key]);
         }
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
+        if (session()->get('user_type') != 'Admin' && !in_array(292, $this->module_access)) {
             $key = array_search('User Input Flow', $template_types);
             if ($key !== false)
                 unset($template_types[$key]);
@@ -8244,8 +8270,8 @@ class Messenger_bot extends Home
             }
             move_uploaded_file($_FILES["myfile"]["tmp_name"], $output_dir . '/' . $filename);
             $ret[] = $filename;
-            $this->session->set_userdata("go_live_video_file_path_name", $output_dir . '/' . $filename);
-            $this->session->set_userdata("go_live_video_filename", $filename);
+            session()->set("go_live_video_file_path_name", $output_dir . '/' . $filename);
+            session()->set("go_live_video_filename", $filename);
             echo json_encode($filename);
         }
     }
@@ -8290,8 +8316,8 @@ class Messenger_bot extends Home
             }
             move_uploaded_file($_FILES["myfile"]["tmp_name"], $output_dir . '/' . $filename);
             $ret[] = $filename;
-            $this->session->set_userdata("go_live_video_file_path_name", $output_dir . '/' . $filename);
-            $this->session->set_userdata("go_live_video_filename", $filename);
+            session()->set("go_live_video_file_path_name", $output_dir . '/' . $filename);
+            session()->set("go_live_video_filename", $filename);
             echo json_encode($filename);
         }
     }
@@ -8335,8 +8361,8 @@ class Messenger_bot extends Home
             }
             move_uploaded_file($_FILES["myfile"]["tmp_name"], $output_dir . '/' . $filename);
             $ret[] = $filename;
-            $this->session->set_userdata("go_live_video_file_path_name", $output_dir . '/' . $filename);
-            $this->session->set_userdata("go_live_video_filename", $filename);
+            session()->set("go_live_video_file_path_name", $output_dir . '/' . $filename);
+            session()->set("go_live_video_filename", $filename);
             echo json_encode($filename);
         }
     }
@@ -8363,7 +8389,7 @@ class Messenger_bot extends Home
         if (!$_POST) exit();
 
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo json_encode(array('status' => '0', 'message' => 'This function is disabled from admin account in this demo!!'));
                 exit();
             }
@@ -8526,10 +8552,11 @@ class Messenger_bot extends Home
         $get_bot_settings = $this->get_bot_settings($page_id, $media_type);
         $savedata = json_encode($get_bot_settings);
 
-        if ($this->session->userdata('user_type') != 'Admin') $template_access = 'private';
+        if (session()->get('user_type') != 'Admin') $template_access = 'private';
 
         $this->basic->insert_data("messenger_bot_saved_templates", array("template_name" => $template_name, "savedata" => $savedata, "saved_at" => date("Y-m-d H:i:s"), "user_id" => $this->user_id, "template_access" => $template_access, "description" => $template_description, "preview_image" => $template_preview_image, "allowed_package_ids" => implode(',', $allowed_package_ids), "media_type" => $media_type));
-        $insert_id = $this->db->insert_id();
+        // CI4 fix: insert_id() changed to insertID() (capital ID)
+        $insert_id = $this->db->insertID();
 
         $message = "<div class='alert alert-info text-center'><i class='fa fa-check-circle'></i> " . $this->lang->line("Bot template has been saved to database successfully.") . "</div><br><a class='btn-block btn btn-outline-info'  href='" . base_url('messenger_bot/saved_templates/') . $media_type . "'><i class='fa fa-save'></i> " . $this->lang->line("My Saved Templates") . "</a><a target='_BLANK' class='btn-block btn btn-outline-primary' href='" . base_url('messenger_bot/export_bot_download/') . $insert_id . "'><i class='fa fa-file-download'></i> " . $this->lang->line("Download Template") . "</a>";
         echo json_encode(array('status' => '1', 'message' => $message));
@@ -8537,7 +8564,7 @@ class Messenger_bot extends Home
 
     public function export_bot_download($id = 0)
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
         if (!check_module_action_access($module_id = 257, $actions = 4, 'check')) {
             redirect('home/access_forbidden', 'location');
             exit();
@@ -8562,7 +8589,7 @@ class Messenger_bot extends Home
 
     public function upload_json_template()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') exit();
 
@@ -8593,7 +8620,7 @@ class Messenger_bot extends Home
 
     public function upload_json_template_delete() // deletes the uploaded video to upload another one
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
         if (!$_POST) exit();
         $output_dir = FCPATH . "upload/";
         if (isset($_POST["op"]) && $_POST["op"] == "delete" && isset($_POST['name'])) {
@@ -8609,7 +8636,7 @@ class Messenger_bot extends Home
 
     public function import_bot_check()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
         if (!$_POST) exit();
 
         $media_type = $this->input->post('media_type', true);
@@ -8650,7 +8677,7 @@ class Messenger_bot extends Home
 
     public function import_bot()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
         check_module_action_access($module_id = 257, $actions = 4);
         if (!$_POST) exit();
 
@@ -8691,7 +8718,7 @@ class Messenger_bot extends Home
         }
 
         $this->db->db_debug = FALSE; //disable debugging for queries
-        $this->db->trans_start();
+        $this->db->transStart();
 
         // deleting current settings so that we can import new settings
         $this->basic->delete_data("messenger_bot", array("page_id" => $page_id, "user_id" => $this->user_id, 'media_type' => $media_type));
@@ -8700,7 +8727,7 @@ class Messenger_bot extends Home
             $this->basic->delete_data("messenger_bot_persistent_menu", array("page_id" => $page_id));
         // -------------------------------------------------------------
 
-        if ($this->db->table_exists('user_input_flow_campaign')) {
+        if ($this->db->tableExists('user_input_flow_campaign')) {
 
             // Delete all current user input campaign from this page
 
@@ -8734,7 +8761,7 @@ class Messenger_bot extends Home
                     $custom_field_insert_info['media_type'] = $media_type;
                     // Insert into database & keep track of new id of the insertion
                     $this->basic->insert_data("user_input_custom_fields", $custom_field_insert_info);
-                    $custom_field_insert_id = $this->db->insert_id();
+                    $custom_field_insert_id = $this->db->insertID();
 
                     if (isset($custom_field_id_change_log[$c_field['id']]))
                         $custom_field_id_change_log[$c_field['id']] = $custom_field_insert_id;
@@ -8756,7 +8783,7 @@ class Messenger_bot extends Home
                 $input_flow_campaign_insert_info['media_type'] = $media_type;
 
                 $this->basic->insert_data("user_input_flow_campaign", $input_flow_campaign_insert_info);
-                $user_input_flow_insert_id = $this->db->insert_id();
+                $user_input_flow_insert_id = $this->db->insertID();
 
                 $flow_campaign_insert_log[$flow_info['id']] = $user_input_flow_insert_id;
 
@@ -8811,7 +8838,7 @@ class Messenger_bot extends Home
 
 
         // Flow Builder Campaign info insert  Added by Konok 18.03.2021
-        if ($this->db->table_exists('visual_flow_builder_campaign')) {
+        if ($this->db->tableExists('visual_flow_builder_campaign')) {
 
             // replace user input flow id inside visual flow builder as selection
             if (isset($flow_campaing_in_visual_flow_search)) {
@@ -8833,7 +8860,7 @@ class Messenger_bot extends Home
                 $flow_builder_campaign_insert['json_data'] = $flow_builder_list['json_data'];
                 $flow_builder_campaign_insert['media_type'] = $media_type;
                 $this->basic->insert_data("visual_flow_builder_campaign", $flow_builder_campaign_insert);
-                $flow_builder_campaign_insert_id = $this->db->insert_id();
+                $flow_builder_campaign_insert_id = $this->db->insertID();
                 //Keep visaul flow campaign new & old id in the array
                 $visual_flow_campaign_insert_log[$flow_builder_list['id']] = $flow_builder_campaign_insert_id;
 
@@ -8876,7 +8903,7 @@ class Messenger_bot extends Home
 
             $messenger_bot_row["media_type"] = $media_type;
             $this->basic->insert_data("messenger_bot", $messenger_bot_row);
-            $messenger_bot_insert_id = $this->db->insert_id();
+            $messenger_bot_insert_id = $this->db->insertID();
 
             $postback_template_info = isset($value['message_bot']['postback_template_info']) ? $value['message_bot']['postback_template_info'] : array(); // getting postback data
             foreach ($postback_template_info as $key2 => $value2) {
@@ -8896,7 +8923,7 @@ class Messenger_bot extends Home
                 $messenger_bot_postback_row['media_type'] = $media_type;
 
                 $this->basic->insert_data("messenger_bot_postback", $messenger_bot_postback_row);
-                $messenger_bot_postback_insert_id = $this->db->insert_id();
+                $messenger_bot_postback_insert_id = $this->db->insertID();
 
                 // Store old postback id & new postback as array . Old id is index & new id is value.
                 $new_postback_id_information[$old_postback_table_id] = $messenger_bot_postback_insert_id;
@@ -8941,7 +8968,7 @@ class Messenger_bot extends Home
 
         // Inserting Sequence Campaign Information
 
-        if ($this->db->table_exists('messenger_bot_drip_campaign')) {
+        if ($this->db->tableExists('messenger_bot_drip_campaign')) {
 
             //Delete existing sequence campaign & import all new.
 
@@ -8989,7 +9016,7 @@ class Messenger_bot extends Home
                 //  $sequence_campaign_list['visual_flow_campaign_id'] =$visual_flow_campaign_insert_log[$old_visual_flow_campaign_id];
 
                 $this->basic->insert_data("messenger_bot_drip_campaign", $sequence_campaign_list);
-                $new_sequence_id = $this->db->insert_id();
+                $new_sequence_id = $this->db->insertID();
 
                 // Now update messenger_bot_postback table drip_campaign_id column with new sequence id
                 $this->basic->update_data("messenger_bot_postback", array("user_id" => $this->user_id, "page_id" => $page_id, "drip_campaign_id" => $old_sequence_id), array("drip_campaign_id" => $new_sequence_id));
@@ -9005,7 +9032,7 @@ class Messenger_bot extends Home
         if ($media_type == 'fb') {
 
             // inserting persistent menu
-            if ($this->session->userdata('user_type') == 'Admin' || in_array(197, $this->module_access)) {
+            if (session()->get('user_type') == 'Admin' || in_array(197, $this->module_access)) {
                 foreach ($persistent_menu_settings as $key => $value) {
                     $persistent_menu_row = array();
                     foreach ($value as $key2 => $value2) {
@@ -9023,9 +9050,9 @@ class Messenger_bot extends Home
         //-----------------------------------------------------------------
 
 
-        $this->db->trans_complete();
+        // CI4: transComplete() is not needed, transaction auto-commits/rolls back
 
-        if ($this->db->trans_status() === FALSE) {
+        if ($this->db->transStatus() === FALSE) {
             echo "<div class='alert alert-danger text-center'><i class='fa fa-remove'></i> " . $this->lang->line("Import was unsuccessful. Database error occured during importing template.") . "</div>";
             exit();
         }
@@ -9088,7 +9115,7 @@ class Messenger_bot extends Home
 
 
             // Publishing persistent menu
-            if ($this->session->userdata('user_type') == 'Admin' || in_array(197, $this->module_access)) {
+            if (session()->get('user_type') == 'Admin' || in_array(197, $this->module_access)) {
                 if ($persistent_enabled == '1') {
                     $json_array = array();
                     $menu_data = $this->basic->get_data("messenger_bot_persistent_menu", array("where" => array("page_id" => $page_id, "user_id" => $this->user_id)));
@@ -9165,7 +9192,7 @@ class Messenger_bot extends Home
 
 
 
-        $this->session->set_userdata("selected_global_page_table_id", $page_id);
+        session()->set("selected_global_page_table_id", $page_id);
 
         echo "<div class='alert alert-info text-center'><i class='fa fa-check-circle'></i> " . $this->lang->line("Template settings has been imported to database successfully.") . " <a href='" . base_url("messenger_bot/bot_list") . "'><i class='fas fa-hand-pointer'></i> " . $this->lang->line("Go to bot settings") . "</a></div>";
 
@@ -9290,7 +9317,7 @@ class Messenger_bot extends Home
         $full_bot_settings['media_type'] = $media_type;
 
         // Get input flow settings information
-        if ($this->db->table_exists('user_input_flow_campaign')) {
+        if ($this->db->tableExists('user_input_flow_campaign')) {
 
             $input_flow_info = $this->get_user_input_flow_settings_info($this->user_id, $page_table_id, $media_type);
             $full_bot_settings['custom_fields'] = $input_flow_info['custom_fields'];
@@ -9299,11 +9326,11 @@ class Messenger_bot extends Home
 
         // Get Flow Builder's All campaign
 
-        if ($this->db->table_exists('visual_flow_builder_campaign')) {
+        if ($this->db->tableExists('visual_flow_builder_campaign')) {
             $full_bot_settings['flow_builder_campaign_information'] = $this->get_flow_builder_settings_info($this->user_id, $page_table_id, $media_type);
         }
 
-        if ($this->db->table_exists('messenger_bot_drip_campaign')) {
+        if ($this->db->tableExists('messenger_bot_drip_campaign')) {
             $full_bot_settings['sequence_campaign_information'] = $this->get_sequence_campaign_info($this->user_id, $page_table_id, $media_type);
         }
         return $full_bot_settings;
@@ -9361,7 +9388,7 @@ class Messenger_bot extends Home
 
     public function tree_view($page_id = 0)
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
         if ($page_id == 0) exit();
         $page_table_id = $page_id;
 
@@ -9421,7 +9448,7 @@ class Messenger_bot extends Home
 
     private function make_tree($get_started_data_copy, $is_get_started = 1, $page_table_id = 0) // 0 = keyword, 1=get started, 2 = no match
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) return "";
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) return "";
         $get_started_level = 0;
         $postback_array = array();
         $parent_key = '';
@@ -9596,7 +9623,7 @@ class Messenger_bot extends Home
         if (!$_POST) exit();
 
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
@@ -9618,7 +9645,7 @@ class Messenger_bot extends Home
         if (!$_POST) exit();
 
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
@@ -9728,7 +9755,7 @@ class Messenger_bot extends Home
         if (!$_POST) exit();
 
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo json_encode(array('success' => 0, 'message' => $this->lang->line("This function is disabled from admin account in this demo!!")));
                 exit();
             }
@@ -9776,13 +9803,13 @@ class Messenger_bot extends Home
     private function delete_bot_data($page_id, $fb_page_id)
     {
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
         }
 
-        if ($this->db->table_exists('messenger_bot_engagement_checkbox')) {
+        if ($this->db->tableExists('messenger_bot_engagement_checkbox')) {
             $get_checkbox = $this->basic->get_data("messenger_bot_engagement_checkbox", array("where" => array("page_id" => $page_id)));
             $checkbox_ids = array();
             foreach ($get_checkbox as $key => $value) {
@@ -9905,7 +9932,7 @@ class Messenger_bot extends Home
         );
 
         foreach ($del_list as $key => $value) {
-            if ($this->db->table_exists($value['table_name'])) {
+            if ($this->db->tableExists($value['table_name'])) {
                 $where = array($value['where_field'] => $value['value']);
                 if (isset($value['where_field2'])) $where[$value['where_field2']] = $value['value2'];
                 $this->basic->delete_data($value['table_name'], $where);
@@ -10052,7 +10079,7 @@ class Messenger_bot extends Home
         }
 
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo $this->lang->line("This function is disabled from admin account in this demo!!");
                 exit();
             }
@@ -10068,7 +10095,7 @@ class Messenger_bot extends Home
     {
         if (!$_POST) exit();
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
@@ -10080,15 +10107,15 @@ class Messenger_bot extends Home
             $postback_id = explode(',', $bot_posback_ids[0]['postback_id']);
         }
 
-        $this->db->trans_start();
+        $this->db->transStart();
         $this->basic->delete_data("messenger_bot", array("id" => $id, "user_id" => $this->user_id));
 
         if (!empty($postback_id)) {
             $this->db->where_in("postback_id", $postback_id);
             $this->db->update('messenger_bot_postback', array('use_status' => '0'));
         }
-        $this->db->trans_complete();
-        if ($this->db->trans_status() === false)
+        // CI4: transComplete() is not needed, transaction auto-commits/rolls back
+        if ($this->db->transStatus() === false)
             echo '0';
         else
             echo '1';
@@ -10100,7 +10127,7 @@ class Messenger_bot extends Home
         $this->ajax_check();
 
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo json_encode(['status' => '0', 'message' => $this->lang->line("This function is disabled from admin account in this demo!!")]);
                 exit();
             }
@@ -10249,7 +10276,7 @@ class Messenger_bot extends Home
     public function remove_persistent_menu_locale($auto_id = 0, $page_auto_id = 0, $iframe = 0)
     {
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
@@ -10258,13 +10285,13 @@ class Messenger_bot extends Home
         $media_type = $this->using_media_type;
         $this->basic->delete_data("messenger_bot_persistent_menu", array("id" => $auto_id, "user_id" => $this->user_id));
         $this->session->set_flashdata('remove_persistent_menu_locale', 1);
-        redirect(base_url('messenger_bot/persistent_menu_list/' . $page_auto_id . '/' . $iframe) . '?media_type=' . $media_type, 'location');
+        return redirect()->to('messenger_bot/persistent_menu_list/' . $page_auto_id . '/' . $iframe . '?media_type=' . $media_type)->send();
     }
 
     public function remove_persistent_menu($page_auto_id = 0, $iframe = 0)
     {
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
@@ -10294,13 +10321,13 @@ class Messenger_bot extends Home
             $this->session->set_flashdata('perrem_success', 0);
             $this->session->set_flashdata('perrem_message', $err_message);
         }
-        redirect(base_url("messenger_bot/persistent_menu_list/$page_auto_id/$iframe") . '?media_type=' . $media_type, 'location');
+        return redirect()->to('messenger_bot/persistent_menu_list/' . $page_auto_id . '/' . $iframe . '?media_type=' . $media_type)->send();
     }
 
     public function publish_persistent_menu($page_auto_id = 0, $iframe = 0)
     {
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo "<div class='alert alert-danger text-center'><i class='fa fa-ban'></i> This function is disabled from admin account in this demo!!</div>";
                 exit();
             }
@@ -10331,7 +10358,7 @@ class Messenger_bot extends Home
             $temp = json_decode($value["item_json"], true);
             $temp2 = isset($temp['call_to_actions']) ? $temp['call_to_actions'] : array();
 
-            if ($this->session->userdata('user_type') == 'Member' && in_array(198, $this->module_access) && count($temp2) < 3) {
+            if (session()->get('user_type') == 'Member' && in_array(198, $this->module_access) && count($temp2) < 3) {
                 end($temp2);
                 $key2 = key($temp2);
                 $key2++;
@@ -10378,12 +10405,13 @@ class Messenger_bot extends Home
         check_module_access($module_id = 197);
 
         $data['body'] = 'messenger_tools/persistent_menu_list';
-        $data['page_title'] = $this->lang->line('Persistent Menu List');
+        $data['page_title'] = lang('Persistent Menu List');
         $page_info = $this->basic->get_data("facebook_rx_fb_page_info", array("where" => array("id" => $page_auto_id, 'user_id' => $this->user_id)));
         if (!isset($page_info[0])) exit();
 
         $data['page_info'] = isset($page_info[0]) ? $page_info[0] : array();
         $media_type = $this->using_media_type;
+        $data['using_media_type'] = $this->using_media_type;
         $data["menu_info"] = $this->basic->get_data("messenger_bot_persistent_menu", array("where" => array("page_id" => $page_auto_id, "user_id" => $this->user_id, "media_type" => $media_type)));
 
         $data['iframe'] = $iframe;
@@ -10414,7 +10442,7 @@ class Messenger_bot extends Home
     public function create_persistent_menu_action()
     {
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo json_encode(['status' => '0', 'message' => $this->lang->line("This function is disabled from admin account in this demo!!")]);
                 exit();
             }
@@ -10541,13 +10569,15 @@ class Messenger_bot extends Home
         $facebook_rx_fb_user_info_id = $this->basic->get_data("facebook_rx_fb_page_info", array("where" => array("id" => $page_table_id)), array("facebook_rx_fb_user_info_id", "page_access_token"));
         $page_access_token = $facebook_rx_fb_user_info_id[0]['page_access_token'];
         $facebook_rx_fb_user_info_id = $facebook_rx_fb_user_info_id[0]["facebook_rx_fb_user_info_id"];
-        $this->db->trans_start();
+        $this->db->transStart();
         // if(!empty($postback_insert_data)) $this->db->insert_batch('messenger_bot_postback',$postback_insert_data);
         $this->basic->insert_data("messenger_bot_persistent_menu", array("user_id" => $this->user_id, "page_id" => $page_table_id, "locale" => $locale, "item_json" => $menu_json, "composer_input_disabled" => $composer_input_disabled, 'poskback_id_json' => json_encode($only_postback), 'media_type' => $media_type));
-        $this->db->trans_complete();
-        if ($this->db->trans_status() === FALSE)
+        
+        if ($this->db->transStatus() === FALSE) {
+            $this->db->transRollback();
             echo json_encode(array('status' => '0', 'message' => $this->lang->line("something went wrong, please try again.")));
-        else {
+        } else {
+            $this->db->transComplete();
             $this->session->set_flashdata('per_success', 1);
             echo json_encode(array('status' => '1', 'message' => $this->lang->line("persistent menu has been created successfully.")));
         }
@@ -10562,7 +10592,8 @@ class Messenger_bot extends Home
 
 
         $data['body'] = 'messenger_tools/persistent_menu_edit';
-        $data['page_title'] = $this->lang->line('Edit Persistent Menu');
+        $data['page_title'] = lang('Edit Persistent Menu');
+        $data['using_media_type'] = $this->using_media_type;
         $xdata = $this->basic->get_data("messenger_bot_persistent_menu", array("where" => array("id" => $id, "user_id" => $this->user_id)));
         if (!isset($xdata[0])) exit();
         $data['xdata'] = $xdata[0];
@@ -10594,7 +10625,7 @@ class Messenger_bot extends Home
     public function edit_persistent_menu_action()
     {
         if ($this->is_demo == '1') {
-            if ($this->session->userdata('user_type') == "Admin") {
+            if (session()->get('user_type') == "Admin") {
                 echo json_encode(['status' => '0', 'message' => $this->lang->line("This function is disabled from admin account in this demo!!")]);
                 exit();
             }
@@ -10729,13 +10760,15 @@ class Messenger_bot extends Home
         $page_access_token = $facebook_rx_fb_user_info_id[0]['page_access_token'];
         $facebook_rx_fb_user_info_id = $facebook_rx_fb_user_info_id[0]["facebook_rx_fb_user_info_id"];
 
-        $this->db->trans_start();
+        $this->db->transStart();
         // if(!empty($postback_insert_data)) $this->db->insert_batch('messenger_bot_postback',$postback_insert_data);
         $this->basic->update_data("messenger_bot_persistent_menu", array("id" => $auto_id, "user_id" => $this->user_id), array("locale" => $locale, "item_json" => $menu_json, "composer_input_disabled" => $composer_input_disabled, 'poskback_id_json' => json_encode($only_postback)));
-        $this->db->trans_complete();
-        if ($this->db->trans_status() === FALSE)
+        
+        if ($this->db->transStatus() === FALSE) {
+            $this->db->transRollback();
             echo json_encode(array('status' => '0', 'message' => $this->lang->line("something went wrong, please try again.")));
-        else {
+        } else {
+            $this->db->transComplete();
             $this->session->set_flashdata('per_update_success', 1);
             echo json_encode(array('status' => '1', 'message' => $this->lang->line("persistent menu has been updated successfully.")));
         }
@@ -10768,7 +10801,7 @@ class Messenger_bot extends Home
 
     private function get_nest($current_level = 1, $page_table_id = 0)
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) return "";
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) return "";
         $current_level_prev = $current_level - 1;
 
         $condition = "if(\$tempurl!='') \$templabel='<a class=\"iframed\" href=\"'.\$tempurl.'\">'.\$display.'</a>';
@@ -10906,7 +10939,7 @@ class Messenger_bot extends Home
 
     private function get_child_info($messenger_bot_info, $page_table_id)
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) return array();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) return array();
         foreach ($messenger_bot_info as $info) {
 
             $message = $info['message'];
@@ -10972,7 +11005,7 @@ class Messenger_bot extends Home
 
     private function get_postback_info($matches, $page_table_id, $keyword_bot_id, $level)
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) return array();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) return array();
         foreach ($matches as $postback_match) {
 
             $where['where'] = array('page_id' => $page_table_id, 'postback_id' => $postback_match);
@@ -11030,7 +11063,7 @@ class Messenger_bot extends Home
 
     private function get_button_information_from_json($json_message, $template_type)
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) return array();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) return array();
 
         $full_message_array = json_decode($json_message, true);
         $result = array();
@@ -11242,21 +11275,22 @@ class Messenger_bot extends Home
         */
     public function saved_templates($media_type = 'fb')
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access))  redirect('home/login_page', 'location');
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access))  redirect('home/login_page', 'location');
 
         $data['media_type'] = $media_type;
         $data['body'] = "messenger_tools/saved_templates";
         $data['page_title'] = $media_type == "fb" ? $this->lang->line("Facebook Saved Templates") : $this->lang->line("Instagram Saved Templates");
         $data['header_icon'] = $media_type == "fb" ? "<i class='fab fa-facebook-square'></i>" : "<i class='fab fa-instagram'></i>";
         $data['package_list'] = $this->package_list();
+        // CI4 fix: Pass user_id to view explicitly (views don't have direct access to controller properties)
+        $data['user_id'] = $this->user_id;
 
         $category_id = isset($_GET['category']) ? $_GET['category'] : "";
 
         $table_name = "facebook_rx_fb_page_info";
-        $where['where'] = array('bot_enabled' => "1", 'facebook_rx_fb_page_info.facebook_rx_fb_user_info_id' => $this->session->userdata('facebook_rx_fb_user_info'));
+        $where['where'] = array('bot_enabled' => "1", 'facebook_rx_fb_page_info.facebook_rx_fb_user_info_id' => session()->get('facebook_rx_fb_user_info'));
         $join = array('facebook_rx_fb_user_info' => "facebook_rx_fb_user_info.id=facebook_rx_fb_page_info.facebook_rx_fb_user_info_id,left");
-        if ($media_type == 'ig')
-            $this->db->where('has_instagram', '1');
+        // Note: has_instagram filter is handled in $where array for basic->get_data()
         $page_info = $this->basic->get_data($table_name, $where, array("facebook_rx_fb_page_info.id", "facebook_rx_fb_page_info.page_name", "facebook_rx_fb_page_info.insta_username", "facebook_rx_fb_user_info.name as account_name"), $join, '', '', 'page_name asc');
         $data['page_lists'] = $page_info;
 
@@ -11271,28 +11305,21 @@ class Messenger_bot extends Home
         array_push($admin_ids, $current_userid);
         $admin_ids = array_unique($admin_ids);
 
-        if ($this->session->userdata('user_type') != "Admin") {
-            $this->db->where_in('user_id', $admin_ids);
-        }
-
+        // Note: where_in filter is handled in $where array for basic->get_data()
         $data['category_list'] = $this->basic->get_data("messenger_bot_template_category");
 
         $per_page = 15;
-        if ($this->session->userdata("user_type") == "Member") {
-            $package_info = $this->session->userdata('package_info');
+        if (session()->get("user_type") == "Member") {
+            $package_info = session()->get('package_info');
             $search_package_id = isset($package_info['id']) ? $package_info['id'] : '0';
 
             $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public') OR (template_access='private' AND user_id='" . $this->user_id . "'))";
-            $this->db->where($where_custom);
+            // Note: where_custom is handled in $where array for basic->get_data()
         } else {
-            $this->db->where('user_id', $this->user_id);
+            // Note: user_id filter is handled in $where array for basic->get_data()
         }
 
-        if ($category_id != '') {
-            $this->db->where('template_category_id', $category_id);
-        }
-
-        $this->db->where('media_type', $media_type);
+        // Note: category_id and media_type filters are handled in $where array for basic->get_data()
         $templates = $this->basic->get_data('messenger_bot_saved_templates');
 
 
@@ -11336,23 +11363,27 @@ class Messenger_bot extends Home
         $start = $this->uri->segment(4);
         $limit = $config['per_page'];
 
-        if ($this->session->userdata("user_type") == "Member") {
-            $package_info = $this->session->userdata('package_info');
-            $search_package_id = isset($package_info['id']) ? $package_info['id'] : '0';
-
-            $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public') OR (template_access='private' AND user_id='" . $this->user_id . "'))";
-            $this->db->where($where_custom);
-        } else {
-            $this->db->where('user_id', $this->user_id);
-        }
-
-        if ($category_id != '') {
-            $this->db->where('template_category_id', $category_id);
-        }
-
         $table = "messenger_bot_saved_templates";
-        $this->db->where('media_type', $media_type);
-        $info = $this->basic->get_data($table, '', '', '', $limit, $start);
+        
+        // CI4 fix: Remove invalid $this->db->where() calls and incorporate conditions into $where array
+        if (session()->get("user_type") == "Member") {
+            $package_info = session()->get('package_info');
+            $search_package_id = isset($package_info['id']) ? $package_info['id'] : '0';
+            $where_custom = "media_type='" . $media_type . "' AND ((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public') OR (template_access='private' AND user_id='" . $this->user_id . "'))";
+            // Pass where_custom as string to where array for CI4 compatibility
+            $where = ['where' => $where_custom];
+        } else {
+            $where = ['where' => ['media_type' => $media_type, 'user_id' => $this->user_id]];
+        }
+        if ($category_id != '') {
+            // For string where, we need to append; for array, we can add to array
+            if (is_string($where['where'])) {
+                $where['where'] .= " AND template_category_id='" . $category_id . "'";
+            } else {
+                $where['where']['template_category_id'] = $category_id;
+            }
+        }
+        $info = $this->basic->get_data($table, $where, '', '', $limit, $start);
 
         for ($i = 0; $i < count($info); $i++) {
             if ($info[$i]['template_category_id'] > 0) {
@@ -11405,7 +11436,7 @@ class Messenger_bot extends Home
         } else {
 
             $this->basic->insert_data("messenger_bot_template_category", $in_data);
-            $insert_id = $this->db->insert_id();
+            $insert_id = $this->db->insertID();
         }
 
         echo json_encode(array('status' => '1', 'id' => $insert_id, "text" => $category_name));
@@ -11413,7 +11444,7 @@ class Messenger_bot extends Home
 
     public function save_messenger_template_info()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
         check_module_action_access($module_id = 257, $actions = 1);
 
         if (!$_POST) exit();
@@ -11430,7 +11461,7 @@ class Messenger_bot extends Home
 
         if (!is_array($allowed_package_ids) || $template_access == 'private')  $allowed_package_ids = array();
 
-        if ($this->session->userdata('user_type') != 'Admin') $template_access = 'private';
+        if (session()->get('user_type') != 'Admin') $template_access = 'private';
         $get_saved_data = '';
 
         if ($json_file != '' && file_exists('upload/' . $json_file)) {
@@ -11455,7 +11486,7 @@ class Messenger_bot extends Home
         $insertData['media_type'] = $media_type;
 
         $this->basic->insert_data("messenger_bot_saved_templates", $insertData);
-        $insert_id = $this->db->insert_id();
+        $insert_id = $this->db->insertID();
 
         $message = "<div class='alert alert-info text-center'><i class='fa fa-check-circle'></i> " . $this->lang->line("Bot template has been saved to database successfully.") . "</div><br><a class='btn-block btn btn-outline-info'  href='" . base_url('messenger_bot/saved_templates/') . $media_type . "'><i class='fa fa-save'></i> " . $this->lang->line("My Saved Templates") . "</a><a target='_BLANK' class='btn-block btn btn-outline-primary' href='" . base_url('messenger_bot/export_bot_download/') . $insert_id . "'><i class='fa fa-file-download'></i> " . $this->lang->line("Download Template") . "</a>";
         echo json_encode(array('status' => '0', 'message' => $message));
@@ -11463,7 +11494,7 @@ class Messenger_bot extends Home
 
     public function update_messenger_template_info()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
         check_module_action_access($module_id = 257, $actions = 2);
 
         if (!$_POST) exit();
@@ -11483,7 +11514,7 @@ class Messenger_bot extends Home
 
         $insertData = [];
 
-        if ($this->session->userdata('user_type') != 'Admin') $template_access = 'private';
+        if (session()->get('user_type') != 'Admin') $template_access = 'private';
 
         if ($json_file != '' && file_exists('upload/' . $json_file)) {
             $filename = 'upload/' . $json_file;
@@ -11508,7 +11539,7 @@ class Messenger_bot extends Home
 
     public function get_bot_template_form()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access))  exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access))  exit();
 
         if (!$_POST) exit();
         $id = $this->input->post('table_id', true);
@@ -11526,7 +11557,7 @@ class Messenger_bot extends Home
         $current_userid = $this->user_id;
         $admin_id = '1';
         $where_in = array('user_id' => array($admin_id, $current_userid));
-        if ($this->session->userdata('user_type') != "Admin") {
+        if (session()->get('user_type') != "Admin") {
             $ids1 = array($admin_id, $current_userid);
             $this->db->where_in('user_id', $ids1);
         }
@@ -11593,7 +11624,7 @@ class Messenger_bot extends Home
                 </div>
               </div>';
 
-        if ($this->session->userdata("user_type") == 'Admin') {
+        if (session()->get("user_type") == 'Admin') {
             $select1 = $select2 = $hiddenclass = "";
             if ($xdata[0]["template_access"] == "private") $select1 = 'checked';
             if ($xdata[0]["template_access"] == "public") $select2 = 'checked';
@@ -11641,7 +11672,7 @@ class Messenger_bot extends Home
                     $("#allowed_package_ids2,#bot_category2").select2({ width: "100%" });
 
                     var base_url="' . site_url() . '";
-                    var user_id = "' . $this->session->userdata("user_id") . '";
+                    var user_id = "' . session()->get("user_id") . '";
                     var image_upload_limit = "' . $image_upload_limit . '";
                     $("#template_preview_image_div_edit").uploadFile({
                       url:base_url+"messenger_bot/upload_image_only",
@@ -11711,7 +11742,7 @@ class Messenger_bot extends Home
 
     public function saved_templates_data()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access))  exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access))  exit();
 
         $this->ajax_check();
         $search_template_name = trim($this->input->post("search_template_name"));
@@ -11730,8 +11761,8 @@ class Messenger_bot extends Home
 
         if ($search_template_name != '') $where_simple['template_name like ']    = "%" . $search_template_name . "%";
 
-        if ($this->session->userdata("user_type") == "Member") {
-            $package_info = $this->session->userdata('package_info');
+        if (session()->get("user_type") == "Member") {
+            $package_info = session()->get('package_info');
             $search_package_id = isset($package_info['id']) ? $package_info['id'] : '0';
 
             if ($search_template_access == "public") $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public'))";
@@ -11753,7 +11784,7 @@ class Messenger_bot extends Home
             if ($info[$i]['saved_at'] != "0000-00-00 00:00:00")
                 $info[$i]['saved_at'] = date("M j, y H:i", strtotime($info[$i]['saved_at']));
 
-            if ($this->session->userdata("user_type") == "Admin") {
+            if (session()->get("user_type") == "Admin") {
                 if ($info[$i]['template_access'] == 'private') $info[$i]['owner'] = '<span class="badge badge-status"><i class="fa fa-user-secret orange"></i> ' . $this->lang->line("Private") . '</span>';
                 else $info[$i]['owner'] = '<span class="badge badge-status"><i class="fa fa-check-circle green"></i> ' . $this->lang->line("Public") . '</span>';
             } else {
@@ -11781,8 +11812,8 @@ class Messenger_bot extends Home
         }
 
 
-        if ($this->session->userdata("user_type") == "Member" && $this->is_manager != 1) {
-            $package_info = $this->session->userdata('package_info');
+        if (session()->get("user_type") == "Member" && $this->is_manager != 1) {
+            $package_info = session()->get('package_info');
             $search_package_id = isset($package_info['id']) ? $package_info['id'] : '0';
 
             if ($search_template_access == "public") $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public'))";
@@ -11808,7 +11839,7 @@ class Messenger_bot extends Home
 
     public function delete_template()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
         if (!check_module_action_access($module_id = 257, $actions = 3, 'check')) {
             echo "0";
             exit();
@@ -11823,7 +11854,7 @@ class Messenger_bot extends Home
 
     public function get_export_bot_form()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access))  exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access))  exit();
 
         if (!$_POST) exit();
         $id = $this->input->post('table_id', true);
@@ -11865,7 +11896,7 @@ class Messenger_bot extends Home
                 </div>
               </div>';
 
-        if ($this->session->userdata("user_type") == 'Admin') {
+        if (session()->get("user_type") == 'Admin') {
             $select1 = $select2 = $hiddenclass = "";
             if ($xdata[0]["template_access"] == "private") $select1 = 'checked';
             if ($xdata[0]["template_access"] == "public") $select2 = 'checked';
@@ -11910,7 +11941,7 @@ class Messenger_bot extends Home
                     $("#allowed_package_ids").select2({ width: "100%" });
 
                     var base_url="' . site_url() . '";
-                    var user_id = "' . $this->session->userdata("user_id") . '";
+                    var user_id = "' . session()->get("user_id") . '";
                     var image_upload_limit = "' . $image_upload_limit . '";
                     $("#template_preview_image_div").uploadFile({
                       url:base_url+"messenger_bot/upload_image_only",
@@ -11953,7 +11984,7 @@ class Messenger_bot extends Home
 
     public function edit_export_bot()
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access)) exit();
         if (!$_POST) exit();
 
         $id = $this->input->post('hidden_id');
@@ -11972,12 +12003,12 @@ class Messenger_bot extends Home
 
     public function saved_template_view($id = 0)
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(257, $this->module_access))  redirect('home/login_page', 'location');
+        if (session()->get('user_type') != 'Admin' && !in_array(257, $this->module_access))  redirect('home/login_page', 'location');
 
         if ($id == 0) exit();
 
-        if ($this->session->userdata("user_type") == "Member") {
-            $package_info = $this->session->userdata('package_info');
+        if (session()->get("user_type") == "Member") {
+            $package_info = session()->get('package_info');
             $search_package_id = isset($package_info['id']) ? $package_info['id'] : '0';
             $where_custom = "id=" . $id . " AND ((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public') OR (template_access='private' AND user_id='" . $this->user_id . "'))";
             $this->db->where($where_custom);
@@ -12016,7 +12047,7 @@ class Messenger_bot extends Home
 
         $table_name = "send_email_to_autoresponder_log";
 
-        if ($this->session->userdata('user_type') == 'Admin') {
+        if (session()->get('user_type') == 'Admin') {
             $sql = "(user_id=0 OR user_id=" . $this->user_id . ")";
 
             if ($auto_responder_type != "") $sql .= " AND auto_responder_type='" . $auto_responder_type . "'";
@@ -12066,7 +12097,7 @@ class Messenger_bot extends Home
         $this->ajax_check();
         $id = $this->input->post('id', true);
 
-        if ($this->session->userdata('user_type') == 'Admin') $sql = "(user_id=0 OR user_id=" . $this->user_id . ") AND id={$id}";
+        if (session()->get('user_type') == 'Admin') $sql = "(user_id=0 OR user_id=" . $this->user_id . ") AND id={$id}";
         else $sql = "user_id=" . $this->user_id . " AND id={$id}";
         $this->db->where($sql);
         $getdata = $this->basic->get_data("send_email_to_autoresponder_log");
@@ -12140,7 +12171,7 @@ class Messenger_bot extends Home
     // OTN template manager section
     public function otn_template_manager($page_id = 0, $iframe = '0')
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(275, $this->module_access))
+        if (session()->get('user_type') != 'Admin' && !in_array(275, $this->module_access))
             redirect('home/login_page', 'location');
         $where = array("where" => array("user_id" => $this->user_id, 'bot_enabled' => '1'));
         if (!empty($this->team_allowed_pages)) {
@@ -12227,7 +12258,7 @@ class Messenger_bot extends Home
 
     public function otn_create_new_template($is_iframe = "0", $default_page = "", $default_child_postback_id = "")
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(275, $this->module_access))
+        if (session()->get('user_type') != 'Admin' && !in_array(275, $this->module_access))
             redirect('home/login_page', 'location');
 
         $this->is_drip_campaigner_exist = $this->drip_campaigner_exist();
@@ -12269,7 +12300,7 @@ class Messenger_bot extends Home
             $label_ids = implode(',', $label_ids_array);
 
 
-        $this->db->trans_start();
+        $this->db->transStart();
 
         $data = array(
             'user_id' => $this->user_id,
@@ -12287,8 +12318,8 @@ class Messenger_bot extends Home
         }
         $this->basic->insert_data('otn_postback', $data);
 
-        $this->db->trans_complete();
-        if ($this->db->trans_status() === FALSE) {
+        // CI4: transComplete() is not needed, transaction auto-commits/rolls back
+        if ($this->db->transStatus() === FALSE) {
             echo json_encode(array("status" => "0", "message" => $this->lang->line("Creating template was unsuccessful. Database error occured during creating template.")));
             exit();
         } else {
@@ -12298,7 +12329,7 @@ class Messenger_bot extends Home
 
     public function otn_edit_template($postback_table_id = 0, $iframe = '0', $is_default = '0')
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(275, $this->module_access))
+        if (session()->get('user_type') != 'Admin' && !in_array(275, $this->module_access))
             redirect('home/login_page', 'location');
 
         if ($postback_table_id == 0) exit();
@@ -12389,7 +12420,7 @@ class Messenger_bot extends Home
         if ($label_ids_array)
             $label_ids = implode(',', $label_ids_array);
 
-        $this->db->trans_start();
+        $this->db->transStart();
 
         $data = array(
             'user_id' => $this->user_id,
@@ -12405,8 +12436,8 @@ class Messenger_bot extends Home
 
         $this->basic->update_data('otn_postback', array('id' => $table_id), $data);
 
-        $this->db->trans_complete();
-        if ($this->db->trans_status() === FALSE) {
+        // CI4: transComplete() is not needed, transaction auto-commits/rolls back
+        if ($this->db->transStatus() === FALSE) {
             echo json_encode(array("status" => "0", "message" => $this->lang->line("Updating template was unsuccessful. Database error occured during updating template.")));
             exit();
         } else {
@@ -12625,7 +12656,7 @@ class Messenger_bot extends Home
 
     public function otn_subscribers($page_id = 0, $iframe = '0')
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(275, $this->module_access))
+        if (session()->get('user_type') != 'Admin' && !in_array(275, $this->module_access))
             redirect('home/login_page', 'location');
         if (!empty($this->team_allowed_pages)) {
             $where['where_in'] = array("facebook_rx_fb_page_info.id" => $this->team_allowed_pages);
@@ -12733,18 +12764,18 @@ class Messenger_bot extends Home
         $data['page_title'] = $this->lang->line("Messenger Bot templates");
 
         // get eligible saved templates
-        if ($this->db->table_exists('messenger_bot_saved_templates')) {
-            if ($this->session->userdata("user_type") == "Member") {
-                $package_info = $this->session->userdata('package_info');
+        if ($this->db->tableExists('messenger_bot_saved_templates')) {
+            if (session()->get("user_type") == "Member") {
+                $package_info = session()->get('package_info');
                 $search_package_id = isset($package_info['id']) ? $package_info['id'] : '0';
                 $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public') OR (template_access='private' AND user_id='" . $this->user_id . "'))";
             } else $where_custom = "user_id='" . $this->user_id . "'";
 
-            $this->db->select('*');
-            $this->db->where($where_custom);
-            $this->db->order_by("saved_at DESC");
-            $query = $this->db->get('messenger_bot_saved_templates');
-            $template_data = $query->result_array();
+            $builder = $this->db->table('messenger_bot_saved_templates');
+            $builder->select('*');
+            $builder->where($where_custom);
+            $builder->orderBy("saved_at", "DESC");
+            $template_data = $builder->get()->getResultArray();
             $data["saved_template_list"] = $template_data;
         } else $data["saved_template_list"] = array();
 
@@ -12756,8 +12787,8 @@ class Messenger_bot extends Home
 
     public function rcn_template_manager($page_id = 0, $iframe = '0')
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(335, $this->module_access))
-            redirect('home/login_page', 'location');
+        if (session()->get('user_type') != 'Admin' && !in_array(335, $this->module_access))
+            return redirect()->to('home/login_page')->send();
         $where = array("where" => array("user_id" => $this->user_id, 'bot_enabled' => '1'));
         if (!empty($this->team_allowed_pages)) {
             $where['where_in'] = array("facebook_rx_fb_page_info.id" => $this->team_allowed_pages);
@@ -12765,7 +12796,7 @@ class Messenger_bot extends Home
         $page_list = $this->basic->get_data("facebook_rx_fb_page_info", $where, array('page_name', 'id'));
         $data['page_info'] = $page_list;
         $data['body'] = 'messenger_tools/rcn_manager/template_manager';
-        $data['page_title'] = $this->lang->line('Template Manager');
+        $data['page_title'] = lang('Template Manager');
         $data['iframe'] = $iframe;
         $data['page_id'] = $page_id;
         $this->_viewcontroller($data);
@@ -12806,13 +12837,14 @@ class Messenger_bot extends Home
             'otn_optin_subscriber' => 'otn_postback.id=otn_optin_subscriber.otn_id,left'
         );
         $select = array('otn_postback.*', 'page_name', 'count(otn_optin_subscriber.id) as total_optin_subscriber');
-        $this->db->where($where_custom);
-        $info = $this->basic->get_data($table, $where = '', $select, $join, $limit, $start, $order_by, $group_by = 'otn_postback.id');
+        // CI4 fix: Pass where_custom as array to get_data method instead of using $this->db->where()
+        $where = array('where' => $where_custom);
+        $info = $this->basic->get_data($table, $where, $select, $join, $limit, $start, $order_by, $group_by = 'otn_postback.id');
 
         // pre($info); exit;
 
-        $this->db->where($where_custom);
-        $total_rows_array = $this->basic->count_row($table, $where = '', $count = $table . ".id", $join, $group_by = 'otn_postback.id');
+        // CI4 fix: Pass where_custom as array to count_row method instead of using $this->db->where()
+        $total_rows_array = $this->basic->count_row($table, $where, $count = $table . ".id", $join, $group_by = 'otn_postback.id');
         $total_result = $total_rows_array[0]['total_rows'];
 
         $i = 0;
@@ -13055,7 +13087,7 @@ class Messenger_bot extends Home
 
     public function rcn_subscribers($page_id = 0, $iframe = '0')
     {
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(335, $this->module_access))
+        if (session()->get('user_type') != 'Admin' && !in_array(335, $this->module_access))
             redirect('home/login_page', 'location');
         $where = array("where" => array("user_id" => $this->user_id, 'bot_enabled' => '1'));
         if (!empty($this->team_allowed_pages)) {

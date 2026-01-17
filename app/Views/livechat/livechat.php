@@ -319,9 +319,9 @@
                          <div>
                              <input type="hidden" id="bot_id" whatsapp_bot_id = "<?php echo $first_bot_id ;?>" >
                          </div>
-                         <div>
-                             <input type="hidden" id="user_id" user_id = "<?php echo $this->user_id ;?>" >
-                         </div>
+                        <div>
+                            <input type="hidden" id="user_id" user_id = "<?php echo $user_id ?? 0; ?>" >
+                        </div>
                          <div class="d-flex justify-content-between">
                              <button type="submit" id="add_canned_response" data-mode="add" class="btn btn-primary"><?php lang('Add');?></button>
                              <button type="button" id="close_canned_response" data-mode="close" class="btn btn-warning"><?php echo lang('Close');?></button>
@@ -381,11 +381,11 @@
     var messageType = '<?php echo $message_type;?>';
 </script>
 
-<?php include(FCPATH.'application/views/livechat/livechat_load_livechat_css.php');?>
+<?php echo view('livechat/livechat_load_livechat_css'); ?>
 
-<?php include(FCPATH.'application/views/livechat/livechat_load_livechat_js.php');?>
+<?php echo view('livechat/livechat_load_livechat_js'); ?>
 
-<?php include(FCPATH.'application/views/messenger_tools/subscriber_actions_common_js.php');?>
+<?php echo view('messenger_tools/subscriber_actions_common_js'); ?>
 
 <script>
         document.addEventListener('DOMContentLoaded', () => {

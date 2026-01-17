@@ -121,7 +121,7 @@ else
               <li><a class="dropdown-item has-icon analytics_bot" href="#"><i class="fas fa-chart-pie"></i> <?php echo lang('Messenger bot analytics');?></a></li>
               <?php endif; ?>
 
-              <?php if(session()->get('user_type') == 'Admin' || in_array(257,$this->module_access)) : ?>
+              <?php if(session()->get('user_type') == 'Admin' || in_array(257,$module_access)) : ?>
               <li><a class="dropdown-item has-icon export_bot" media_type="<?php echo $media_type; ?>" table_id="" href="#"><i class="fas fa-file-export"></i> <?php echo lang('Export bot settings');?></a></li>
               <li><a class="dropdown-item has-icon" media_type="<?php echo $media_type; ?>" table_id="" href="<?php echo base_url('messenger_bot/saved_templates/').$media_type; ?>"><i class="fas fa-file-import"></i> <?php echo lang('Import bot settings');?></a></li>
               <li><a class="dropdown-item has-icon import_flow" media_type="<?php echo $media_type; ?>" table_id="" href="#"><i class="fas fa-file-import"></i> <?php echo lang('Import flow');?></a></li>
@@ -341,7 +341,7 @@ else
                                       </label>
                                     </div>
 
-                                    <?php if(session()->get('user_type') == 'Admin' || in_array(265,$this->module_access)) : ?>
+                                    <?php if(session()->get('user_type') == 'Admin' || in_array(265,$module_access)) : ?>
                                       <div class="<?php if($media_type == "ig") echo "hidden"; ?>">
                                         <div class="section">                
                                           <h2 class="section-title"><?php echo lang('MailChimp Integration'); ?> <span style="font-size: 12px !important;"><a href="<?php echo base_url('email_auto_responder_integration/mailchimp_list'); ?>" target="_BLANK"><?php echo lang('Add MailChimp API'); ?></a></span></h2>
@@ -476,7 +476,7 @@ else
                                       </div>
                                     <?php endif; ?>
 
-                                    <?php if(session()->get('user_type') == 'Admin' || in_array(264,$this->module_access)) : ?>
+                                    <?php if(session()->get('user_type') == 'Admin' || in_array(264,$module_access)) : ?>
                                       <div class="<?php if($media_type == "ig") echo "hidden"; ?>">
                                         <div class="section">                
                                           <h2 class="section-title"><?php echo lang('SMS Integration'); ?> <span style="font-size: 12px !important;"><a href="<?php echo base_url('sms_email_manager/sms_api_lists'); ?>" target="_BLANK"><?php echo lang('Add SMS API'); ?></a></span></h2>
@@ -565,7 +565,7 @@ else
 
                                     <!-- Google Sheet -->
 
-                                    <?php if ($this->basic->is_exist("add_ons",array("project_id"=>70)) && (session()->get('user_type') == 'Admin' || in_array(351, $this->module_access))){ ?>
+                                    <?php if ($basic->is_exist("add_ons",array("project_id"=>70)) && (session()->get('user_type') == 'Admin' || in_array(351, $module_access))){ ?>
                                       <div class="section">                
                                             <h2 class="section-title"><?php echo lang('Google Sheet Integration'); ?> <span style="font-size: 12px !important;"><a href="<?php echo base_url('google_sheet'); ?>" target="_BLANK"><?php echo lang('Add Google Sheet'); ?></a></span></h2>
                                             <p><?php echo lang('Append collected subscriber to google sheet.'); ?></p>
@@ -1097,7 +1097,7 @@ else
       
       if(auto_id=="") return false;
       $(this).addClass('btn-progress');
-      swal('<?php echo $this->lang->line(""); ?>', waiting, '');
+      swal('<?php echo lang(""); ?>', waiting, '');
       $.ajax({
         type:'POST',
         url:"<?php echo site_url();?>messenger_bot_enhancers/estimate_reach",
@@ -1159,7 +1159,7 @@ else
               },
               language: 
               {
-                url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+                url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
               },
               dom: '<"top"f>rt<"bottom"lip><"clear">',
               columnDefs: [
@@ -1797,7 +1797,7 @@ else
       e.preventDefault();
       var item_type = $(this).attr('item_type');
       var file_path = $(this).next().val();
-      var user_id = "<?php echo $this->user_id; ?>";
+      var user_id = "<?php echo $user_id ?? 0; ?>";
 
       var res = file_path.match(/http/g);
       if(file_path != '' && res === null)
@@ -1923,7 +1923,7 @@ else
               },
               language: 
               {
-                url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+                url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
               },
               dom: '<"top"f>rt<"bottom"lip><"clear">',
               columnDefs: [
