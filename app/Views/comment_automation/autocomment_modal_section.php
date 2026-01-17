@@ -33,7 +33,7 @@
 					</div>
 					<div class="col-12">
 						<div class="form-group p-0">
-							<label><?php echo $this->lang->line('') ?></label>
+							<label><?php echo lang('') ?></label>
 							<label>
 								<i class="fa fa-th-large"></i> <?php echo lang('Auto Comment Template'); ?> <span class="red">*</span> 							
 							</label>
@@ -131,7 +131,7 @@
 								<div class="form-group schedule_block_item_new col-12 col-md-6">
 									 <label>
 										<?php echo lang('Comment Between Time'); ?>
-										<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="" data-content="<?php echo $this->lang->line("Set the allowed time of the comment. As example you want to auto comment by page from 10 AM to 8 PM. You don't want to comment other time. So set it 10:00 & 20:00"); ?>" data-original-title="<?php echo lang('Comment Between Time'); ?>"><i class="fa fa-info-circle"></i> 
+										<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="" data-content="<?php echo lang("Set the allowed time of the comment. As example you want to auto comment by page from 10 AM to 8 PM. You don't want to comment other time. So set it 10:00 & 20:00"); ?>" data-original-title="<?php echo lang('Comment Between Time'); ?>"><i class="fa fa-info-circle"></i> 
 										</a>
 										
 									 </label> 
@@ -234,7 +234,7 @@
 
 					<div class="col-12">						
 						<div class="form-group p-0">
-							<label><?php echo $this->lang->line('') ?></label>
+							<label><?php echo lang('') ?></label>
 							<label>
 								<i class="fa fa-th-large"></i> <?php echo lang('Auto Comment Template'); ?> <span class="red">*</span> 
 							</label>
@@ -329,7 +329,7 @@
 							<div class="row">								
 								<div class="form-group schedule_block_item_new_p col-12 col-md-6">
 									<label><?php echo lang('Comment Between Time'); ?>
-										<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="" data-content="<?php echo $this->lang->line("Set the allowed time of the comment. As example you want to auto comment by page from 10 AM to 8 PM. You don't want to comment other time. So set it 10:00 & 20:00"); ?>" data-original-title="<?php echo lang('Comment Between Time'); ?>"><i class="fa fa-info-circle"></i> 
+										<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="" data-content="<?php echo lang("Set the allowed time of the comment. As example you want to auto comment by page from 10 AM to 8 PM. You don't want to comment other time. So set it 10:00 & 20:00"); ?>" data-original-title="<?php echo lang('Comment Between Time'); ?>"><i class="fa fa-info-circle"></i> 
 										</a>
 									</label>
 									<input placeholder="<?php echo lang('Time'); ?>"  name="edit_comment_start_time" id="edit_comment_start_time" class="form-control datetimepicker2" type="text"/>

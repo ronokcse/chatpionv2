@@ -10,9 +10,9 @@
 
 <?php 
   
-  $Youdidntprovideallinformation = $this->lang->line("you didn't provide all information.");
+  $Youdidntprovideallinformation = lang("you didn't provide all information.");
   $Pleaseprovidepostid = lang('please provide post id.');
-  $Youdidntselectanyoption = $this->lang->line("you didn\'t select any option.");
+  $Youdidntselectanyoption = lang("you didn\'t select any option.");
   
   $AlreadyEnabled = lang('already enabled');
   $ThispostIDisnotfoundindatabaseorthispostIDisnotassociatedwiththepageyouareworking = lang('This post ID is not found in database or this post ID is not associated with the page you are working.');
@@ -30,7 +30,7 @@
      </a> 
     </div>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$this->using_media_type); ?>"><?php echo lang('Comment Growth Tools'); ?></a></div>
+      <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$using_media_type); ?>"><?php echo lang('Comment Growth Tools'); ?></a></div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
@@ -97,7 +97,7 @@
         },
         language: 
         {
-          url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+          url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
         },
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         columnDefs: [
@@ -1156,7 +1156,7 @@
                 <div class="form-group clearfix" id="nofilter_word_found_div" style="margin-top: 10px; border: 1px dashed #ccc; padding: 10px;">
                   <label>
                     <i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-                    <a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+                    <a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
                   </label>
                   <?php if($comment_tag_machine_addon) {?>
                   <span class='float-right'> 
@@ -1609,7 +1609,7 @@
             <div class="form-group clearfix" id="edit_nofilter_word_found_div" style="margin-top: 10px; border: 1px dashed #ccc; padding: 10px;">
               <label>
                 <i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-                <a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+                <a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
               </label>
               <?php if($comment_tag_machine_addon) {?>
               <span class='float-right'> 

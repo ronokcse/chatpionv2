@@ -1,5 +1,5 @@
 <?php view('admin/theme/message'); ?>
-<?php $is_demo=$this->is_demo; ?>
+<?php $is_demo = $is_demo ?? '0'; ?>
 <?php $is_admin=(session()->get('user_type') == "Admin") ? 1:0; ?>
 <link rel="stylesheet" href="<?php echo base_url('assets/css/system/instagram/auto_comment_reply_template.css');?>">
 
@@ -55,7 +55,7 @@
          </a> 
         </div>
         <div class="section-header-breadcrumb">
-          <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$this->using_media_type); ?>"><?php echo lang('Comment Growth Tools'); ?></a></div>
+          <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$using_media_type); ?>"><?php echo lang('Comment Growth Tools'); ?></a></div>
           <div class="breadcrumb-item"><?php echo $page_title; ?></div>
         </div>
     </div>

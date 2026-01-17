@@ -5,7 +5,8 @@
 
 	if(addon_exist(201,"comment_reply_enhancers")) $comment_tag_machine_addon = 1;
 	else $comment_tag_machine_addon = 0;		
-	$report_page_name=urldecode($this->uri->segment(3));
+	// CI4 fix: Use variable passed from controller instead of $this->uri
+	$report_page_name = $report_page_name ?? '';
 
 	$image_upload_limit = 1; 
 	if(config('MyConfig')->autoreply_image_upload_limit != '')
@@ -24,9 +25,9 @@
   <div class="section-header">
     <h1><i class="fas fa-comments"></i> <?php echo $page_title; ?></h1>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$this->using_media_type); ?>"><?php echo lang('Comment Growth Tools'); ?></a></div>
+      <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$using_media_type); ?>"><?php echo lang('Comment Growth Tools'); ?></a></div>
       <div class="breadcrumb-item">
-      	<a href="<?php echo base_url("comment_automation/comment_section_report?media_type=".$this->using_media_type); ?>">
+      	<a href="<?php echo base_url("comment_automation/comment_section_report?media_type=".$using_media_type); ?>">
       		<?php echo lang('Report'); ?>
       	</a>
       </div>
@@ -244,7 +245,7 @@
 								<div class="form-group schedule_block_item_new_p col-12 col-md-6">
 									<label>
 										<?php echo lang('Comment Between Time'); ?>
-										<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="" data-content="<?php echo $this->lang->line("Set the allowed time of the comment. As example you want to auto comment by page from 10 AM to 8 PM. You don't want to comment other time. So set it 10:00 & 20:00"); ?>" data-original-title="<?php echo lang('Comment Between Time'); ?>"><i class="fa fa-info-circle"></i> 
+										<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="" data-content="<?php echo lang("Set the allowed time of the comment. As example you want to auto comment by page from 10 AM to 8 PM. You don't want to comment other time. So set it 10:00 & 20:00"); ?>" data-original-title="<?php echo lang('Comment Between Time'); ?>"><i class="fa fa-info-circle"></i> 
 										</a>												
 									</label> 
 									<input placeholder="<?php echo lang('Time'); ?>"  name="edit_comment_start_time" id="edit_comment_start_time" class="form-control datetimepicker2" type="text"/>

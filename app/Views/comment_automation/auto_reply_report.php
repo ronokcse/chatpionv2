@@ -85,7 +85,7 @@
 	$Youdidntselectanyoption = lang('you didnt select any option.');
 	$Youdidntprovideallinformation = lang('you didnt provide all information.');
 	
-	$doyoureallywanttoReprocessthiscampaign = $this->lang->line("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?");
+	$doyoureallywanttoReprocessthiscampaign = lang("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?");
 	$alreadyEnabled = lang('this campaign is already enable for processing.');
 
 ?>
@@ -93,8 +93,7 @@
 
 
 <script>
-	$("document").ready(function(){
-
+	$(document).ready(function(){
 		var base_url="<?php echo site_url(); ?>";
 		var page_table_id = '<?php echo $page_table_id; ?>';
 
@@ -109,7 +108,6 @@
 
 		var image_upload_limit = "<?php echo $image_upload_limit; ?>";
 		var video_upload_limit = "<?php echo $video_upload_limit; ?>";
-
 
 		// datatable section started
 		var perscroll;
@@ -126,7 +124,7 @@
 		    },
 		    language: 
 		    {
-		      url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+		      url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
 		    },
 		    dom: '<"top"f>rt<"bottom"lip><"clear">',
 		    columnDefs: [
@@ -161,8 +159,12 @@
 		});
 
 		var user_id = "<?php echo session()->get('user_id'); ?>";
-		<?php for($k=1;$k<=20;$k++) : ?>
-			$("#edit_filter_video_upload_<?php echo $k; ?>").uploadFile({
+		
+		// Check if uploadFile plugin is loaded, if not skip initialization
+		if (typeof $.fn.uploadFile !== 'undefined') {
+			<?php for($k=1;$k<=20;$k++) : ?>
+			try {
+				$("#edit_filter_video_upload_<?php echo $k; ?>").uploadFile({
 	    			url:base_url+"comment_automation/upload_live_video",
 	    			fileName:"myfile",
 	    			maxFileSize:video_upload_limit*1024*1024,
@@ -187,8 +189,11 @@
 	    				$("#edit_filter_video_upload_reply_<?php echo $k; ?>").val(file_path);	
 	    			}
 	    		});
+			} catch(e) {
+				// Error initializing uploadFile
+			}
 
-
+			try {
 	    		$("#edit_filter_image_upload_<?php echo $k; ?>").uploadFile({
 	    	        url:base_url+"comment_automation/upload_image_only",
 	    	        fileName:"myfile",
@@ -214,11 +219,18 @@
 	    	               $("#edit_filter_image_upload_reply_<?php echo $k; ?>").val(data_modified);	
 	    	           }
 	    	    });
+			} catch(e) {
+				// Error initializing uploadFile
+			}
 		<?php endfor; ?>
+		}
+		
 
 		var user_id = "<?php echo session()->get('user_id'); ?>";
 
-		$("#edit_generic_video_upload").uploadFile({
+		if (typeof $.fn.uploadFile !== 'undefined') {
+			try {
+				$("#edit_generic_video_upload").uploadFile({
 			url:base_url+"comment_automation/upload_live_video",
 			fileName:"myfile",
 			maxFileSize:video_upload_limit*1024*1024,
@@ -243,8 +255,11 @@
 				$("#edit_generic_video_comment_reply").val(file_path);	
 			}
 		});
+			} catch(e) {
+				// Error initializing uploadFile
+			}
 
-
+			try {
 		$("#edit_generic_comment_image").uploadFile({
 	        url:base_url+"comment_automation/upload_image_only",
 	        fileName:"myfile",
@@ -270,8 +285,11 @@
 	               $("#edit_generic_image_for_comment_reply").val(data_modified);		
 	           }
 	    });
+			} catch(e) {
+				// Error initializing uploadFile
+			}
 
-
+			try {
 	    $("#edit_nofilter_video_upload").uploadFile({
 			url:base_url+"comment_automation/upload_live_video",
 			fileName:"myfile",
@@ -297,8 +315,11 @@
 				$("#edit_nofilter_video_upload_reply").val(file_path);	
 			}
 		});
+			} catch(e) {
+				// Error initializing uploadFile
+			}
 
-
+			try {
 		$("#edit_nofilter_image_upload").uploadFile({
 	        url:base_url+"comment_automation/upload_image_only",
 	        fileName:"myfile",
@@ -324,6 +345,10 @@
 	               $("#edit_nofilter_image_upload_reply").val(data_modified);		
 	           }
 	    });
+			} catch(e) {
+				// Error initializing uploadFile
+			}
+		}
 
 
 	    	//$(".previewLoader").hide();
@@ -349,6 +374,7 @@
 
 	    	$(document).on('click','.pause_campaign_info',function(e){
 	    		e.preventDefault();
+	    		e.stopPropagation();
 	    		swal({
 	    			title: '',
 	    			text: Doyouwanttopausethiscampaign,
@@ -574,7 +600,7 @@
 		    	        },
 		    	        language: 
 		    	        {
-		    	          url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+		    	          url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
 		    	        },
 		    	        dom: '<"top"f>rt<"bottom"lip><"clear">',
 		    	        columnDefs: [
@@ -1156,10 +1182,10 @@
 			
 			<br/>
 			<?php
-			  $is_broadcaster_exist=false;
-			  if($this->is_broadcaster_exist)
+			  $local_is_broadcaster_exist = $is_broadcaster_exist ?? false;
+			  if($local_is_broadcaster_exist)
 			  {
-			      $is_broadcaster_exist=true;
+			      $local_is_broadcaster_exist = true;
 			  }
 		      $popover='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Labels').'" data-content="'.lang('If you choose labels, then when user comment on the post & get private reply in their inbox , they will be added in those labels, that will help you to segment your leads & broadcasting from Messenger Broadcaster. If you don`t want to add labels for this post comment , then just keep it blank as it is.
 Add label will only work once private reply is setup.  And you will need to sync subscribers later to update subscriber information. In this way the subscriber will not eligible for BOT subscriber until they reply back in messenger.').'"><i class="fa fa-info-circle"></i> </a>';
@@ -1500,7 +1526,7 @@ Add label will only work once private reply is setup.  And you will need to sync
 						<div class="form-group clearfix" id="edit_nofilter_word_found_div" style="margin-top: 10px; border: 1px dashed #e4e6fc; padding: 20px;">
 							<label>
 								<i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-								<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+								<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
 							</label>
 							<?php if($comment_tag_machine_addon) {?>
 							<span class='float-right'> 
@@ -1675,7 +1701,7 @@ Add label will only work once private reply is setup.  And you will need to sync
 
 <input type="hidden" name="dynamic_page_id" id="dynamic_page_id">
 <script type="text/javascript">
-	$("document").ready(function(){		
+	$(document).ready(function(){		
 		var base_url = "<?php echo base_url(); ?>";
 
 		$('.modal').on("hidden.bs.modal", function (e) { 

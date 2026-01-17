@@ -16,7 +16,7 @@
  							<div class="wizard-step-icon">
  								<img class="img-fluid" width="<?php if($media_type=='fb') echo '80'; else echo '100'; ?>" src="<?php echo $growth_tool['img_path']; ?>" alt="">
  							</div>
- 							<div class="wizard-step-label"><?php echo $this->lang->line($growth_tool['title']); ?></div>
+ 							<div class="wizard-step-label"><?php echo lang($growth_tool['title']); ?></div>
  						</div>
  					</div>
  				</a>
@@ -52,7 +52,7 @@
 		  	type: 'POST',
 		  	data: {media_type: switch_media_type},
 		  	success:function(response){
-		  		window.location.assign('<?php echo base_url('comment_automation/comment_growth_tools/'.$this->using_media_type); ?>');
+		  		window.location.assign('<?php echo base_url('comment_automation/comment_growth_tools/'.$media_type); ?>');
 		  	}
 		  });
 		});

@@ -352,7 +352,7 @@
             <div class="form-group clearfix" id="pageresponse_nofilter_word_found_div" style="margin-top: 10px; border: 1px dashed #e4e6fc; padding: 20px;">
               <label>
                 <i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-                <a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+                <a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
               </label>
               <?php if($comment_tag_machine_addon) {?>
               <span class='float-right'> 
@@ -815,7 +815,7 @@
             <div class="form-group clearfix" id="pageresponse_edit_nofilter_word_found_div" style="margin-top: 10px; border: 1px dashed #e4e6fc; padding: 20px;">
               <label>
                 <i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-                <a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+                <a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
               </label>
               <?php if($comment_tag_machine_addon) {?>
               <span class='float-right'> 

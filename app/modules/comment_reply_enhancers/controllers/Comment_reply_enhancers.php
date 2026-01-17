@@ -31,18 +31,27 @@ Version: 2.1
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+// CI4 fix: Use namespace instead of require_once
+namespace App\Modules\Comment_reply_enhancers\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Comment_reply_enhancers extends Home
 {
 	public $addon_data=array();
-    public function __construct()
+    
+    // CI4 fix: Use initController instead of __construct
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
         // getting addon information in array and storing to public variable
         // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
         //------------------------------------------------------------------------------------------
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        // CI4 fix: Use fixed path instead of router->fetch_class()
+        $addon_path=APPPATH."modules/comment_reply_enhancers/controllers/Comment_reply_enhancers.php"; // path of addon controller
         $addondata=$this->get_addon_data($addon_path);
         $this->addon_data=$addondata;
 
@@ -50,19 +59,22 @@ class Comment_reply_enhancers extends Home
 
         $this->user_id=$this->session->userdata('user_id'); // user_id of logged in user, we may need it
 
-        $function_name=$this->uri->segment(2);
+        // CI4 fix: Use request->getUri()->getSegment() instead of uri->segment()
+        $function_name=$this->request->getUri()->getSegment(2);
         if($function_name!="auto_like_on_post" && $function_name!="auto_share_on_post")
         {
              // all addon must be login protected
               //------------------------------------------------------------------------------------------
-              if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');          
+              if ($this->session->userdata('logged_in')!= 1) {
+                  return redirect()->to('home/login');
+              }          
               // if you want the addon to be accessed by admin and member who has permission to this addon
               //-------------------------------------------------------------------------------------------
               if(isset($addondata['module_id']) && is_array($addondata['module_id']) && !empty($addondata['module_id']))
               {
                 if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($addondata['module_id'],$this->module_access))==0)
                   {
-                        redirect('home/login_page', 'location');
+                        return redirect()->to('home/login_page');
                         exit();
                   }
               }
@@ -564,7 +576,7 @@ class Comment_reply_enhancers extends Home
     public function post_list($page_info_table_id=0,$post_id=0)
     {
         if($this->session->userdata('user_type') != 'Admin' && !in_array(202,$this->module_access) && !in_array(201,$this->module_access))
-        redirect('home/login_page', 'location'); 
+        return redirect()->to('home/login_page'); 
 
         $data['body'] = "post_list";
         $data['page_title'] = $this->lang->line("Campaign List");
@@ -1231,7 +1243,7 @@ class Comment_reply_enhancers extends Home
     public function bulk_tag_campaign_list($tag_machine_enabled_post_list=0,$campaign_id=0)
     {
         if($this->session->userdata('user_type') != 'Admin' && !in_array(201,$this->module_access))
-        redirect('home/login_page', 'location'); 
+        return redirect()->to('home/login_page'); 
 
         $data['body'] = "bulk_tag_campaign_list";
         $data['page_title'] = $this->lang->line("Comment & Bulk Tag Campaign Report");
@@ -1663,7 +1675,7 @@ class Comment_reply_enhancers extends Home
     public function bulk_comment_reply_campaign_list($tag_machine_enabled_post_list=0,$campaign_id=0)
     {
         if($this->session->userdata('user_type') != 'Admin' && !in_array(202,$this->module_access))
-        redirect('home/login_page', 'location'); 
+        return redirect()->to('home/login_page'); 
 
         $data['body'] = "bulk_comment_reply_campaign_list";
         $data['page_title'] = $this->lang->line("Bulk Comment Reply Campaign Report");
@@ -2606,7 +2618,7 @@ class Comment_reply_enhancers extends Home
     public function all_like_share_report()
     {
         if($this->session->userdata('user_type') != 'Admin' && !in_array(206,$this->module_access))
-        redirect('home/login_page', 'location');
+        return redirect()->to('home/login_page');
         $where = array("where"=>array("facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),"user_id"=>$this->user_id,'bot_enabled'=>'1'));
         if(!empty($this->team_allowed_pages)){
             $where['where_in'] = array("facebook_rx_fb_page_info.id"=>$this->team_allowed_pages);

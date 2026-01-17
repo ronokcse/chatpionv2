@@ -1,34 +1,42 @@
 <?php
 
-require_once("Home.php"); // including home controller
+namespace App\Controllers;
 
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
+// CI4 fix: Use namespace instead of require_once
 class Comment_automation extends Home
 {
-
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-      parent::__construct();
-      $function_name=$this->uri->segment(2);
-      if($function_name!="webhook_callback_main" && $function_name!='send_autoreply_with_postid') 
-      {
-        if ($this->session->userdata('logged_in') != 1)
-        redirect('home/login_page', 'location');   
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array(278,279,80))) == 0)
-        redirect('home/login_page', 'location'); 
-      }
-
-      if($function_name!="" && $function_name!="index" && $function_name!="comment_template_manager" && $function_name!="template_manager" && $function_name!="template_manager_data" && $function_name!="autoreply_template_manager_data" && $function_name!="comment_section_report" && $function_name!="delete_comment" && $function_name!="delete_template" && $function_name!="create_template_action" && $function_name!="autoreply_template_submit" && $function_name!="ajaxselect")
-      {
-        if($function_name!="webhook_callback_main" && $function_name!='send_autoreply_with_postid') {
-             if($this->session->userdata("facebook_rx_fb_user_info")==0)
-             redirect('social_accounts/index','refresh');
+        parent::initController($request, $response, $logger);
+        
+        $function_name = $this->uri->segment(2);
+        
+        if($function_name != "webhook_callback_main" && $function_name != 'send_autoreply_with_postid') 
+        {
+            if ($this->session->userdata('logged_in') != 1)
+                return redirect()->to('home/login_page');   
+            if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array(278,279,80))) == 0)
+                return redirect()->to('home/login_page'); 
         }
+
+        if($function_name != "" && $function_name != "index" && $function_name != "comment_template_manager" && $function_name != "template_manager" && $function_name != "template_manager_data" && $function_name != "autoreply_template_manager_data" && $function_name != "comment_section_report" && $function_name != "delete_comment" && $function_name != "delete_template" && $function_name != "create_template_action" && $function_name != "autoreply_template_submit" && $function_name != "ajaxselect")
+        {
+            if($function_name != "webhook_callback_main" && $function_name != 'send_autoreply_with_postid') {
+                if($this->session->userdata("facebook_rx_fb_user_info") == 0)
+                    return redirect()->to('social_accounts/index');
+            }
       
-        $this->load->library("fb_rx_login");
-      }
+            $this->load->library("fb_rx_login");
+        }
 
-      $this->member_validity(); 
-
+        $this->member_validity(); 
     }
 
 
@@ -37,7 +45,7 @@ class Comment_automation extends Home
       $media_type = $this->using_media_type;
       if(addon_exist($module_id=320,$addon_unique_name="instagram_bot")) {
         if($media_type == "ig") {
-          redirect("instagram_reply/get_account_lists?media_type=".$media_type);
+          return redirect()->to("instagram_reply/get_account_lists?media_type=".$media_type);
         }
       }
       
@@ -61,6 +69,10 @@ class Comment_automation extends Home
       $this->is_broadcaster_exist=$this->broadcaster_exist();
       $data['body'] = 'comment_automation/auto_reply_page_list';
       $data['page_title'] = $this->lang->line('Facebook Comment Automation Campaign');
+      // CI4 fix: Pass using_media_type and other properties to view
+      $data['using_media_type'] = $this->using_media_type ?? 'fb';
+      $data['is_broadcaster_exist'] = $this->is_broadcaster_exist ?? false;
+      $data['language'] = $this->language ?? 'english';
       // echo $this->session->userdata('selected_global_page_table_id');exit;
 
       $data['auto_comment_template'] = $this->basic->get_data('auto_comment_reply_tb',array("where"=>array('user_id'=>$this->user_id)),array('id','template_name'));
@@ -550,7 +562,7 @@ class Comment_automation extends Home
                 }
 
             }
-            catch(Exception $e) 
+            catch(\Exception $e) 
             {
               $error_msg = '
                 <div class="card" id="nodata">
@@ -733,7 +745,7 @@ class Comment_automation extends Home
     {   
         $media_type = $this->using_media_type;
         if($media_type == 'ig') {
-          redirect('instagram_reply/template_manager?media_type='.$media_type);
+          return redirect()->to('instagram_reply/template_manager?media_type='.$media_type);
         }
         $data['body'] = 'comment_automation/template_manager';
         $data['page_title'] = $this->lang->line('Auto Reply Template Manager');
@@ -1205,10 +1217,10 @@ class Comment_automation extends Home
     public function scanAll($myDir)
     {
         $dirTree = array();
-        $di = new RecursiveDirectoryIterator($myDir,RecursiveDirectoryIterator::SKIP_DOTS);
+        $di = new \RecursiveDirectoryIterator($myDir,\RecursiveDirectoryIterator::SKIP_DOTS);
 
         $i=0;
-        foreach (new RecursiveIteratorIterator($di) as $filename) {
+        foreach (new \RecursiveIteratorIterator($di) as $filename) {
 
             $dir = str_replace($myDir, '', dirname($filename));
             $dir = str_replace('/', '>', substr($dir,1));
@@ -1815,11 +1827,17 @@ class Comment_automation extends Home
         $edit_auto_like_comment = $this->input->post('edit_auto_like_comment',true);
         $edit_comment_reply_enabled = $this->input->post('edit_comment_reply_enabled',true);
         $edit_hide_comment_after_comment_reply = $this->input->post('edit_hide_comment_after_comment_reply',true);
+        // CI4 fix: Define trigger_matching_type and other AI-related variables with default values
+        $edit_trigger_matching_type = $this->input->post('edit_trigger_matching_type',true) ?? '';
+        $edit_ai_reply_enabled = $this->input->post('edit_ai_reply_enabled',true) ?? '0';
+        $edit_ai_training_data = $this->input->post('edit_ai_training_data',true) ?? '';
 
         if($edit_multiple_reply == '') $edit_multiple_reply = 'no';
         if($edit_comment_reply_enabled == '') $edit_comment_reply_enabled = 'no';
         if($edit_auto_like_comment == '') $edit_auto_like_comment = 'no';
         if($edit_hide_comment_after_comment_reply == '') $edit_hide_comment_after_comment_reply = 'no';
+        if($edit_trigger_matching_type == '') $edit_trigger_matching_type = 'exact';
+        if($edit_ai_reply_enabled == '') $edit_ai_reply_enabled = '0';
 
         $return = array();
 
@@ -1922,12 +1940,12 @@ class Comment_automation extends Home
         if($this->basic->update_data('facebook_ex_autoreply',$where,$data))
         {
             $return['status'] = 1;
-            $return['message'] = $this->lang->line("your given information has been updated successfully.");
+            $return['message'] = lang("your given information has been updated successfully.");
         }
         else
         {
             $return['status'] = 0;
-            $return['message'] = $this->lang->line("something went wrong, please try again.");
+            $return['message'] = lang("something went wrong, please try again.");
         }
         echo json_encode($return);
     }
@@ -1944,6 +1962,9 @@ class Comment_automation extends Home
         $data['body'] = 'comment_automation/auto_reply_report';
         $data['page_title'] = $this->lang->line('Auto reply - Report');
         $data['page_table_id'] = $page_info_table_id;
+        // CI4 fix: Pass language and is_broadcaster_exist to view
+        $data['language'] = $this->language ?? 'english';
+        $data['is_broadcaster_exist'] = $this->is_broadcaster_exist ?? false;
         $data['emotion_list'] = $this->get_emotion_list();
         $this->_viewcontroller($data);
     }
@@ -2262,11 +2283,15 @@ class Comment_automation extends Home
             // tell the browser we want to save it instead of displaying it
             header('Content-Disposition: attachment; filename="'.$filename.'";');
             // make php send the generated csv lines to the browser
-            fpassthru($f);  
+            fpassthru($f);
+            exit(); // CI4 fix: Exit after sending file
         }
         else
         {
-            $str = "<div class='alert alert-danger'>{$this->lang->line("no data to show")}</div>";
+            // CI4 fix: Use lang() helper instead of $this->lang->line()
+            $str = "<div class='alert alert-danger'>".lang("no data to show")."</div>";
+            echo $str;
+            exit();
         }
     }
 
@@ -2287,6 +2312,10 @@ class Comment_automation extends Home
 
         $data['body'] = 'comment_automation/all_auto_reply_report';
         $data['page_title'] = $this->lang->line('All Auto Reply Report');
+        // CI4 fix: Pass using_media_type, language, and is_broadcaster_exist to view
+        $data['using_media_type'] = $this->using_media_type ?? 'fb';
+        $data['language'] = $this->language ?? 'english';
+        $data['is_broadcaster_exist'] = $this->is_broadcaster_exist ?? false;
         $data['emotion_list'] = $this->get_emotion_list();
         $data['post_id'] = $post_id;
         $this->_viewcontroller($data);
@@ -2454,7 +2483,8 @@ class Comment_automation extends Home
         $where = array('id'=>$id,'user_id'=>$this->user_id);
         $data = array('auto_private_reply_status'=>'0');
         $this->basic->update_data('facebook_ex_autoreply',$where,$data);
-        if($this->db->affected_rows() != 0)
+        // CI4 fix: Use affectedRows() instead of affected_rows()
+        if($this->db->affectedRows() != 0)
             echo "1";
         else
             echo "0";
@@ -2580,11 +2610,14 @@ class Comment_automation extends Home
     {
         $media_type = $this->using_media_type;
         if($media_type == 'ig') {
-          redirect('instagram_reply/reports?media_type='.$media_type);
+          return redirect()->to('instagram_reply/reports?media_type='.$media_type);
         }
 
         $data['body'] = 'comment_automation/report_block';
         $data['page_title'] = $this->lang->line('Report Section');
+        // CI4 fix: Pass using_media_type and module_access to view
+        $data['using_media_type'] = $this->using_media_type ?? 'fb';
+        $data['module_access'] = $this->module_access ?? [];
         $this->_viewcontroller($data);
     }
 
@@ -2727,7 +2760,7 @@ class Comment_automation extends Home
                 }
 
             }
-            catch(Exception $e)
+            catch(\Exception $e)
             {
                 $post_created_at = "";
                 $post_description = "";
@@ -2763,7 +2796,7 @@ class Comment_automation extends Home
                     }
                 }
             }
-            catch(Exception $e)
+            catch(\Exception $e)
             {            
                 $post_created_at = "";
                 $post_description = "";
@@ -3172,6 +3205,9 @@ class Comment_automation extends Home
         $data['post_id'] = $post_id;
         $data['page_id'] = $page_id;
         $data['is_instagram'] = $is_instagram;
+        // CI4 fix: Pass URI segment and using_media_type to view instead of using $this->uri in view
+        $data['report_page_name'] = urldecode($page_id ?? '');
+        $data['using_media_type'] = $this->using_media_type ?? 'fb';
         $data['body'] = 'comment_automation/all_auto_comment_report';
         $data['page_title'] = $this->lang->line('All Auto Comment Report');
         $data['emotion_list'] = $this->get_emotion_list();
@@ -3354,7 +3390,8 @@ class Comment_automation extends Home
         $where = array('id'=>$id,'user_id'=>$this->user_id);
         $data = array('auto_private_reply_status'=>'0');
         $this->basic->update_data('auto_comment_reply_info',$where,$data);
-        if($this->db->affected_rows() != 0)
+        // CI4 fix: Use affectedRows() instead of affected_rows()
+        if($this->db->affectedRows() != 0)
           echo "1";
         else
           echo "0";
@@ -3367,6 +3404,9 @@ class Comment_automation extends Home
     {
         $data['body'] = 'comment_automation/auto_comment_reply_template';
         $data['page_title'] = $this->lang->line('Auto Comment Template Manager');
+        // CI4 fix: Pass is_demo and using_media_type to view
+        $data['is_demo'] = $this->is_demo ?? '0';
+        $data['using_media_type'] = $this->using_media_type ?? 'fb';
         
         $this->_viewcontroller($data);
     }
@@ -3445,7 +3485,7 @@ class Comment_automation extends Home
     public function template_manager_data()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET')
-        redirect('home/access_forbidden', 'location');
+            return redirect()->to('home/access_forbidden');
 
         $this->ajax_check();
 
@@ -4693,7 +4733,7 @@ class Comment_automation extends Home
                                   break;
                                 
                               }
-                              catch(Exception $e){
+                              catch(\Exception $e){
                                   
                               }
                           }
@@ -4703,7 +4743,7 @@ class Comment_automation extends Home
                                 $this->fb_rx_login->hide_comment($comment_id,$post_access_token);
                                 $is_hidden_success = 1;  
                             }
-                            catch(Exception $e){
+                            catch(\Exception $e){
 
                             }
                           }
@@ -4938,7 +4978,7 @@ class Comment_automation extends Home
                               }
                           }
                       }
-                      catch(Exception $e){
+                      catch(\Exception $e){
                           $comment_result_info['reply_status_comment']= $e->getMessage();
                       }
                   }
@@ -5077,7 +5117,7 @@ class Comment_automation extends Home
                       }
                   }
 
-                  catch(Exception $e){
+                  catch(\Exception $e){
                       $comment_result_info['reply_status']= $e->getMessage();
                       $comment_result_info['reply_id']="";
                   }
@@ -5090,7 +5130,7 @@ class Comment_automation extends Home
                       {
                           $this->fb_rx_login->auto_like($comment_id,$post_access_token);
                       }
-                      catch(Exception $e){
+                      catch(\Exception $e){
 
                       }
 
@@ -5655,7 +5695,7 @@ class Comment_automation extends Home
                                 break;
                               
                             }
-                            catch(Exception $e){
+                            catch(\Exception $e){
                                 
                             }
                         }
@@ -5665,7 +5705,7 @@ class Comment_automation extends Home
                               $this->fb_rx_login->hide_comment($comment_id,$post_access_token);
                               $is_hidden_success = 1;  
                           }
-                          catch(Exception $e){
+                          catch(\Exception $e){
 
                           }
                         }
@@ -5901,7 +5941,7 @@ class Comment_automation extends Home
                             }
                         }
                     }
-                    catch(Exception $e){
+                    catch(\Exception $e){
                         $comment_result_info['reply_status_comment']= $e->getMessage();
                     }
                 }
@@ -6038,7 +6078,7 @@ class Comment_automation extends Home
                     }
                 }
 
-                catch(Exception $e){
+                catch(\Exception $e){
                     $comment_result_info['reply_status']= $e->getMessage();
                     $comment_result_info['reply_id']="";
                 }
@@ -6051,7 +6091,7 @@ class Comment_automation extends Home
                     {
                         $this->fb_rx_login->auto_like($comment_id,$post_access_token);
                     }
-                    catch(Exception $e){
+                    catch(\Exception $e){
 
                     }
 
@@ -6355,9 +6395,9 @@ class Comment_automation extends Home
 
                         $comment_id = $value['id'] ?? 0;
 
-                        $date=new DateTime($value['created_time']['date'],new DateTimeZone("UTC"));
+                        $date=new \DateTime($value['created_time']['date'],new \DateTimeZone("UTC"));
                         $tz = date_default_timezone_get();
-                        $date->setTimezone(new DateTimeZone($tz));
+                        $date->setTimezone(new \DateTimeZone($tz));
                         $created_time_new = $date->format('M j, Y h:i A');
 
                         $html .='

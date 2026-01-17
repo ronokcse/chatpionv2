@@ -101,7 +101,7 @@
 	<div class="section-header">
 		<h1><i class="fas fa-comments"></i> <?php echo $page_title;?></h1>
 		<div class="section-header-breadcrumb">
-        <div class="breadcrumb-item active"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$this->using_media_type); ?>"><?php echo lang('Comment Growth Tools'); ?></a></div>
+        <div class="breadcrumb-item active"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$using_media_type); ?>"><?php echo lang('Comment Growth Tools'); ?></a></div>
         <div class="breadcrumb-item"><?php echo $page_title ?></div>
       </div>
 	  </div>
@@ -191,7 +191,7 @@ else
 
 
 <?php 
-	$Youdidntprovideallinformation = $this->lang->line("you didn\'t provide all information.");
+	$Youdidntprovideallinformation = lang("you didn\'t provide all information.");
 	$Pleaseprovidepostid = lang('please provide post id.');
 	$Youdidntselectanytemplate = lang('you have not select any template.');
 	$Youdidntselectanyoptionyet = lang('you have not select any option yet.');
@@ -1267,7 +1267,7 @@ else
 					<div class="row" style="padding-left: 20px; padding-right: 20px;">         			
 						<div class="col-12 col-md-6">
 							<label><i class="fa fa-th-list"></i> <?php echo lang('do you want to use saved template?') ?>
-								<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("If you want to set campaign from previously saved template, then keep 'Yes' & select from below select option. If you want to add new settings, then select 'NO' , then auto reply settings form will come."); ?>"><i class='fa fa-info-circle'></i> </a>
+								<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("If you want to set campaign from previously saved template, then keep 'Yes' & select from below select option. If you want to add new settings, then select 'NO' , then auto reply settings form will come."); ?>"><i class='fa fa-info-circle'></i> </a>
 							</label>
 						</div>
 						<div class="col-12 col-md-6">
@@ -1282,10 +1282,10 @@ else
 					</div>
 
 					<?php
-					  $is_broadcaster_exist=false;
-					  if($this->is_broadcaster_exist)
+					  $local_is_broadcaster_exist = $is_broadcaster_exist ?? false;
+					  if($local_is_broadcaster_exist)
 					  {
-					      $is_broadcaster_exist=true;
+					      $local_is_broadcaster_exist = true;
 					  }
 				      $popover='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Labels').'" data-content="'.lang('If you choose labels, then when user comment on the post & get private reply in their inbox , they will be added in those labels, that will help you to segment your leads & broadcasting from Messenger Broadcaster. If you don`t want to add labels for this post comment , then just keep it blank as it is.
 Add label will only work once private reply is setup.  And you will need to sync subscribers later to update subscriber information. In this way the subscriber will not eligible for BOT subscriber until they reply back in messenger.').'"><i class="fa fa-info-circle"></i> </a>';
@@ -1691,7 +1691,7 @@ Add label will only work once private reply is setup.  And you will need to sync
 								<div class="form-group clearfix" id="nofilter_word_found_div" style="margin-top: 10px; border: 1px dashed #e4e6fc; padding: 20px;">
 									<label>
 										<i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-										<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+										<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
 									</label>
 									<?php if($comment_tag_machine_addon) {?>
 									<span class='float-right'> 
@@ -1801,10 +1801,10 @@ Add label will only work once private reply is setup.  And you will need to sync
 			
 			<br/>
 				<?php
-				  $is_broadcaster_exist=false;
-				  if($this->is_broadcaster_exist)
+				  $local_is_broadcaster_exist = $is_broadcaster_exist ?? false;
+				  if($local_is_broadcaster_exist)
 				  {
-				      $is_broadcaster_exist=true;
+				      $local_is_broadcaster_exist = true;
 				  }
 			      $popover='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Labels').'" data-content="'.lang('If you choose labels, then when user comment on the post & get private reply in their inbox , they will be added in those labels, that will help you to segment your leads & broadcasting from Messenger Broadcaster. If you don`t want to add labels for this post comment , then just keep it blank as it is.
 Add label will only work once private reply is setup.  And you will need to sync subscribers later to update subscriber information. In this way the subscriber will not eligible for BOT subscriber until they reply back in messenger.').'"><i class="fa fa-info-circle"></i> </a>';
@@ -2196,7 +2196,7 @@ Add label will only work once private reply is setup.  And you will need to sync
 						<div class="form-group clearfix" id="edit_nofilter_word_found_div" style="margin-top: 10px; border: 1px dashed #e4e6fc; padding: 20px;">
 							<label>
 								<i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-								<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+								<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
 							</label>
 							<?php if($comment_tag_machine_addon) {?>
 							<span class='float-right'> 
@@ -2316,9 +2316,9 @@ Add label will only work once private reply is setup.  And you will need to sync
 								</button>
 								<div class="alert-title"><?php echo lang('Disclaimer'); ?></div>
 								<?php 
-									echo $this->lang->line("Facebook ads post that you have created from Facebook Ads Manager, if you have ever edited/modified your ads after creating, then this technique of 'Set Campaign by ID' may not work as Facebook creates different variation of your post for each time you edit. Preview post for that ads may have different ID, which leads to a wrong ID actually sometimes."); 
+									echo lang("Facebook ads post that you have created from Facebook Ads Manager, if you have ever edited/modified your ads after creating, then this technique of 'Set Campaign by ID' may not work as Facebook creates different variation of your post for each time you edit. Preview post for that ads may have different ID, which leads to a wrong ID actually sometimes."); 
 									if(addon_exist(204,"comment_reply_enhancers"))
-										echo $this->lang->line("In this case we suggest to use 'Full page campaigns' feature.");
+										echo lang("In this case we suggest to use 'Full page campaigns' feature.");
 								?>	
 							</div>
 						</div>
@@ -2387,10 +2387,10 @@ Add label will only work once private reply is setup.  And you will need to sync
 
 
 <!-- start of auto comment javascript section -->
-<?php include(FCPATH.'application/views/comment_automation/autocomment_javascript_section.php'); ?>
+<?php include(APPPATH.'Views/comment_automation/autocomment_javascript_section.php'); ?>
 <!-- end of auto comment javascript section -->
 <!-- start of auto comment modal section -->
-<?php include(FCPATH.'application/views/comment_automation/autocomment_modal_section.php'); ?>
+<?php include(APPPATH.'Views/comment_automation/autocomment_modal_section.php'); ?>
 <!-- end of auto comment modal section -->
 
 
@@ -2931,16 +2931,16 @@ Add label will only work once private reply is setup.  And you will need to sync
 
 
 <!-- =========== pageresponse javascript section =============  --> 
-<?php include(FCPATH.'application/views/comment_automation/pageresponse_javascript_section.php'); ?>
+<?php include(APPPATH.'Views/comment_automation/pageresponse_javascript_section.php'); ?>
 <!-- =========== end of pageresponse javascript section =============  --> 
 
 <!-- =========== pageresponse modal section ============= -->
-<?php include(FCPATH.'application/views/comment_automation/pageresponse_modal_section.php'); ?>
+<?php include(APPPATH.'Views/comment_automation/pageresponse_modal_section.php'); ?>
 <!-- =========== end of pageresponse modal section ============= -->
 
 
 <!-- =========== pageresponse likeshare section ============= -->
-<?php include(FCPATH.'application/views/comment_automation/pageresponse_likeshare_section.php'); ?>
+<?php include(APPPATH.'Views/comment_automation/pageresponse_likeshare_section.php'); ?>
 <!-- =========== end of pageresponse likeshare section ============= -->
 
 
@@ -3063,7 +3063,7 @@ Add label will only work once private reply is setup.  And you will need to sync
 	$Youdidntselectanyoption = lang('you didnt select any option.');
 	$Youdidntprovideallinformation = lang('you didnt provide all information.');
 	
-	$doyoureallywanttoReprocessthiscampaign = $this->lang->line("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?");
+	$doyoureallywanttoReprocessthiscampaign = lang("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?");
 	$alreadyEnabled = lang('this campaign is already enable for processing.');
 
 ?>
@@ -3111,7 +3111,7 @@ Add label will only work once private reply is setup.  And you will need to sync
   	        },
   	        language: 
   	        {
-  	          url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+  	          url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
   	        },
   	        dom: '<"top"f>rt<"bottom"lip><"clear">',
   	        columnDefs: [
