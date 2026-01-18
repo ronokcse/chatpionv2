@@ -1,6 +1,8 @@
 <form id="test_message_form">	
-
-  	<?php if($this->uri->segment(2)!='edit_conversation_message_content') 
+  	<?php 
+  	// CI4 fix: Use service('uri') or $uri variable instead of $this->uri
+  	$uri_segment_2 = ($uri ?? service('uri'))->getSegment(2) ?? '';
+  	if($uri_segment_2!='edit_conversation_message_content') 
   	{?>
 	  	<div class="form-group">
 	        <label class="full_width">&nbsp;</label>

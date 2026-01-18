@@ -181,7 +181,7 @@
 
           // $cart_lang = $cart_count>0 ? lang('Add to Cart') : lang('Cart');
           $cart_lang = $product_listing=='list' ? lang('Add to Cart') : '';
-          $buy_button_title = $product_listing=='list' ? $this->lang->line($buy_button_title) : '';
+          $buy_button_title = $product_listing=='list' ? lang($buy_button_title) : '';
           $is_float = $product_listing=='list' ? 'float-right' : 'float-right';
           $display_buy_button = $display_add_to_cart = "";
           $btn_size = $product_listing=='list' ? 'btn-sm' : '';

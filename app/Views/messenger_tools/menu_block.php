@@ -39,8 +39,8 @@
            </div>
          </div>
 
-         <?php if($this->basic->is_exist("add_ons",array("project_id"=>49))) { ?>
-           <?php if(session()->get('user_type') == 'Admin' || in_array(292,$this->module_access)) { ?>
+         <?php if(($basic ?? null) && $basic->is_exist("add_ons",array("project_id"=>49))) { ?>
+           <?php if(session()->get('user_type') == 'Admin' || in_array(292,$module_access ?? [])) { ?>
              <!-- Instagram User input flow section -->
              <div class="col-lg-6">
                <div class="card card-large-icons">
@@ -49,7 +49,7 @@
                  </div>
                  <div class="card-body">
                    <h4><?php echo lang('User Input Flow & Custom Fields'); ?></h4>
-                   <p><?php echo $this->lang->line("Create flow campaign & custom fields to store user's data"); ?></p>
+                   <p><?php echo lang("Create flow campaign & custom fields to store user's data"); ?></p>
                    
                    <div class="dropdown">
                      <a href="#" data-toggle="dropdown" class="no_hover" style="font-weight: 500;"><?php echo lang('Actions'); ?> <i class="fas fa-chevron-right"></i></a>
@@ -99,7 +99,7 @@
            </div>
          </div>
        </div>
-       <?php if(session()->get('user_type') == 'Admin' || in_array(275,$this->module_access)) : ?>
+       <?php if(session()->get('user_type') == 'Admin' || in_array(275,$module_access ?? [])) : ?>
        <div class="col-lg-6">
          <div class="card card-large-icons">
            <div class="card-icon text-primary">
@@ -134,7 +134,7 @@
          </div>
        </div>
 
-       <?php if($this->is_engagement_exist) : ?>
+       <?php if($is_engagement_exist ?? false) : ?>
        <div class="col-lg-6">
          <div class="card card-large-icons">
            <div class="card-icon text-primary">
@@ -148,10 +148,10 @@
                <a href="#" data-toggle="dropdown" class="no_hover" style="font-weight: 500;"><?php echo lang('Actions'); ?> <i class="fas fa-chevron-right"></i></a>
                <div class="dropdown-menu">
                  <div class="dropdown-title"><?php echo lang('Tools'); ?></div>                        
-                 <?php if(session()->get('user_type') == 'Admin' || in_array(213,$this->module_access)) : ?><a class="dropdown-item has-icon" href="<?php echo base_url('messenger_bot_enhancers/checkbox_plugin_list'); ?>"><i class="fas fa-check-square"></i> <?php echo lang('Checkbox Plugin'); ?></a><?php endif; ?>
-                 <?php if(session()->get('user_type') == 'Admin' || in_array(214,$this->module_access)) : ?><a class="dropdown-item has-icon" href="<?php echo base_url('messenger_bot_enhancers/send_to_messenger_list'); ?>"><i class="fas fa-paper-plane"></i> <?php echo lang('Send to Messenger'); ?></a><?php endif; ?>
-                 <?php if(session()->get('user_type') == 'Admin' || in_array(215,$this->module_access)) : ?><a class="dropdown-item has-icon" href="<?php echo base_url('messenger_bot_enhancers/mme_link_list'); ?>"><i class="fas fa-link"></i> <?php echo lang('m.me Link'); ?></a><?php endif; ?>
-                 <?php if(session()->get('user_type') == 'Admin' || in_array(217,$this->module_access)) : ?><a class="dropdown-item has-icon" href="<?php echo base_url('messenger_bot_enhancers/customer_chat_plugin_list'); ?>"><i class="fas fa-comments"></i> <?php echo lang('Customer Chat Plugin'); ?></a><?php endif; ?>
+                 <?php if(session()->get('user_type') == 'Admin' || in_array(213,$module_access ?? [])) : ?><a class="dropdown-item has-icon" href="<?php echo base_url('messenger_bot_enhancers/checkbox_plugin_list'); ?>"><i class="fas fa-check-square"></i> <?php echo lang('Checkbox Plugin'); ?></a><?php endif; ?>
+                 <?php if(session()->get('user_type') == 'Admin' || in_array(214,$module_access ?? [])) : ?><a class="dropdown-item has-icon" href="<?php echo base_url('messenger_bot_enhancers/send_to_messenger_list'); ?>"><i class="fas fa-paper-plane"></i> <?php echo lang('Send to Messenger'); ?></a><?php endif; ?>
+                 <?php if(session()->get('user_type') == 'Admin' || in_array(215,$module_access ?? [])) : ?><a class="dropdown-item has-icon" href="<?php echo base_url('messenger_bot_enhancers/mme_link_list'); ?>"><i class="fas fa-link"></i> <?php echo lang('m.me Link'); ?></a><?php endif; ?>
+                 <?php if(session()->get('user_type') == 'Admin' || in_array(217,$module_access ?? [])) : ?><a class="dropdown-item has-icon" href="<?php echo base_url('messenger_bot_enhancers/customer_chat_plugin_list'); ?>"><i class="fas fa-comments"></i> <?php echo lang('Customer Chat Plugin'); ?></a><?php endif; ?>
                </div>
              </div>
 
@@ -162,7 +162,7 @@
 
 
        <?php 
-       if(session()->get('user_type') == 'Admin' || in_array(257,$this->module_access)) : ?>
+       if(session()->get('user_type') == 'Admin' || in_array(257,$module_access ?? [])) : ?>
        <div class="col-lg-6">
          <div class="card card-large-icons">
            <div class="card-icon text-primary">
@@ -178,8 +178,8 @@
        <?php endif; ?>
 
        <?php 
-       if($this->basic->is_exist("add_ons",array("project_id"=>31)))
-       if(session()->get('user_type') == 'Admin' || in_array(258,$this->module_access)) : ?>
+       if(($basic ?? null) && $basic->is_exist("add_ons",array("project_id"=>31)))
+       if(session()->get('user_type') == 'Admin' || in_array(258,$module_access ?? [])) : ?>
        <div class="col-lg-6">
          <div class="card card-large-icons">
            <div class="card-icon text-primary">
@@ -196,8 +196,8 @@
 
 
        <?php 
-       if($this->basic->is_exist("add_ons",array("project_id"=>31)))
-       if(session()->get('user_type') == 'Admin' || in_array(261,$this->module_access)) : ?>
+       if(($basic ?? null) && $basic->is_exist("add_ons",array("project_id"=>31)))
+       if(session()->get('user_type') == 'Admin' || in_array(261,$module_access ?? [])) : ?>
        <div class="col-lg-6">
          <div class="card card-large-icons">
            <div class="card-icon text-primary">
@@ -213,8 +213,8 @@
        <?php endif; ?>
 
        <?php 
-       if($this->basic->is_exist("add_ons",array("project_id"=>49)))
-       if(session()->get('user_type') == 'Admin' || in_array(292,$this->module_access)) : ?>
+       if(($basic ?? null) && $basic->is_exist("add_ons",array("project_id"=>49)))
+       if(session()->get('user_type') == 'Admin' || in_array(292,$module_access ?? [])) : ?>
        <div class="col-lg-6">
          <div class="card card-large-icons">
            <div class="card-icon text-primary">
@@ -239,7 +239,7 @@
        </div>
      <?php endif; ?> 
 
-       <?php if(session()->get('user_type') == 'Admin' || in_array(265,$this->module_access)) : ?>
+       <?php if(session()->get('user_type') == 'Admin' || in_array(265,$module_access ?? [])) : ?>
        <div class="col-lg-6">
          <div class="card card-large-icons">
            <div class="card-icon text-primary">
@@ -268,8 +268,8 @@
        <?php endif; ?>
 
        <?php 
-       if($this->basic->is_exist("modules",array("id"=>266))) :
-       if(session()->get('user_type') == 'Admin' || in_array(266,$this->module_access)) : ?>
+       if(($basic ?? null) && $basic->is_exist("modules",array("id"=>266))) :
+       if(session()->get('user_type') == 'Admin' || in_array(266,$module_access ?? [])) : ?>
        <div class="col-lg-6">
          <div class="card card-large-icons">
            <div class="card-icon text-primary">
@@ -328,7 +328,7 @@
        <div class="modal-body">    
          <div class="section">                
            <h2 class="section-title"><?php echo lang('One-Time Notification'); ?></h2>
-           <p><?php echo $this->lang->line("The Messenger Platform's One-Time Notification allows a page to request a user to send one follow-up message after 24-hour messaging window have ended. The user will be offered to receive a future notification. Once the user asks to be notified, the page will receive a token which is an equivalent to a permission to send a single message to the user. The token can only be used once and will expire within 1 year of creation."); ?></p>
+           <p><?php echo lang("The Messenger Platform's One-Time Notification allows a page to request a user to send one follow-up message after 24-hour messaging window have ended. The user will be offered to receive a future notification. Once the user asks to be notified, the page will receive a token which is an equivalent to a permission to send a single message to the user. The token can only be used once and will expire within 1 year of creation."); ?></p>
          </div>
        </div>
 

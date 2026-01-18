@@ -1,4 +1,4 @@
-  <?php if( ((session()->get('user_type')=="Admin" || in_array(79,$this->module_access)) && strtotime(date("Y-m-d")) <= strtotime("2020-3-15")) || $this->is_broadcaster_exist || $this->recurring_notification_exist || (session()->get('user_type')=="Admin" || in_array(275,$this->module_access)) ) { ?>
+  <?php if( ((session()->get('user_type')=="Admin" || in_array(79,$module_access ?? [])) && strtotime(date("Y-m-d")) <= strtotime("2020-3-15")) || ($is_broadcaster_exist ?? false) || ($recurring_notification_exist ?? false) || (session()->get('user_type')=="Admin" || in_array(275,$module_access ?? [])) ) { ?>
   <section class="section">
   <div class="section-header">
     <h1>
@@ -11,7 +11,7 @@
 
 
   <div class="row">
-    <?php if($this->is_broadcaster_exist) { ?>
+    <?php if($is_broadcaster_exist ?? false) { ?>
       <div class="col-12 col-md-4">
           <div class="wizard-steps mb-4 mt-1">
           <a href="<?php echo base_url("messenger_bot_enhancers/subscriber_broadcast_campaign"); ?>" class="no_hover">
@@ -29,7 +29,7 @@
       </div>
     <?php 
     } 
-    if(session()->get('user_type')=="Admin"  || in_array(275,$this->module_access)) { ?>
+    if(session()->get('user_type')=="Admin"  || in_array(275,$module_access ?? [])) { ?>
       <div class="col-12 col-md-4">
           <div class="wizard-steps mb-4 mt-1">
           <a href="<?php echo base_url("messenger_bot_broadcast/otn_subscriber_broadcast_campaign"); ?>" class="no_hover">
@@ -48,7 +48,7 @@
     <?php 
     } ?>
   <?php 
-  if($this->recurring_notification_exist) { ?>
+  if($recurring_notification_exist ?? false) { ?>
     <div class="col-12 col-md-4">
         <div class="wizard-steps mb-4 mt-1">
         <a href="<?php echo base_url("messenger_bot_broadcast/rcn_subscriber_broadcast_campaign"); ?>" class="no_hover">
@@ -71,7 +71,7 @@
 
 
   <?php 
-  if(session()->get('user_type') == 'Admin' || count(array_intersect($this->module_access, array('263','264','270','271'))) !=0) {  ?>
+  if(session()->get('user_type') == 'Admin' || count(array_intersect($module_access ?? [], array('263','264','270','271'))) !=0) {  ?>
   <br>
   <section class="section">
       <div class="section-header">
@@ -112,10 +112,10 @@
                   </div>
                   <p class="text-muted mt-2"><?php echo lang('Saved templates for sms/email campaigns');?></p>
                   <div class="mt-1">
-                    <?php if(session()->get('user_type')=="Admin"  || count(array_intersect($this->module_access, array('263','271'))) !=0) : ?>
+                    <?php if(session()->get('user_type')=="Admin"  || count(array_intersect($module_access ?? [], array('263','271'))) !=0) : ?>
                        <a href="<?php echo base_url('sms_email_manager/template_lists/email'); ?>" class="no_hover  btn btn-outline-light text-primary"><i class="fas fa-envelope"></i> <?php echo lang('Email'); ?> <i class="fas fa-chevron-right"></i></a>
                      <?php endif; ?>
-                     <?php if(session()->get('user_type')=="Admin"  || count(array_intersect($this->module_access, array('270'))) !=0) : ?>
+                     <?php if(session()->get('user_type')=="Admin"  || count(array_intersect($module_access ?? [], array('270'))) !=0) : ?>
                        <a href="<?php echo base_url('sms_email_manager/template_lists/sms'); ?>" class="no_hover btn btn-outline-light text-primary"><i class="fas fa-sms"></i> <?php echo lang('SMS'); ?> <i class="fas fa-chevron-right"></i></a>
                      <?php endif; ?>
                   </div>
@@ -123,7 +123,7 @@
               </div>
             </div>
 
-            <?php if(session()->get('user_type')=="Admin"  || count(array_intersect($this->module_access, array('263','264'))) !=0) : ?>
+            <?php if(session()->get('user_type')=="Admin"  || count(array_intersect($module_access ?? [], array('263','264'))) !=0) : ?>
             <div class="col-12 col-md-4">
                 <div class="wizard-steps mb-4 mt-1">
                 <div class="wizard-step wizard-step-light px-lg-2">
@@ -144,8 +144,8 @@
            <?php endif; ?>
 
           <?php 
-              if($this->basic->is_exist("modules",array("id"=>270)) && $this->basic->is_exist("modules",array("id"=>271))) {  
-                if(session()->get('user_type') == 'Admin' || count(array_intersect($this->module_access, array('270','271'))) !=0) {  ?>            
+              if(($basic ?? null) && $basic->is_exist("modules",array("id"=>270)) && $basic->is_exist("modules",array("id"=>271))) {  
+                if(session()->get('user_type') == 'Admin' || count(array_intersect($module_access ?? [], array('270','271'))) !=0) {  ?>            
            
                 <div class="col-12 col-md-4">
                   <div class="wizard-steps mb-4 mt-1">
@@ -167,8 +167,8 @@
             <?php 
          } ?>
 
-         <?php if($this->basic->is_exist("modules",array("id"=>290))) { ?>
-            <?php if(session()->get('user_type') == 'Admin' || in_array(290,$this->module_access)) {  ?>
+         <?php if(($basic ?? null) && $basic->is_exist("modules",array("id"=>290))) { ?>
+            <?php if(session()->get('user_type') == 'Admin' || in_array(290,$module_access ?? [])) {  ?>
               <div class="col-12 col-md-4">
                 <div class="wizard-steps mb-4 mt-1">
                 <a href="<?php echo base_url("email_optin_form_builder"); ?>" class="no_hover">

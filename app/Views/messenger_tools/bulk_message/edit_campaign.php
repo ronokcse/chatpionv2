@@ -194,7 +194,7 @@ $xpage_id = $xdata[0]["page_id"];
       			<div class="form-group col-12 col-md-3">
       				<label>
       					<?php echo lang('Delay Time (Sec)') ?>
-      					 <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang('Delay Time') ?>" data-content="<?php echo $this->lang->line("delay time is the delay between two successive message send. It is very important because without a delay time Facebook may treat bulk sending as spam. Keep it '0' to get random delay.") ?>"><i class='fa fa-info-circle'></i> </a>
+      					 <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang('Delay Time') ?>" data-content="<?php echo lang("delay time is the delay between two successive message send. It is very important because without a delay time Facebook may treat bulk sending as spam. Keep it '0' to get random delay.") ?>"><i class='fa fa-info-circle'></i> </a>
       				</label>
       				<br/>
       				<input name="delay_time" value="<?php echo $xdata[0]['delay_time']; ?>" min="0" class="form-control" id="delay_time" type="number">
@@ -229,7 +229,7 @@ $xpage_id = $xdata[0]["page_id"];
   			<h4><i class="fas fa-envelope"></i> <?php echo lang('Summary & Test Message'); ?></h4>
   		</div>
   		<div class="card-body">
-  			<?php include(FCPATH."application/views/messenger_tools/bulk_message/send_test_message.php") ?>  	         
+  			<?php include(APPPATH."Views/messenger_tools/bulk_message/send_test_message.php") ?>  	         
   		</div>
 
   	</div>

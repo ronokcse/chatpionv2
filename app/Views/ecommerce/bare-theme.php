@@ -193,9 +193,9 @@
     $js_user_id = isset($social_analytics_codes['user_id']) ? $social_analytics_codes['user_id'] : $social_analytics_codes['user_id'];  
     $subscriberId=$this->session->userdata($js_store_id."ecom_session_subscriber_id");
 	if($subscriberId=="")  $subscriberId = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
-	if($subscriberId=='') $subscriberId = $this->uri->segment(4);
+	if($subscriberId=='') $subscriberId = ($uri ?? service('uri'))->getSegment(4) ?? '';
 	$currentCart = isset($current_cart)?$current_cart:array();    
-    $function = $this->uri->segment(2);
+    $function = ($uri ?? service('uri'))->getSegment(2) ?? '';
 
     $first_menu = "";
     if(isset($social_analytics_codes))

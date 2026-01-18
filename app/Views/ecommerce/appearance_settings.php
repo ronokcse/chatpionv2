@@ -49,7 +49,7 @@
 
                 <div class="col-12 col-md-6">                  
                   <div class="form-group mb-0 ">                      
-                    <label><?php echo $this->lang->line(""); ?></label>
+                    <label><?php echo lang(""); ?></label>
                   </div>
                   <?php echo "<input type='color' name='theme_color' id='theme_color' class='form-control border-right' value='".$select_front_theme."'>"; ?>    
                 </div>
@@ -189,8 +189,8 @@
                 </div>  
                 
                 <?php 
-                if($this->basic->is_exist("modules",array("id"=>310))) :
-                if(session()->get('user_type') == 'Admin' || in_array(310,$this->module_access)) :
+                if(($basic ?? null) && $basic->is_exist("modules",array("id"=>310))) :
+                if(session()->get('user_type') == 'Admin' || in_array(310,($module_access ?? []))) :
                 ?>
                  <div class="col-12 col-md-6">
                     <div class="form-group">

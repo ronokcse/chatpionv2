@@ -265,7 +265,7 @@
                     $review_url = base_url("ecommerce/review/".$value["id"]);
                     $review_url = mec_add_get_param($review_url,array("subscriber_id"=>$subscriber_id,"pickup"=>$pickup));
                     $reply_button = $hide_button = $reply_block = $review_reply_show = '';
-                    if($this->user_id !='')
+                    if(($user_id ?? 0) != '')
                     {
                       if($value['review_reply']=='') $reply_button = ' <a class="collpase_link d-inline float-right" data-toggle="collapse" href="#collapsereview'.$value["id"].'" role="button" aria-expanded="false" aria-controls="collapsereview'.$value["id"].'"><i class="fas fa-comment"></i> '.lang('Reply').'</a>';
                       $hide_button = '<a data-id="'.$value["id"].'" class="d-inline float-right pr-3 hide-review text-muted" href="#"><i class="fas fa-eye-slash"></i> '.lang('Hide').'</a>';
@@ -317,11 +317,11 @@
           </div>
 
           <?php if($hide_buy_now=='0'): ?>
-          <a href="" id="single_buy_now" class="btn btn-outline-primary add_to_cart buy_now btn-lg btn-block no_radius <?php echo ($product_data['attribute_ids']=='')?'':'d-none'; ?>" data-attributes="<?php echo $product_data['attribute_ids'];?>" data-product-id="<?php echo $product_data['id'];?>" data-action='add'><i class="fas fa-credit-card"></i> <?php echo $this->lang->line($buy_button_title); ?></a>
+          <a href="" id="single_buy_now" class="btn btn-outline-primary add_to_cart buy_now btn-lg btn-block no_radius <?php echo ($product_data['attribute_ids']=='')?'':'d-none'; ?>" data-attributes="<?php echo $product_data['attribute_ids'];?>" data-product-id="<?php echo $product_data['id'];?>" data-action='add'><i class="fas fa-credit-card"></i> <?php echo lang($buy_button_title); ?></a>
           <?php endif; ?>
         
           <ul class="list-group">        
-            <?php if($this->ecommerce_review_comment_exist && $subscriber_id!="" && $this->user_id =='' && !empty($has_purchase_array)) : ?>
+            <?php if(($ecommerce_review_comment_exist ?? false) && $subscriber_id!="" && ($user_id ?? 0) == '' && !empty($has_purchase_array)) : ?>
             <li class="list-group-item d-flex justify-content-between align-items-center no_radius">
               <a id="rate_modal_button" href="" class="w-100" data-id="<?php echo isset($xreview[0]['id']) ? $xreview[0]['id'] : 0;?>">
                 <?php echo lang('Rate this item'); ?>
@@ -443,7 +443,7 @@
         $js_user_id = isset($social_analytics_codes['user_id']) ? $social_analytics_codes['user_id'] : $social_analytics_codes['user_id'];  
         $subscriberId=$this->session->userdata($js_store_id."ecom_session_subscriber_id");
         if($subscriberId=="")  $subscriberId = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
-        if($subscriberId=='') $subscriberId = $this->uri->segment(4);
+        if($subscriberId=='') $subscriberId = ($uri ?? service('uri'))->getSegment(4) ?? '';
         ?>
         <div class="card mb-0 no_shadow">
           <div class="card-header p-0 pt-3 pb-3">

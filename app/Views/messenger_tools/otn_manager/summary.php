@@ -1,7 +1,9 @@
 <div class="form-group">
 	<?php 
+        // CI4 fix: Use service('uri') or $uri variable instead of $this->uri
+        $uri_segment_2 = ($uri ?? service('uri'))->getSegment(2) ?? '';
         $pop="";
-        if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segment(2)=="edit_quick_broadcast_campaign") 
+        if($uri_segment_2=="create_quick_broadcast_campaign" || $uri_segment_2=="edit_quick_broadcast_campaign") 
         $pop =  lang('This campaign is totally handled by Facebook for each send. So actual send may differ for various reason. As for example, if any subscriber did not interact with your bot for many days like 2 months or page sent private reply of comment but he never replied back, in those cases, those subscribers will not be eligible for quick broadcasting. While targeting by label it may happen that some subscribers have label in Facebook but have not been assigned label in our system, they are eligible for quick broadcasting.');
     ?> 
     <label class="full_width">
@@ -10,7 +12,7 @@
     	<?php } ?>
     </label>
   	<ul class="list-group">
-  	  <?php if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segment(2)=="edit_quick_broadcast_campaign") 
+  	  <?php if($uri_segment_2=="create_quick_broadcast_campaign" || $uri_segment_2=="edit_quick_broadcast_campaign") 
   	  { ?>
 	      <li class="list-group-item d-flex justify-content-between align-items-center">
 	        <?php echo lang('Estimated Reach'); ?> 
@@ -94,7 +96,7 @@
 </style>
 
 <?php 
-if($this->uri->segment(2)=="edit_quick_broadcast_campaign" || $this->uri->segment(2)=="edit_subscriber_broadcast_campaign") { ?>
+if($uri_segment_2=="edit_quick_broadcast_campaign" || $uri_segment_2=="edit_subscriber_broadcast_campaign") { ?>
 <script type="text/javascript">
 	var xlabels = "<?php echo $xdata['label_ids'];?>"; 
 	var xexcluded_label_ids = "<?php echo $xdata['excluded_label_ids'];?>";
@@ -103,7 +105,7 @@ if($this->uri->segment(2)=="edit_quick_broadcast_campaign" || $this->uri->segmen
 
 <?php 
 $is_quick_broadcast = "0";
-if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segment(2)=="edit_quick_broadcast_campaign") $is_quick_broadcast = "1";
+if($uri_segment_2=="create_quick_broadcast_campaign" || $uri_segment_2=="edit_quick_broadcast_campaign") $is_quick_broadcast = "1";
 ?>
 
 <script type="text/javascript">
@@ -297,6 +299,6 @@ if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segm
 
 </script>
 
-<?php include("application/views/messenger_tools/otn_manager/message_tag_modal.php") ?>
+<?php include(APPPATH."Views/messenger_tools/otn_manager/message_tag_modal.php") ?>
 
 

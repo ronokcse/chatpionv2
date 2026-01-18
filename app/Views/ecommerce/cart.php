@@ -866,7 +866,7 @@ $seller_details =
                       <label class="custom-switch mt-2">
                         <input type="checkbox" name="custom-switch-checkbox" class="custom-switch-input" id="store_pickup" <?php echo $check_store_pickup; ?>>
                         <span class="custom-switch-indicator"></span>
-                        <span class="custom-switch-description mb-0"><?php echo $this->lang->line($store_pickup_title); ?></span>
+                        <span class="custom-switch-description mb-0"><?php echo lang($store_pickup_title); ?></span>
                       </label>
                       <select class="form-control <?php if($check_store_pickup=='') echo 'd-none'; ?>" name="pickup_point_details" id="pickup_point_details">
                         <option value="<?php echo lang('Counter')." : ".$store_address; ?>"><?php echo lang('Counter')." : ".$store_address; ?></option>

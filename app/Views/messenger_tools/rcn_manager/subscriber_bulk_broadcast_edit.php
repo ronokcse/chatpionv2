@@ -251,7 +251,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
                      {
                         if($template_type == $value) $selected='selected';
                         else $selected='';
-                        echo '<option value="'.$value.'" '.$selected.'>'.$this->lang->line($value).'</option>';
+                        echo '<option value="'.$value.'" '.$selected.'>'.lang($value).'</option>';
                      } 
                     ?>
                   </select>
@@ -369,7 +369,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 		                        <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 		                        <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 		                        <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?> ><?php echo lang('WebView [Full]'); ?></option>
-		                        <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
+		                        <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
 
 
 		                        <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('Call Us'); ?></option>
@@ -537,7 +537,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 	                            <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 	                            <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 	                            <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?> ><?php echo lang('WebView [Full]'); ?></option>
-	                            <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
+	                            <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
 
 	                            <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
 	                            <option value="post_back" id="unsubscribe_postback" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['type'] == 'postback' && isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['payload']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['payload'] == 'UNSUBSCRIBE_QUICK_BOXER') echo 'selected'; ?> ><?php echo lang('unsubscribe'); ?></option>
@@ -643,7 +643,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 	                            <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 	                            <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 	                            <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?> ><?php echo lang('WebView [Full]'); ?></option>
-	                            <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
+	                            <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
 
 	                            <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
 	                            <option value="post_back" id="unsubscribe_postback" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type'] == 'postback' && isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['payload']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['payload'] == 'UNSUBSCRIBE_QUICK_BOXER') echo 'selected'; ?> ><?php echo lang('unsubscribe'); ?></option>
@@ -756,7 +756,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 		                                <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 		                                <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 		                                <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?>><?php echo lang('WebView [Full]'); ?></option>
-		                                <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?>><?php echo $this->lang->line("User's Birthday"); ?></option>
+		                                <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?>><?php echo lang("User's Birthday"); ?></option>
 
 
 		                                <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
@@ -834,7 +834,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 		                              <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 		                              <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 		                              <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio'] == 'full') echo 'selected'; ?>><?php echo lang('WebView [Full]'); ?></option>
-		                              <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][0]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
+		                              <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][0]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
 
 
 		                              <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['type']) && $full_message[$k]['attachment']['payload']['buttons'][0]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
@@ -944,7 +944,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           <h4><i class="fas fa-eye"></i> <?php echo lang('Summary'); ?></h4>
         </div>
         <div class="card-body">
-          <?php include(FCPATH."application/views/messenger_tools/rcn_manager/summary.php") ?>            
+          <?php include(APPPATH."Views/messenger_tools/rcn_manager/summary.php") ?>            
         </div>
      </div>
   </div>
@@ -2866,7 +2866,7 @@ function showerror(error_message)
           <p><?php echo lang('To get the Facebook URL for an image or video, do the following:'); ?></p>
           <ul>
             <li><?php echo lang('Click the image or video thumbnail to open the full-size view');?>.</li>
-            <li><?php echo $this->lang->line("Copy the URL from your browser's address bar.<");?>/li>
+            <li><?php echo lang("Copy the URL from your browser's address bar.<");?>/li>
           </ul>
           <p><?php echo lang('Facebook URLs should be in the following base format:');?></p>
           <table class='table table-condensed table-bordered table-hover table-striped' >

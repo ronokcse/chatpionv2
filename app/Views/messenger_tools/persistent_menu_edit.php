@@ -8,7 +8,7 @@ $media_type = $using_media_type ?? 'fb';
 <div class="clearfix"></div>
 <?php
 
-  if(session()->get('user_type') == 'Member' && in_array(198,$this->module_access))  $level1=19;
+  if(session()->get('user_type') == 'Member' && in_array(198,$module_access ?? []))  $level1=19;
   else $level1=20;
 
   $level2=0;

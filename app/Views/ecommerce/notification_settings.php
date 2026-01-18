@@ -53,7 +53,7 @@
 					                 	 foreach ($notification_list as $key => $value) 
 				                       	 { $i++;?>
 					                         <div class="reminder_badge_warpper tab-pane fade  <?php if($i==1) echo 'active show';?>" id="msg_reminder<?php echo $i;?>" role="tabpanel" aria-labelledby="msg_reminder_link>">
-						                         <span class="reminder_badge" data-toggle="tooltip" title="<?php echo lang('Status')." : ".$this->lang->line($value); ?>"><i class="fas fa-bell"></i> <?php echo $i;?></span>											
+						                         <span class="reminder_badge" data-toggle="tooltip" title="<?php echo lang('Status')." : ".lang($value); ?>"><i class="fas fa-bell"></i> <?php echo $i;?></span>											
 						                         <div class="reminder_block">
 						                         	<span class="block4">
 						                         		<textarea style="height: 200px" data-toggle="tooltip" title="<?php echo lang('Purchase status update notification will be displayed here, click to edit text. Clearing text will send default message.'); ?>" name="msg_text[]" id="msg_text_<?php echo $value;?>"><?php echo isset($notification_message['messenger'][$value]['text']) ? $notification_message['messenger'][$value]['text'] : $notification_default['messenger']; ?></textarea>	                         	
@@ -77,7 +77,7 @@
          	                       	 foreach ($notification_list as $key => $value) 
          	                       	 { $i++;?>			                       	  	
          		                       	 <li class="nav-item" style="margin:10px 0 0 0">
-                                  			<a style="border-radius: 10px !important;" href="#msg_reminder<?php echo $i;?>"  id="msg_reminder_link<?php echo $i;?>" class="nav-link <?php if($i==1) echo 'active'; ?>" data-toggle="pill" role="tab" aria-controls="msg_reminder<?php echo $i;?>" aria-selected="true"><i class="fas fa-bell"></i> <?php echo lang('Messenger');?> : <?php echo lang('Order')." (".$this->lang->line($value);?>)</a>
+                                  			<a style="border-radius: 10px !important;" href="#msg_reminder<?php echo $i;?>"  id="msg_reminder_link<?php echo $i;?>" class="nav-link <?php if($i==1) echo 'active'; ?>" data-toggle="pill" role="tab" aria-controls="msg_reminder<?php echo $i;?>" aria-selected="true"><i class="fas fa-bell"></i> <?php echo lang('Messenger');?> : <?php echo lang('Order')." (".lang($value);?>)</a>
          		                         </li>
          	                       	 <?php 
          	                       	 } 
@@ -99,7 +99,7 @@
 					                 	 foreach ($notification_list as $key => $value) 
 				                       	 { $i++;?>
 					                         <div class="reminder_badge_warpper tab-pane fade <?php if($i==1) echo 'active show';?>" id="sms_reminder<?php echo $i;?>" role="tabpanel" aria-labelledby="sms_reminder_link>">
-						                         <span class="reminder_badge" data-toggle="tooltip" title="<?php echo lang('Status')." : ".$this->lang->line($value); ?>"><i class="fas fa-bell"></i> <?php echo $i;?></span>									
+						                         <span class="reminder_badge" data-toggle="tooltip" title="<?php echo lang('Status')." : ".lang($value); ?>"><i class="fas fa-bell"></i> <?php echo $i;?></span>									
 						                         <div class="reminder_block">
 						                         	<span class="block4">
 						                         		<textarea data-toggle="tooltip" title="<?php echo lang('SMS content goes here. Clear content if you do not want to send.');?>" name="sms_text[]" id="sms_text_<?php echo $value;?>"><?php echo isset($notification_message['sms'][$value]) ? $notification_message['sms'][$value] : $notification_default['sms']; ?></textarea>
@@ -125,7 +125,7 @@
          	                       	 foreach ($notification_list as $key => $value) 
          	                       	 { $i++;?>
          		                         <li class="nav-item" style="margin:10px 0 0 0">
-                                  			<a style="border-radius: 10px !important;" href="#sms_reminder<?php echo $i;?>"  id="sms_reminder_link<?php echo $i;?>" class="nav-link <?php if($i==1) echo 'active'; ?>" data-toggle="pill" role="tab" aria-controls="sms_reminder<?php echo $i;?>" aria-selected="true"><i class="fas fa-bell"></i> <?php echo lang('SMS');?> : <?php echo lang('Order')." (".$this->lang->line($value);?>)</a>
+                                  			<a style="border-radius: 10px !important;" href="#sms_reminder<?php echo $i;?>"  id="sms_reminder_link<?php echo $i;?>" class="nav-link <?php if($i==1) echo 'active'; ?>" data-toggle="pill" role="tab" aria-controls="sms_reminder<?php echo $i;?>" aria-selected="true"><i class="fas fa-bell"></i> <?php echo lang('SMS');?> : <?php echo lang('Order')." (".lang($value);?>)</a>
          		                         </li>
          	                       	 <?php 
          	                       	 } 
@@ -183,7 +183,7 @@
 							         	 foreach ($notification_list as $key => $value) 
 							         	 { $i++;?>
 							               <li class="nav-item" style="margin:10px 0 0 0">
-                                  			<a style="border-radius: 10px !important;" href="#email_reminder<?php echo $i;?>"  id="email_reminder_link<?php echo $i;?>" class="nav-link <?php if($i==1) echo 'active'; ?>" data-toggle="pill" role="tab" aria-controls="email_reminder<?php echo $i;?>" aria-selected="true"><i class="fas fa-bell"></i> <?php echo lang('Email');?> : <?php echo lang('Order')." (".$this->lang->line($value);?>)</a>
+                                  			<a style="border-radius: 10px !important;" href="#email_reminder<?php echo $i;?>"  id="email_reminder_link<?php echo $i;?>" class="nav-link <?php if($i==1) echo 'active'; ?>" data-toggle="pill" role="tab" aria-controls="email_reminder<?php echo $i;?>" aria-selected="true"><i class="fas fa-bell"></i> <?php echo lang('Email');?> : <?php echo lang('Order')." (".lang($value);?>)</a>
          		                         </li>
 							         	 <?php 
 							         	 } 

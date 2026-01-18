@@ -225,7 +225,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
                     <?php 
                      foreach ($templates as $key => $value)
                      {
-                        echo '<option value="'.$value.'">'.$this->lang->line($value).'</option>';
+                        echo '<option value="'.$value.'">'.lang($value).'</option>';
                      } 
                     ?>
                   </select>
@@ -331,7 +331,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
                             <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                             <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                             <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                            <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                            <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
                             <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                           </select>
@@ -471,7 +471,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
                               <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                               <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                               <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                              <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                              <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
                               <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                               <option value="post_back" id="unsubscribe_postback"><?php echo lang('unsubscribe'); ?></option>
@@ -565,7 +565,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
                               <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                               <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                               <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                              <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                              <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
                               <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                               <option value="post_back" id="unsubscribe_postback"><?php echo lang('unsubscribe'); ?></option>
@@ -666,7 +666,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
                                     <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                                     <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                                     <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                                    <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                    <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
                                     <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                                     <option value="post_back" id="unsubscribe_postback"><?php echo lang('unsubscribe'); ?></option>
@@ -736,7 +736,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
                             <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                             <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                             <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                            <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                            <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
                             <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                           </select>
@@ -854,7 +854,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           <h4><i class="fas fa-eye"></i> <?php echo lang('Summary'); ?></h4>
         </div>
         <div class="card-body">
-          <?php include(FCPATH."application/views/messenger_tools/rcn_manager/summary.php") ?>            
+          <?php include(APPPATH."Views/messenger_tools/rcn_manager/summary.php") ?>            
         </div>
      </div>
   </div>
@@ -2591,7 +2591,7 @@ $(document).on('click','.add_template',function(e){
           <p><?php echo lang('To get the Facebook URL for an image or video, do the following:'); ?></p>
           <ul>
             <li><?php echo lang('Click the image or video thumbnail to open the full-size view');?>.</li>
-            <li><?php echo $this->lang->line("Copy the URL from your browser's address bar.<");?>/li>
+            <li><?php echo lang("Copy the URL from your browser's address bar.<");?>/li>
           </ul>
           <p><?php echo lang('Facebook URLs should be in the following base format:');?></p>
           <table class='table table-condensed table-bordered table-hover table-striped' >

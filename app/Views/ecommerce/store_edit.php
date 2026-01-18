@@ -96,7 +96,7 @@
 							      <?php echo lang('Locale'); ?> *
 							    </label>
 							   <?php 
-							   $selected_lang = !empty($xdata['store_locale'])?$xdata['store_locale']:$this->language;
+							   $selected_lang = !empty($xdata['store_locale'])?$xdata['store_locale']:($language ?? 'english');
 							   echo form_dropdown('store_locale', $locale_list,$selected_lang, 'class="form-control select2" id="store_locale" style="width:100%;"' );
 							   ?>                      
 							  </div>	

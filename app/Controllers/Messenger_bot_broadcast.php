@@ -1,28 +1,38 @@
 <?php
 
-require_once("Home.php"); // loading home controller
+namespace App\Controllers;
 
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
+// CI4 fix: Use namespace instead of require_once
 class Messenger_bot_broadcast extends Home
 {
-
-    public function __construct()
+    // CI4 fix: Use initController instead of __construct
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
-        if ($this->session->userdata('logged_in') != 1)
-        redirect('home/login_page', 'location');
+        parent::initController($request, $response, $logger);
+        
+        if ($this->session->userdata('logged_in') != 1) {
+            return redirect()->to('home/login_page');
+        }
 
-        $function_name=$this->uri->segment(2);
+        // CI4 fix: Use request->getUri()->getSegment() instead of uri->segment()
+        $function_name = $this->request->getUri()->getSegment(2);
 
         if($function_name!="index" && $function_name!="")
         {
-        	if($this->session->userdata('user_type') != 'Admin' && !in_array(275,$this->module_access))
-        	redirect('home/login_page', 'location');
+        	if($this->session->userdata('user_type') != 'Admin' && !in_array(275,$this->module_access)) {
+        		return redirect()->to('home/login_page');
+        	}
        	}
 
         if($function_name!="" && $function_name!="index" && $function_name!="otn_subscriber_broadcast_campaign" && $function_name!="otn_subscriber_broadcast_campaign_data")
         {
-          if($this->session->userdata("facebook_rx_fb_user_info")==0)
-          redirect('social_accounts/index','refresh');
+          if($this->session->userdata("facebook_rx_fb_user_info")==0) {
+              return redirect()->to('social_accounts/index');
+          }
           $this->load->library("fb_rx_login");
         }
         $this->important_feature();
@@ -34,8 +44,13 @@ class Messenger_bot_broadcast extends Home
     {
         $this->is_broadcaster_exist=$this->broadcaster_exist();
         $this->recurring_notification_exist=$this->recurring_notification_exist();
+        $this->is_engagement_exist=$this->engagement_exist();
         $data['body'] = 'messenger_tools/bulk_message/menu_block';
         $data['page_title'] = $this->lang->line('Broadcasting');
+        // CI4 fix: Pass controller properties to view
+        $data['is_broadcaster_exist'] = $this->is_broadcaster_exist ?? false;
+        $data['recurring_notification_exist'] = $this->recurring_notification_exist ?? false;
+        $data['is_engagement_exist'] = $this->is_engagement_exist ?? false;
         $this->_viewcontroller($data);
     }
 
@@ -45,7 +60,7 @@ class Messenger_bot_broadcast extends Home
     public function otn_subscriber_broadcast_campaign()
     {
         if($this->session->userdata('user_type') != 'Admin' && !in_array(275,$this->module_access))
-        redirect('home/login_page', 'location');
+        return redirect()->to('home/login_page');
 
         $data['body'] = "messenger_tools/otn_manager/subscriber_bulk_broadcast_report";
         $data['page_title'] = $this->lang->line("OTN Subscriber Broadcast");
@@ -118,19 +133,27 @@ class Messenger_bot_broadcast extends Home
             if($from_date!="Invalid date" && $to_date!="Invalid date")
             $where_custom .= " AND created_at >= '{$from_date}' AND created_at <='{$to_date}'";
         }
-        $this->db->where($where_custom);
-
-        if($page_id!="") $this->db->where(array("page_id"=>$page_id)); 
-        if($status!="") $this->db->where(array("posting_status"=>$status));       
-        $this->db->where(array("broadcast_type"=>"OTN"));       
+        
+        // CI4 fix: Build where array instead of using $this->db->where()
+        $where_simple = array();
+        if($page_id!="") $where_simple["page_id"] = $page_id; 
+        if($status!="") $where_simple["posting_status"] = $status;       
+        $where_simple["broadcast_type"] = "OTN";
+        
+        // Combine custom SQL with array conditions
+        if(!empty($where_simple)) {
+            foreach($where_simple as $key => $value) {
+                $where_custom .= " AND {$key} = '{$value}'";
+            }
+        }
         
         $table="messenger_bot_broadcast_serial";
-        $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
+        // CI4 fix: Pass where conditions as array
+        $where = array('where' => $where_custom);
+        $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
         
-        $this->db->where($where_custom);
-        if($page_id!="") $this->db->where(array("page_id"=>$page_id)); 
-        if($status!="") $this->db->where(array("posting_status"=>$status)); 
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+        // CI4 fix: Use same where array for count_row
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
         $total_result=$total_rows_array[0]['total_rows'];
 
@@ -255,10 +278,12 @@ class Messenger_bot_broadcast extends Home
                 $subscriber_info = $this->basic->get_data('messenger_bot_broadcast_serial_send',['where'=>["campaign_id"=>$id,"user_id"=>$this->user_id]]);
                 foreach($subscriber_info as $value)
                     array_push($subscribers, $value['subscribe_id']);
-                $this->db->where('page_table_id',$page_id);
-                $this->db->where_in('subscriber_id',$subscribers);
-                if(!empty($otn_postback_ids)) $this->db->where_in('otn_id',$otn_postback_ids);
-                $this->db->update('otn_optin_subscriber',['is_sent'=>'0']);
+                // CI4 fix: Use query builder for update
+                $builder = $this->db->table('otn_optin_subscriber');
+                $builder->where('page_table_id', $page_id);
+                $builder->whereIn('subscriber_id', $subscribers);
+                if(!empty($otn_postback_ids)) $builder->whereIn('otn_id', $otn_postback_ids);
+                $builder->update(['is_sent'=>'0']);
             }
             $this->basic->delete_data("messenger_bot_broadcast_serial_send",array("campaign_id"=>$id,"user_id"=>$this->user_id));
             if($posting_status!="2") // removing usage data if deleted and campaign is pending
@@ -528,13 +553,14 @@ class Messenger_bot_broadcast extends Home
             $where_custom .=" AND (".$imp.") ";
         }
      
-        $this->db->where($where_custom);
+        // CI4 fix: Pass where conditions as array
+        $where = array('where' => $where_custom);
         
         $table="messenger_bot_broadcast_serial_send";
-        $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
+        $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
 
-        $this->db->where($where_custom);
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+        // CI4 fix: Use same where array for count_row
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
         $total_result=$total_rows_array[0]['total_rows'];
 
@@ -611,7 +637,7 @@ class Messenger_bot_broadcast extends Home
     public function otn_create_subscriber_broadcast_campaign()
     {
         if($this->session->userdata('user_type') != 'Admin' && !in_array(275,$this->module_access))
-        redirect('home/login_page', 'location');
+        return redirect()->to('home/login_page');
 
         $data["templates"]=$this->basic->get_enum_values("messenger_bot_broadcast_serial","template_type");
         if($data['templates'][9] == 'list') unset($data['templates'][9]);
@@ -1500,21 +1526,23 @@ class Messenger_bot_broadcast extends Home
             }
             $this->db->insert_batch('messenger_bot_broadcast_serial_send', $report_insert); // strong the leads to send message in database
 
-            $this->db->where('page_table_id',$page_id);
-            $this->db->where_in('subscriber_id',$subscriber_ids);
-            if(!empty($otn_postback_ids))$this->db->where_in('otn_id',$otn_postback_ids);
-            $this->db->update('otn_optin_subscriber',['is_sent'=>'1']);
+            // CI4 fix: Use query builder for update
+            $builder = $this->db->table('otn_optin_subscriber');
+            $builder->where('page_table_id', $page_id);
+            $builder->whereIn('subscriber_id', $subscriber_ids);
+            if(!empty($otn_postback_ids)) $builder->whereIn('otn_id', $otn_postback_ids);
+            $builder->update(['is_sent'=>'1']);
 
             $this->session->set_flashdata('broadcast_success',1);
             echo json_encode(array("status" => "1"));            
         }
-        
+
     }
 
     public function otn_edit_subscriber_broadcast_campaign($id=0)
     {  
         if($this->session->userdata('user_type') != 'Admin' && !in_array(275,$this->module_access))
-        redirect('home/login_page', 'location');
+        return redirect()->to('home/login_page');
 
         $data["templates"]=$this->basic->get_enum_values("messenger_bot_broadcast_serial","template_type");
         if($data['templates'][9] == 'list') unset($data['templates'][9]);
@@ -1585,12 +1613,14 @@ class Messenger_bot_broadcast extends Home
         $subscriber_info = $this->basic->get_data('messenger_bot_broadcast_serial_send',['where'=>["campaign_id"=>$xid,"user_id"=>$this->user_id]]);
         foreach($subscriber_info as $value)
             array_push($subscribers, $value['subscribe_id']);
-        $this->db->where('page_table_id',$page_id);
-        $this->db->where_in('subscriber_id',$subscribers);
+        // CI4 fix: Use query builder for update
+        $builder = $this->db->table('otn_optin_subscriber');
+        $builder->where('page_table_id', $page_id);
+        $builder->whereIn('subscriber_id', $subscribers);
         $otn_postback_ids = array();
         $otn_postback_ids = explode(',', $otn_postback_str);
-        if(!empty($otn_postback_ids)) $this->db->where_in('otn_id',$otn_postback_ids);
-        $this->db->update('otn_optin_subscriber',['is_sent'=>'0']);
+        if(!empty($otn_postback_ids)) $builder->whereIn('otn_id', $otn_postback_ids);
+        $builder->update(['is_sent'=>'0']);
 
 
         $this->basic->delete_data("messenger_bot_broadcast_serial_send",array("campaign_id"=>$xid,"user_id"=>$this->user_id));
@@ -1612,7 +1642,7 @@ class Messenger_bot_broadcast extends Home
     public function rcn_subscriber_broadcast_campaign()
     {
         if($this->session->userdata('user_type') != 'Admin' && !in_array(335,$this->module_access))
-        redirect('home/login_page', 'location');
+        return redirect()->to('home/login_page');
 
         $data['body'] = "messenger_tools/rcn_manager/subscriber_bulk_broadcast_report";
         $data['page_title'] = $this->lang->line("Recurring Subscriber Broadcast");
@@ -1684,19 +1714,27 @@ class Messenger_bot_broadcast extends Home
             if($from_date!="Invalid date" && $to_date!="Invalid date")
             $where_custom .= " AND created_at >= '{$from_date}' AND created_at <='{$to_date}'";
         }
-        $this->db->where($where_custom);
-
-        if($page_id!="") $this->db->where(array("page_id"=>$page_id)); 
-        if($status!="") $this->db->where(array("posting_status"=>$status));       
-        $this->db->where(array("broadcast_type"=>"Recurring"));       
+        
+        // CI4 fix: Build where array instead of using $this->db->where()
+        $where_simple = array();
+        if($page_id!="") $where_simple["page_id"] = $page_id; 
+        if($status!="") $where_simple["posting_status"] = $status;       
+        $where_simple["broadcast_type"] = "Recurring";
+        
+        // Combine custom SQL with array conditions
+        if(!empty($where_simple)) {
+            foreach($where_simple as $key => $value) {
+                $where_custom .= " AND {$key} = '{$value}'";
+            }
+        }
         
         $table="messenger_bot_broadcast_serial";
-        $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
+        // CI4 fix: Pass where conditions as array
+        $where = array('where' => $where_custom);
+        $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
         
-        $this->db->where($where_custom);
-        if($page_id!="") $this->db->where(array("page_id"=>$page_id)); 
-        if($status!="") $this->db->where(array("posting_status"=>$status)); 
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+        // CI4 fix: Use same where array for count_row
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
         $total_result=$total_rows_array[0]['total_rows'];
 
@@ -1822,17 +1860,19 @@ class Messenger_bot_broadcast extends Home
                 $subscriber_info = $this->basic->get_data('messenger_bot_broadcast_serial_send',['where'=>["campaign_id"=>$id,"user_id"=>$this->user_id]]);
                 foreach($subscriber_info as $value)
                     array_push($subscribers, $value['subscribe_id']);
-                $this->db->where('page_table_id',$page_id);
-                $this->db->where_in('subscriber_id',$subscribers);
-                if(!empty($otn_postback_ids)) $this->db->where_in('otn_id',$otn_postback_ids);
-                $this->db->update('otn_optin_subscriber',['is_sent'=>'0']);
+                // CI4 fix: Use query builder for update
+                $builder = $this->db->table('otn_optin_subscriber');
+                $builder->where('page_table_id', $page_id);
+                $builder->whereIn('subscriber_id', $subscribers);
+                if(!empty($otn_postback_ids)) $builder->whereIn('otn_id', $otn_postback_ids);
+                $builder->update(['is_sent'=>'0']);
             }
             $this->basic->delete_data("messenger_bot_broadcast_serial_send",array("campaign_id"=>$id,"user_id"=>$this->user_id));
             if($posting_status!="2") // removing usage data if deleted and campaign is pending
             $this->_delete_usage_log($module_id=335,$request=$total_thread);   
             echo "1";
-        } 
-      
+        }
+        
     }
 
     public function rcn_force_reprocess_campaign()
@@ -2086,13 +2126,14 @@ class Messenger_bot_broadcast extends Home
             $where_custom .=" AND (".$imp.") ";
         }
      
-        $this->db->where($where_custom);
+        // CI4 fix: Pass where conditions as array
+        $where = array('where' => $where_custom);
         
         $table="messenger_bot_broadcast_serial_send";
-        $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
+        $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
 
-        $this->db->where($where_custom);
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+        // CI4 fix: Use same where array for count_row
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
         $total_result=$total_rows_array[0]['total_rows'];
 
@@ -2169,7 +2210,7 @@ class Messenger_bot_broadcast extends Home
     public function rcn_create_subscriber_broadcast_campaign()
     {
         if($this->session->userdata('user_type') != 'Admin' && !in_array(335,$this->module_access))
-        redirect('home/login_page', 'location');
+        return redirect()->to('home/login_page');
 
         $data["templates"]=$this->basic->get_enum_values("messenger_bot_broadcast_serial","template_type");
         if($data['templates'][9] == 'list') unset($data['templates'][9]);
@@ -3045,10 +3086,12 @@ class Messenger_bot_broadcast extends Home
             }
             $this->db->insert_batch('messenger_bot_broadcast_serial_send', $report_insert); // strong the leads to send message in database
 
-            $this->db->where('page_table_id',$page_id);
-            $this->db->where_in('subscriber_id',$subscriber_ids);
-            if(!empty($otn_postback_ids))$this->db->where_in('otn_id',$otn_postback_ids);
-            $this->db->update('otn_optin_subscriber',['is_sent'=>'1']);
+            // CI4 fix: Use query builder for update
+            $builder = $this->db->table('otn_optin_subscriber');
+            $builder->where('page_table_id', $page_id);
+            $builder->whereIn('subscriber_id', $subscriber_ids);
+            if(!empty($otn_postback_ids)) $builder->whereIn('otn_id', $otn_postback_ids);
+            $builder->update(['is_sent'=>'1']);
 
             $this->session->set_flashdata('broadcast_success',1);
             echo json_encode(array("status" => "1"));            
@@ -3059,7 +3102,7 @@ class Messenger_bot_broadcast extends Home
     public function rcn_edit_subscriber_broadcast_campaign($id=0)
     {  
         if($this->session->userdata('user_type') != 'Admin' && !in_array(335,$this->module_access))
-        redirect('home/login_page', 'location');
+        return redirect()->to('home/login_page');
 
         $data["templates"]=$this->basic->get_enum_values("messenger_bot_broadcast_serial","template_type");
         if($data['templates'][9] == 'list') unset($data['templates'][9]);
@@ -3131,12 +3174,14 @@ class Messenger_bot_broadcast extends Home
         $subscriber_info = $this->basic->get_data('messenger_bot_broadcast_serial_send',['where'=>["campaign_id"=>$xid,"user_id"=>$this->user_id]]);
         foreach($subscriber_info as $value)
             array_push($subscribers, $value['subscribe_id']);
-        $this->db->where('page_table_id',$page_id);
-        $this->db->where_in('subscriber_id',$subscribers);
+        // CI4 fix: Use query builder for update
+        $builder = $this->db->table('otn_optin_subscriber');
+        $builder->where('page_table_id', $page_id);
+        $builder->whereIn('subscriber_id', $subscribers);
         $otn_postback_ids = array();
         $otn_postback_ids = explode(',', $otn_postback_str);
-        if(!empty($otn_postback_ids)) $this->db->where_in('otn_id',$otn_postback_ids);
-        $this->db->update('otn_optin_subscriber',['is_sent'=>'0']);
+        if(!empty($otn_postback_ids)) $builder->whereIn('otn_id', $otn_postback_ids);
+        $builder->update(['is_sent'=>'0']);
 
 
         $this->basic->delete_data("messenger_bot_broadcast_serial_send",array("campaign_id"=>$xid,"user_id"=>$this->user_id));

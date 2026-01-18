@@ -1,6 +1,6 @@
 <?php
 $store_code = array(0=>array("title"=>lang('Store Page'),"url"=>base_url("ecommerce/store/".$current_store_data['store_unique_id'])));                         $category_copy = array();
-$order_code = array(0=>array("title"=>$this->lang->line("Buyer's Orders Page"),"url"=>base_url("ecommerce/my_orders/".$current_store_data['id'])));
+$order_code = array(0=>array("title"=>lang("Buyer's Orders Page"),"url"=>base_url("ecommerce/my_orders/".$current_store_data['id'])));
 $product_copy = array();
 foreach ($category_list as $key => $value)
 {

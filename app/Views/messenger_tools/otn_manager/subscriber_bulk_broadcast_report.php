@@ -111,7 +111,7 @@
 	$Doyouwanttostartthiscampaign = lang('Do you want to resume this campaign?');
 	$doyoureallywanttodeletethiscampaign = lang('Do you really want to delete this campaign?');
 	$alreadyEnabled = lang('This campaign is already enabled for processing.');
-	$doyoureallywanttoReprocessthiscampaign = $this->lang->line("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?");
+	$doyoureallywanttoReprocessthiscampaign = lang("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?");
 	$wanttounsubscribe = lang('Do you really want to unsubscribe this user?');
 
  ?>
@@ -162,7 +162,7 @@
 	  },
 	  language: 
 	  {
-	    url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+	    url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? 'english').'.json'); ?>"
 	  },
 	  dom: '<"top"f>rt<"bottom"lip><"clear">',
 	  columnDefs: [
@@ -269,7 +269,7 @@
 	    			      },
 	    			      language: 
 	    			      {
-	    			        url: '<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json');?>'
+	    			        url: '<?php echo base_url('assets/modules/datatables/language/'.($language ?? 'english').'.json');?>'
 	    			      },
 	    			      dom: '<"top"f>rt<"bottom"lip><"clear">',
 	    			      columnDefs: [
@@ -579,7 +579,7 @@ echo '
 
      <div class="section">               
 
-        <h2 class="section-title"> '.$this->lang->line("(#551) This person isn't available right now").'</h2>
+        <h2 class="section-title"> '.lang("(#551) This person isn't available right now").'</h2>
         <p>
         '.lang('This error messages comes from Facebook. The possible reasons are below').' : 
          <ol>

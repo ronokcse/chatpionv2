@@ -17,8 +17,8 @@
 						<div class="card-body p-0">
 							<div class="row">
 
-								<?php if($this->basic->is_exist("add_ons",array("unique_name"=>"ecommerce_digital_product")) && $this->basic->is_exist("modules",array("id"=>316))) : ?>
-									<?php if(session()->get('user_type') == 'Admin' || in_array(316,$this->module_access)) : ?>
+								<?php if(($basic ?? null) && $basic->is_exist("add_ons",array("unique_name"=>"ecommerce_digital_product")) && $basic->is_exist("modules",array("id"=>316))) : ?>
+									<?php if(session()->get('user_type') == 'Admin' || in_array(316,($module_access ?? []))) : ?>
 									<div class="col-12">
 										<div class="row">		
 											<div class="col-12 col-md-4">
@@ -117,7 +117,7 @@
 							    <label>
 							      <?php echo lang('Locale'); ?> *
 							    </label>
-							   <?php echo form_dropdown('store_locale', $locale_list,$this->language, 'class="form-control select2" id="store_locale" style="width:100%;"' ); ?>                      
+							   <?php echo form_dropdown('store_locale', $locale_list,($language ?? 'english'), 'class="form-control select2" id="store_locale" style="width:100%;"' ); ?>                      
 							  </div>							  
 
 							  <div class="col-12 col-md-6">

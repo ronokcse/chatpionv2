@@ -80,7 +80,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
 </style>
 
-<div class='text-center' style='padding:12px;border:.5px solid #dee2e6; color:var(--blue);background: #fff;'><?php echo $this->lang->line("The Messenger Platform's One-Time Notification allows a page to request a user to send one follow-up message after 24-hour messaging window have ended. The user will be offered to receive a future notification. Once the user asks to be notified, the page will receive a token which is an equivalent to a permission to send a single message to the user. The token can only be used once and will expire within 1 year of creation."); ?> 
+<div class='text-center' style='padding:12px;border:.5px solid #dee2e6; color:var(--blue);background: #fff;'><?php echo lang("The Messenger Platform's One-Time Notification allows a page to request a user to send one follow-up message after 24-hour messaging window have ended. The user will be offered to receive a future notification. Once the user asks to be notified, the page will receive a token which is an equivalent to a permission to send a single message to the user. The token can only be used once and will expire within 1 year of creation."); ?> 
 </div>
 
 <div class="row multi_layout">  
@@ -248,12 +248,12 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
                   </div>
                   <select class="form-control form-control-new" id="template_type_<?php echo $k; ?>" name="template_type_<?php echo $k; ?>">
                     <?php 
-                    $template_type = $xdata['template_type'];
+                    $k = $xdata['template_type'];
                      foreach ($templates as $key => $value)
                      {
-                        if($template_type == $value) $selected='selected';
+                        if($k == $value) $selected='selected';
                         else $selected='';
-                        echo '<option value="'.$value.'" '.$selected.'>'.$this->lang->line($value).'</option>';
+                        echo '<option value="'.$value.'" '.$selected.'>'.lang($value).'</option>';
                      } 
                     ?>
                   </select>
@@ -272,7 +272,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 	                      <a title="<?php echo lang('You can include {{first_name}} variable inside your message. The variable will be replaced by real names when we will send it.') ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_first_name button-outline'><i class='fa fa-user'></i> <?php echo lang('first name') ?></a>
 	                    </span> 
 	                    <div class="clearfix"></div>
-	                    <textarea class="form-control"  name="text_reply_<?php echo $k; ?>" id="text_reply_<?php echo $k; ?>"><?php if($template_type == 'text') echo $full_message[$k]['text'];?></textarea>
+	                    <textarea class="form-control"  name="text_reply_<?php echo $k; ?>" id="text_reply_<?php echo $k; ?>"><?php if($k == 'text') echo $full_message[$k]['text'];?></textarea>
 	                  </div>        
 	                </div>  
 	              </div>
@@ -284,7 +284,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
 	                    <span class="badge badge-status blue load_preview_modal float-right" item_type="image" file_path=""><i class="fa fa-eye"></i> <?php echo lang('preview'); ?></span>
 
-	                    <input type="hidden" class="form-control"  name="image_reply_field_<?php echo $k; ?>" id="image_reply_field_<?php echo $k; ?>" value="<?php if($template_type == 'image') echo $full_message[$k]['attachment']['payload']['url'];?>" >
+	                    <input type="hidden" class="form-control"  name="image_reply_field_<?php echo $k; ?>" id="image_reply_field_<?php echo $k; ?>" value="<?php if($k == 'image') echo $full_message[$k]['attachment']['payload']['url'];?>" >
 	                    <div id="image_reply_<?php echo $k; ?>"><?php echo lang('upload') ?></div>
 	                    <img id="image_reply_div_<?php echo $k; ?>" style="display: none;" height="200px;" width="400px;">
 	                  </div>       
@@ -298,7 +298,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
 	                    <span class="badge badge-status blue load_preview_modal float-right" item_type="audio" file_path=""><i class="fa fa-eye"></i> <?php echo lang('preview'); ?></span>
 
-	                    <input type="hidden" class="form-control"  name="audio_reply_field_<?php echo $k; ?>" id="audio_reply_field_<?php echo $k; ?>" value="<?php if($template_type == 'audio') echo $full_message[$k]['attachment']['payload']['url'];?>" >
+	                    <input type="hidden" class="form-control"  name="audio_reply_field_<?php echo $k; ?>" id="audio_reply_field_<?php echo $k; ?>" value="<?php if($k == 'audio') echo $full_message[$k]['attachment']['payload']['url'];?>" >
 	                    <div id="audio_reply_<?php echo $k; ?>"><?php echo lang('upload') ?></div>                      
 	                    <audio controls id="audio_tag_<?php echo $k; ?>" style="display: none;">
 	                      <source src="" id="audio_reply_div_<?php echo $k; ?>" type="audio/mpeg">
@@ -315,7 +315,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
 	                    <span class="badge badge-status blue load_preview_modal float-right" item_type="video" file_path=""><i class="fa fa-eye"></i> <?php echo lang('preview'); ?></span>
 
-	                    <input type="hidden" class="form-control"  name="video_reply_field_<?php echo $k; ?>" id="video_reply_field_<?php echo $k; ?>" value="<?php if($template_type == 'video') echo $full_message[$k]['attachment']['payload']['url'];?>" >
+	                    <input type="hidden" class="form-control"  name="video_reply_field_<?php echo $k; ?>" id="video_reply_field_<?php echo $k; ?>" value="<?php if($k == 'video') echo $full_message[$k]['attachment']['payload']['url'];?>" >
 	                    <div id="video_reply_<?php echo $k; ?>"><?php echo lang('upload') ?></div>                      
 	                    <video width="400" height="200" controls id="video_tag_<?php echo $k; ?>" style="display: none;">
 	                      <source src="" id="video_reply_div_<?php echo $k; ?>" type="video/mp4">
@@ -332,7 +332,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
 	                    <span class="badge badge-status blue load_preview_modal float-right" item_type="file" file_path=""><i class="fa fa-eye"></i> <?php echo lang('preview'); ?></span>
 
-	                    <input type="hidden" class="form-control"  name="file_reply_field_<?php echo $k; ?>" id="file_reply_field_<?php echo $k; ?>" value="<?php if($template_type == 'file') echo $full_message[$k]['attachment']['payload']['url'];?>" >
+	                    <input type="hidden" class="form-control"  name="file_reply_field_<?php echo $k; ?>" id="file_reply_field_<?php echo $k; ?>" value="<?php if($k == 'file') echo $full_message[$k]['attachment']['payload']['url'];?>" >
 	                    <div id="file_reply_<?php echo $k; ?>"><?php echo lang('upload') ?></div> 
 	                  </div>           
 	                </div>
@@ -371,7 +371,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 		                        <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 		                        <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 		                        <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?> ><?php echo lang('WebView [Full]'); ?></option>
-		                        <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
+		                        <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
 
 
 		                        <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('Call Us'); ?></option>
@@ -451,7 +451,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 	                      <a title="<?php echo lang('You can include {{first_name}} variable inside your message. The variable will be replaced by real names when we will send it.') ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_first_name button-outline'><i class='fa fa-user'></i> <?php echo lang('first name') ?></a>
 	                    </span> 
 	                    <div class="clearfix"></div>
-	                    <textarea class="form-control" name="quick_reply_text_<?php echo $k; ?>" id="quick_reply_text_<?php echo $k; ?>"><?php if($template_type == 'quick reply') echo $full_message[$k]['text'];?></textarea>
+	                    <textarea class="form-control" name="quick_reply_text_<?php echo $k; ?>" id="quick_reply_text_<?php echo $k; ?>"><?php if($k == 'quick reply') echo $full_message[$k]['text'];?></textarea>
 	                  </div> 
 
 	                  <?php $quickreply_add_button_display = 0; for ($i=1; $i <=3 ; $i++) : ?>
@@ -517,7 +517,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 	                      <a title="<?php echo lang('You can include {{first_name}} variable inside your message. The variable will be replaced by real names when we will send it.') ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_first_name button-outline'><i class='fa fa-user'></i> <?php echo lang('first name') ?></a>
 	                    </span> 
 	                    <div class="clearfix"></div>
-	                    <textarea class="form-control"  name="text_with_buttons_input_<?php echo $k; ?>" id="text_with_buttons_input_<?php echo $k; ?>"><?php if($template_type == 'text with buttons') echo $full_message[$k]['attachment']['payload']['text']; ?></textarea>
+	                    <textarea class="form-control"  name="text_with_buttons_input_<?php echo $k; ?>" id="text_with_buttons_input_<?php echo $k; ?>"><?php if($k == 'text with buttons') echo $full_message[$k]['attachment']['payload']['text']; ?></textarea>
 	                  </div> 
 
 	                  <?php $textwithbutton_add_button_display = 0; for ($i=1; $i <=3 ; $i++) : ?>
@@ -539,7 +539,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 	                            <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 	                            <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 	                            <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?> ><?php echo lang('WebView [Full]'); ?></option>
-	                            <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
+	                            <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
 
 	                            <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
 	                            <option value="post_back" id="unsubscribe_postback" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['type'] == 'postback' && isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['payload']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['payload'] == 'UNSUBSCRIBE_QUICK_BOXER') echo 'selected'; ?> ><?php echo lang('unsubscribe'); ?></option>
@@ -598,14 +598,14 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
 	                        <span class="badge badge-status blue load_preview_modal float-right" item_type="image" file_path=""><i class="fa fa-eye"></i> <?php echo lang('preview'); ?></span>
 
-	                        <input type="hidden" class="form-control"  name="generic_template_image_<?php echo $k; ?>" id="generic_template_image_<?php echo $k; ?>" value="<?php if($template_type == 'generic template' && isset($full_message[$k]['attachment']['payload']['elements'][0]['image_url'])) echo $full_message[$k]['attachment']['payload']['elements'][0]['image_url'];?>" />
+	                        <input type="hidden" class="form-control"  name="generic_template_image_<?php echo $k; ?>" id="generic_template_image_<?php echo $k; ?>" value="<?php if($k == 'generic template' && isset($full_message[$k]['attachment']['payload']['elements'][0]['image_url'])) echo $full_message[$k]['attachment']['payload']['elements'][0]['image_url'];?>" />
 	                        <div id="generic_image_<?php echo $k; ?>"><?php echo lang('upload'); ?></div>
 	                      </div>                         
 	                    </div>
 	                    <div class="col-12 col-md-6">
 	                      <div class="form-group">
 	                        <label><?php echo lang('image click destination link'); ?> <span style='color:orange !important;'>(<?php echo lang('optional'); ?>)</span></label>
-	                        <input type="text" class="form-control"  name="generic_template_image_destination_link_<?php echo $k; ?>" id="generic_template_image_destination_link_<?php echo $k; ?>" value="<?php if($template_type == 'generic template' && isset($full_message[$k]['attachment']['payload']['elements'][0]['default_action']['url'])) echo $full_message[$k]['attachment']['payload']['elements'][0]['default_action']['url'];?>" />
+	                        <input type="text" class="form-control"  name="generic_template_image_destination_link_<?php echo $k; ?>" id="generic_template_image_destination_link_<?php echo $k; ?>" value="<?php if($k == 'generic template' && isset($full_message[$k]['attachment']['payload']['elements'][0]['default_action']['url'])) echo $full_message[$k]['attachment']['payload']['elements'][0]['default_action']['url'];?>" />
 	                      </div> 
 	                    </div>                      
 	                  </div>
@@ -614,13 +614,13 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 	                    <div class="col-12 col-md-6">
 	                      <div class="form-group">
 	                        <label><?php echo lang('title'); ?></label>
-	                        <input type="text" class="form-control"  name="generic_template_title_<?php echo $k; ?>" id="generic_template_title_<?php echo $k; ?>" value="<?php if($template_type == 'generic template' && isset($full_message[$k]['attachment']['payload']['elements'][0]['title'])) echo $full_message[$k]['attachment']['payload']['elements'][0]['title'];?>" />
+	                        <input type="text" class="form-control"  name="generic_template_title_<?php echo $k; ?>" id="generic_template_title_<?php echo $k; ?>" value="<?php if($k == 'generic template' && isset($full_message[$k]['attachment']['payload']['elements'][0]['title'])) echo $full_message[$k]['attachment']['payload']['elements'][0]['title'];?>" />
 	                      </div>
 	                    </div>  
 	                    <div class="col-12 col-md-6">
 	                      <div class="form-group">
 	                        <label><?php echo lang('sub-title'); ?></label>
-	                        <input type="text" class="form-control"  name="generic_template_subtitle_<?php echo $k; ?>" id="generic_template_subtitle_<?php echo $k; ?>" value="<?php if($template_type == 'generic template' && isset($full_message[$k]['attachment']['payload']['elements'][0]['subtitle'])) echo $full_message[$k]['attachment']['payload']['elements'][0]['subtitle'];?>" />
+	                        <input type="text" class="form-control"  name="generic_template_subtitle_<?php echo $k; ?>" id="generic_template_subtitle_<?php echo $k; ?>" value="<?php if($k == 'generic template' && isset($full_message[$k]['attachment']['payload']['elements'][0]['subtitle'])) echo $full_message[$k]['attachment']['payload']['elements'][0]['subtitle'];?>" />
 	                      </div>
 	                    </div>  
 	                  </div>
@@ -645,7 +645,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 	                            <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 	                            <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 	                            <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?> ><?php echo lang('WebView [Full]'); ?></option>
-	                            <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
+	                            <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
 
 	                            <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
 	                            <option value="post_back" id="unsubscribe_postback" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type'] == 'postback' && isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['payload']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['payload'] == 'UNSUBSCRIBE_QUICK_BOXER') echo 'selected'; ?> ><?php echo lang('unsubscribe'); ?></option>
@@ -710,14 +710,14 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
 		                            <span class="badge badge-status blue load_preview_modal float-right" item_type="image" file_path=""><i class="fa fa-eye"></i> <?php echo lang('preview'); ?></span>
 
-		                            <input type="hidden" class="form-control"  name="carousel_image_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_image_<?php echo $j; ?>_<?php echo $k; ?>" value="<?php if($template_type == 'carousel' && isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['image_url'])) echo $full_message[$k]['attachment']['payload']['elements'][$j-1]['image_url'];?>" />
+		                            <input type="hidden" class="form-control"  name="carousel_image_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_image_<?php echo $j; ?>_<?php echo $k; ?>" value="<?php if($k == 'carousel' && isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['image_url'])) echo $full_message[$k]['attachment']['payload']['elements'][$j-1]['image_url'];?>" />
 		                            <div id="generic_imageupload_<?php echo $j; ?>_<?php echo $k; ?>"><?php echo lang('upload'); ?></div>
 		                          </div>                         
 		                        </div>
 		                        <div class="col-12 col-md-6">
 		                          <div class="form-group">
 		                            <label><?php echo lang('image click destination link'); ?> <span style='color:orange !important;'>(<?php echo lang('optional'); ?>)</span></label>
-		                            <input type="text" class="form-control"  name="carousel_image_destination_link_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_image_destination_link_<?php echo $j; ?>_<?php echo $k; ?>" value="<?php if($template_type == 'carousel' && isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['default_action']['url'])) echo $full_message[$k]['attachment']['payload']['elements'][$j-1]['default_action']['url'];?>" />
+		                            <input type="text" class="form-control"  name="carousel_image_destination_link_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_image_destination_link_<?php echo $j; ?>_<?php echo $k; ?>" value="<?php if($k == 'carousel' && isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['default_action']['url'])) echo $full_message[$k]['attachment']['payload']['elements'][$j-1]['default_action']['url'];?>" />
 		                          </div> 
 		                        </div>                      
 		                      </div>
@@ -726,13 +726,13 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 		                        <div class="col-12 col-md-6">
 		                          <div class="form-group">
 		                            <label><?php echo lang('title'); ?></label>
-		                            <input type="text" class="form-control"  name="carousel_title_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_title_<?php echo $j; ?>_<?php echo $k; ?>" value="<?php if($template_type == 'carousel' && isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['title'])) echo $full_message[$k]['attachment']['payload']['elements'][$j-1]['title'];?>" />
+		                            <input type="text" class="form-control"  name="carousel_title_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_title_<?php echo $j; ?>_<?php echo $k; ?>" value="<?php if($k == 'carousel' && isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['title'])) echo $full_message[$k]['attachment']['payload']['elements'][$j-1]['title'];?>" />
 		                          </div>
 		                        </div>  
 		                        <div class="col-12 col-md-6">
 		                          <div class="form-group">
 		                            <label><?php echo lang('sub-title'); ?></label>
-		                            <input type="text" class="form-control"  name="carousel_subtitle_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_subtitle_<?php echo $j; ?>_<?php echo $k; ?>" value="<?php if($template_type == 'carousel' && isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['subtitle'])) echo $full_message[$k]['attachment']['payload']['elements'][$j-1]['subtitle'];?>" />
+		                            <input type="text" class="form-control"  name="carousel_subtitle_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_subtitle_<?php echo $j; ?>_<?php echo $k; ?>" value="<?php if($k == 'carousel' && isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['subtitle'])) echo $full_message[$k]['attachment']['payload']['elements'][$j-1]['subtitle'];?>" />
 		                          </div>
 		                        </div>  
 		                      </div>
@@ -758,7 +758,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 		                                <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 		                                <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 		                                <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?>><?php echo lang('WebView [Full]'); ?></option>
-		                                <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?>><?php echo $this->lang->line("User's Birthday"); ?></option>
+		                                <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?>><?php echo lang("User's Birthday"); ?></option>
 
 
 		                                <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
@@ -836,7 +836,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 		                              <option value="web_url_compact" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio'] == 'compact') echo 'selected'; ?> ><?php echo lang('WebView [Compact]'); ?></option>
 		                              <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
 		                              <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][0]['webview_height_ratio'] == 'full') echo 'selected'; ?>><?php echo lang('WebView [Full]'); ?></option>
-		                              <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][0]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
+		                              <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][0]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
 
 
 		                              <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][0]['type']) && $full_message[$k]['attachment']['payload']['buttons'][0]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
@@ -946,7 +946,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           <h4><i class="fas fa-eye"></i> <?php echo lang('Summary'); ?></h4>
         </div>
         <div class="card-body">
-          <?php include(FCPATH."application/views/messenger_tools/otn_manager/summary.php") ?>            
+          <?php include(APPPATH."Views/messenger_tools/otn_manager/summary.php") ?>            
         </div>
      </div>
   </div>
@@ -1056,11 +1056,11 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
   var audio_upload_limit = "<?php echo $audio_upload_limit; ?>";
   var file_upload_limit = "<?php echo $file_upload_limit; ?>";
 
-<?php for($template_type=1;$template_type<=1;$template_type++){ ?>
+<?php for($k=1;$k<=1;$k++){ ?>
 
-  var template_type_order="#template_type_<?php echo $template_type ?>";
+  var template_type_order="#template_type_<?php echo $k ?>";
 
-  $("#image_reply_<?php echo $template_type; ?>").uploadFile({
+  $("#image_reply_<?php echo $k; ?>").uploadFile({
     url:base_url+"messenger_bot/upload_image_only",
     fileName:"myfile",
     maxFileSize:image_upload_limit*1024*1024,
@@ -1075,21 +1075,20 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         var delete_url="<?php echo site_url('messenger_bot/delete_uploaded_file');?>";
         $.post(delete_url, {op: "delete",name: data},
             function (resp,textStatus, jqXHR) {
-              $("#image_reply_field_<?php echo $template_type; ?>").val('');  
-              $("#image_reply_div_<?php echo $template_type; ?>").hide();                     
+              $("#image_reply_field_<?php echo $k; ?>").val('');  
+              $("#image_reply_div_<?php echo $k; ?>").hide();                     
             });
        
      },
      onSuccess:function(files,data,xhr,pd)
        {
            var data_modified = base_url+"upload/image/"+user_id+"/"+data;
-           $("#image_reply_field_<?php echo $template_type; ?>").val(data_modified);   
-           $("#image_reply_div_<?php echo $template_type; ?>").show().attr('src',data_modified);   
+           $("#image_reply_field_<?php echo $k; ?>").val(data_modified);   
+           $("#image_reply_div_<?php echo $k; ?>").show().attr('src',data_modified);   
        }
   });
 
-
-  $("#video_reply_<?php echo $template_type; ?>").uploadFile({
+  $("#video_reply_<?php echo $k; ?>").uploadFile({
     url:base_url+"messenger_bot/upload_live_video",
     fileName:"myfile",
     maxFileSize:video_upload_limit*1024*1024,
@@ -1104,21 +1103,21 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
       var delete_url="<?php echo site_url('messenger_bot/delete_uploaded_live_file');?>";
       $.post(delete_url, {op: "delete",name: data},
         function (resp,textStatus, jqXHR) {  
-            $("#video_reply_field_<?php echo $template_type; ?>").val('');  
-            $("#video_tag_<?php echo $template_type; ?>").hide();             
+            $("#video_reply_field_<?php echo $k; ?>").val('');  
+            $("#video_tag_<?php echo $k; ?>").hide();             
         });
 
     },
     onSuccess:function(files,data,xhr,pd)
     {
       var file_path = base_url+"upload/video/"+data;
-      $("#video_reply_field_<?php echo $template_type; ?>").val(file_path);   
-      $("#video_tag_<?php echo $template_type; ?>").show();
-      $("#video_reply_div_<?php echo $template_type; ?>").attr('src',file_path); 
+      $("#video_reply_field_<?php echo $k; ?>").val(file_path);   
+      $("#video_tag_<?php echo $k; ?>").show();
+      $("#video_reply_div_<?php echo $k; ?>").attr('src',file_path); 
     }
   });
 
-  $("#audio_reply_<?php echo $template_type; ?>").uploadFile({
+  $("#audio_reply_<?php echo $k; ?>").uploadFile({
     url:base_url+"messenger_bot/upload_audio_file",
     fileName:"myfile",
     maxFileSize:audio_upload_limit*1024*1024,
@@ -1133,21 +1132,21 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
       var delete_url="<?php echo site_url('messenger_bot/delete_audio_file');?>";
       $.post(delete_url, {op: "delete",name: data},
         function (resp,textStatus, jqXHR) {  
-            $("#audio_reply_field_<?php echo $template_type; ?>").val('');  
-            $("#audio_tag_<?php echo $template_type; ?>").hide();             
+            $("#audio_reply_field_<?php echo $k; ?>").val('');  
+            $("#audio_tag_<?php echo $k; ?>").hide();             
         });
 
     },
     onSuccess:function(files,data,xhr,pd)
     {
       var file_path = base_url+"upload/audio/"+data;
-      $("#audio_reply_field_<?php echo $template_type; ?>").val(file_path);   
-      $("#audio_tag_<?php echo $template_type; ?>").show();
-      $("#audio_reply_div_<?php echo $template_type; ?>").attr('src',file_path); 
+      $("#audio_reply_field_<?php echo $k; ?>").val(file_path);   
+      $("#audio_tag_<?php echo $k; ?>").show();
+      $("#audio_reply_div_<?php echo $k; ?>").attr('src',file_path); 
     }
   });
 
-  $("#file_reply_<?php echo $template_type; ?>").uploadFile({
+  $("#file_reply_<?php echo $k; ?>").uploadFile({
     url:base_url+"messenger_bot/upload_general_file",
     fileName:"myfile",
     maxFileSize:file_upload_limit*1024*1024,
@@ -1163,19 +1162,18 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
       var delete_url="<?php echo site_url('messenger_bot/delete_general_file');?>";
       $.post(delete_url, {op: "delete",name: data},
         function (resp,textStatus, jqXHR) {  
-            $("#file_reply_field_<?php echo $template_type; ?>").val('');            
+            $("#file_reply_field_<?php echo $k; ?>").val('');            
         });
 
     },
     onSuccess:function(files,data,xhr,pd)
     {
       var file_path = base_url+"upload/file/"+data;
-      $("#file_reply_field_<?php echo $template_type; ?>").val(file_path);   
+      $("#file_reply_field_<?php echo $k; ?>").val(file_path);   
     }
   });
 
-
-  $("#generic_image_<?php echo $template_type; ?>").uploadFile({
+  $("#generic_image_<?php echo $k; ?>").uploadFile({
     url:base_url+"messenger_bot/upload_image_only",
     fileName:"myfile",
     maxFileSize:image_upload_limit*1024*1024,
@@ -1190,20 +1188,20 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         var delete_url="<?php echo site_url('messenger_bot/delete_uploaded_file');?>";
         $.post(delete_url, {op: "delete",name: data},
             function (resp,textStatus, jqXHR) {
-              $("#generic_template_image_<?php echo $template_type; ?>").val('');                   
+              $("#generic_template_image_<?php echo $k; ?>").val('');                   
             });
        
      },
      onSuccess:function(files,data,xhr,pd)
        {
            var data_modified = base_url+"upload/image/"+user_id+"/"+data;
-           $("#generic_template_image_<?php echo $template_type; ?>").val(data_modified);     
+           $("#generic_template_image_<?php echo $k; ?>").val(data_modified);     
        }
   });
 
   
   <?php for($i=1; $i<=10; $i++) : ?>
-    $("#generic_imageupload_<?php echo $i; ?>_<?php echo $template_type; ?>").uploadFile({
+    $("#generic_imageupload_<?php echo $i; ?>_<?php echo $k; ?>").uploadFile({
       url:base_url+"messenger_bot/upload_image_only",
       fileName:"myfile",
       maxFileSize:image_upload_limit*1024*1024,
@@ -1218,20 +1216,20 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           var delete_url="<?php echo site_url('messenger_bot/delete_uploaded_file');?>";
           $.post(delete_url, {op: "delete",name: data},
               function (resp,textStatus, jqXHR) {
-                $("#carousel_image_<?php echo $i; ?>_<?php echo $template_type; ?>").val('');                      
+                $("#carousel_image_<?php echo $i; ?>_<?php echo $k; ?>").val('');                      
               });
          
        },
        onSuccess:function(files,data,xhr,pd)
          {
              var data_modified = base_url+"upload/image/"+user_id+"/"+data;
-             $("#carousel_image_<?php echo $i; ?>_<?php echo $template_type; ?>").val(data_modified);     
+             $("#carousel_image_<?php echo $i; ?>_<?php echo $k; ?>").val(data_modified);     
          }
     });
   <?php endfor; ?>
 
   <?php for($i=1; $i<=4; $i++) : ?>
-    $("#list_imageupload_<?php echo $i; ?>_<?php echo $template_type; ?>").uploadFile({
+    $("#list_imageupload_<?php echo $i; ?>_<?php echo $k; ?>").uploadFile({
       url:base_url+"messenger_bot/upload_image_only",
       fileName:"myfile",
       maxFileSize:image_upload_limit*1024*1024,
@@ -1246,14 +1244,14 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           var delete_url="<?php echo site_url('messenger_bot/delete_uploaded_file');?>";
           $.post(delete_url, {op: "delete",name: data},
               function (resp,textStatus, jqXHR) {
-                $("#list_image_<?php echo $i; ?>_<?php echo $template_type; ?>").val('');                      
+                $("#list_image_<?php echo $i; ?>_<?php echo $k; ?>").val('');                      
               });
          
        },
        onSuccess:function(files,data,xhr,pd)
          {
              var data_modified = base_url+"upload/image/"+user_id+"/"+data;
-             $("#list_image_<?php echo $i; ?>_<?php echo $template_type; ?>").val(data_modified);     
+             $("#list_image_<?php echo $i; ?>_<?php echo $k; ?>").val(data_modified);     
          }
     });
   <?php endfor; ?>
@@ -1261,7 +1259,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
 
       $("document").ready(function(){
-        var selected_template = $("#template_type_<?php echo $template_type ?>").val();
+        var selected_template = $("#template_type_<?php echo $k ?>").val();
         selected_template = selected_template.replace(/ /gi, "_");
 
         var template_type_array = ['text','image','audio','video','file','quick_reply','text_with_buttons','generic_template','carousel','list','media'];
@@ -1272,7 +1270,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
           // alert(template_type_preview_div_name);
 
-          var template_type_div_name = "#"+item+"_div_<?php echo $template_type; ?>";
+          var template_type_div_name = "#"+item+"_div_<?php echo $k; ?>";
           if(selected_template == item){
             $(template_type_div_name).show();
             $(template_type_preview_div_name).show();
@@ -1284,46 +1282,46 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
           if(selected_template == 'quick_reply')
           {
-            $("#quick_reply_row_1_<?php echo $template_type; ?>").show();
+            $("#quick_reply_row_1_<?php echo $k; ?>").show();
           }
 
           if(selected_template == 'text_with_buttons')
           {
-            $("#text_with_buttons_row_1_<?php echo $template_type; ?>").show();
+            $("#text_with_buttons_row_1_<?php echo $k; ?>").show();
           }
 
           if(selected_template == 'generic_template')
           {
-            $("#generic_template_row_1_<?php echo $template_type; ?>").show();
+            $("#generic_template_row_1_<?php echo $k; ?>").show();
           }
 
           if(selected_template == 'carousel')
           {
-            $("#carousel_div_1_<?php echo $template_type; ?>").show();
+            $("#carousel_div_1_<?php echo $k; ?>").show();
             for (var i = 1; i <= 5; i++) 
             {
-              $("#carousel_row_"+i+"_1_<?php echo $template_type; ?>").show();
+              $("#carousel_row_"+i+"_1_<?php echo $k; ?>").show();
             }
           }
 
           if(selected_template == 'media')
           {
-            $("#media_row_1_<?php echo $template_type; ?>").show();     
+            $("#media_row_1_<?php echo $k; ?>").show();     
           }
 
           if(selected_template == 'list')
           {
-            $("#list_div_1_<?php echo $template_type; ?>").show();
-            $("#list_div_2_<?php echo $template_type; ?>").show();
+            $("#list_div_1_<?php echo $k; ?>").show();
+            $("#list_div_2_<?php echo $k; ?>").show();
           }
 
         }
       });
 
 
-      $(document).on('change',"#template_type_<?php echo $template_type ?>",function(){
+      $(document).on('change',"#template_type_<?php echo $k ?>",function(){
       
-        var selected_template_on_change = $("#template_type_<?php echo $template_type ?>").val();
+        var selected_template_on_change = $("#template_type_<?php echo $k ?>").val();
         selected_template_on_change = selected_template_on_change.replace(/ /gi, "_");
 
         var template_type_array = ['text','image','audio','video','file','quick_reply','text_with_buttons','generic_template','carousel','list','media'];
@@ -1332,7 +1330,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         {
           var template_type_preview_div_name = "#"+item+"_preview_div";
 
-          var template_type_div_name = "#"+item+"_div_<?php echo $template_type; ?>";
+          var template_type_div_name = "#"+item+"_div_<?php echo $k; ?>";
           if(selected_template_on_change == item){
             $(template_type_div_name).show();
             $(template_type_preview_div_name).show();
@@ -1344,34 +1342,34 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
           if(selected_template_on_change == 'quick_reply')
           {
-            $("#quick_reply_row_1_<?php echo $template_type; ?>").show();
+            $("#quick_reply_row_1_<?php echo $k; ?>").show();
           }
 
           if(selected_template_on_change == 'media')
           {
-            $("#media_row_1_<?php echo $template_type; ?>").show();     
+            $("#media_row_1_<?php echo $k; ?>").show();     
           }
 
           if(selected_template_on_change == 'text_with_buttons')
           {
-            $("#text_with_buttons_row_1_<?php echo $template_type; ?>").show();
+            $("#text_with_buttons_row_1_<?php echo $k; ?>").show();
           }
 
           if(selected_template_on_change == 'generic_template')
           {
-            $("#generic_template_row_1_<?php echo $template_type; ?>").show();
+            $("#generic_template_row_1_<?php echo $k; ?>").show();
           }
 
           if(selected_template_on_change == 'carousel')
           {
-            $("#carousel_div_1_<?php echo $template_type; ?>").show();
-            $("#carousel_row_1_1_<?php echo $template_type; ?>").show();
+            $("#carousel_div_1_<?php echo $k; ?>").show();
+            $("#carousel_row_1_1_<?php echo $k; ?>").show();
           }
 
           if(selected_template_on_change == 'list')
           {
-            $("#list_div_1_<?php echo $template_type; ?>").show();
-            $("#list_div_2_<?php echo $template_type; ?>").show();
+            $("#list_div_1_<?php echo $k; ?>").show();
+            $("#list_div_2_<?php echo $k; ?>").show();
           }
 
         }
@@ -1379,16 +1377,16 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
 
 
-      var quick_reply_button_counter_<?php echo $template_type; ?> = "<?php if (isset($full_message[$template_type]['quick_replies'])) echo count($full_message[$template_type]['quick_replies']); else echo 1; ?>";
+      var quick_reply_button_counter_<?php echo $k; ?> = "<?php if (isset($full_message[$k]['quick_replies'])) echo count($full_message[$k]['quick_replies']); else echo 1; ?>";
 
     
-      $(document).on('click',"#quick_reply_add_button_<?php echo $template_type; ?>",function(e){
+      $(document).on('click',"#quick_reply_add_button_<?php echo $k; ?>",function(e){
         e.preventDefault();
       
-        var button_id = quick_reply_button_counter_<?php echo $template_type; ?>;      
-        var quick_reply_button_text = "#quick_reply_button_text_"+button_id+"_<?php echo $template_type; ?>";
-        var quick_reply_post_id = "#quick_reply_post_id_"+button_id+"_<?php echo $template_type; ?>";
-        var quick_reply_button_type = "#quick_reply_button_type_"+button_id+"_<?php echo $template_type; ?>";
+        var button_id = quick_reply_button_counter_<?php echo $k; ?>;      
+        var quick_reply_button_text = "#quick_reply_button_text_"+button_id+"_<?php echo $k; ?>";
+        var quick_reply_post_id = "#quick_reply_post_id_"+button_id+"_<?php echo $k; ?>";
+        var quick_reply_button_type = "#quick_reply_button_type_"+button_id+"_<?php echo $k; ?>";
 
         quick_reply_button_type = $(quick_reply_button_type).val();
 
@@ -1423,33 +1421,33 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           }
         }
 
-        quick_reply_button_counter_<?php echo $template_type; ?>++;
+        quick_reply_button_counter_<?php echo $k; ?>++;
 
         // remove button hide for current div and show for next div
-        var div_id = "#quick_reply_button_type_"+button_id+"_<?php echo $template_type; ?>";
+        var div_id = "#quick_reply_button_type_"+button_id+"_<?php echo $k; ?>";
         $(div_id).parent().parent().next().next().hide();
         var next_item_remove_parent_div = $(div_id).parent().parent().parent().next().attr('id');
         $("#"+next_item_remove_parent_div+" div:last").show();
       
-        var x=  quick_reply_button_counter_<?php echo $template_type; ?>;
-        $("#quick_reply_row_"+x+"_<?php echo $template_type; ?>").show();
+        var x=  quick_reply_button_counter_<?php echo $k; ?>;
+        $("#quick_reply_row_"+x+"_<?php echo $k; ?>").show();
       
-        if(quick_reply_button_counter_<?php echo $template_type; ?> == 3)
-          $("#quick_reply_add_button_<?php echo $template_type; ?>").hide();
+        if(quick_reply_button_counter_<?php echo $k; ?> == 3)
+          $("#quick_reply_add_button_<?php echo $k; ?>").hide();
 
       });
 
 
 
-     var text_with_button_counter_<?php echo $template_type; ?> = "<?php if (isset($full_message[$template_type]['attachment']['payload']['buttons'])) echo count($full_message[$template_type]['attachment']['payload']['buttons']); else echo 1; ?>";
+     var text_with_button_counter_<?php echo $k; ?> = "<?php if (isset($full_message[$k]['attachment']['payload']['buttons'])) echo count($full_message[$k]['attachment']['payload']['buttons']); else echo 1; ?>";
 
   
-     $(document).on('click',"#text_with_button_add_button_<?php echo $template_type; ?>",function(e){
+     $(document).on('click',"#text_with_button_add_button_<?php echo $k; ?>",function(e){
         e.preventDefault();
 
-        var button_id = text_with_button_counter_<?php echo $template_type; ?>;
-        var text_with_buttons_text = "#text_with_buttons_text_"+button_id+"_<?php echo $template_type; ?>";
-        var text_with_button_type = "#text_with_button_type_"+button_id+"_<?php echo $template_type; ?>";
+        var button_id = text_with_button_counter_<?php echo $k; ?>;
+        var text_with_buttons_text = "#text_with_buttons_text_"+button_id+"_<?php echo $k; ?>";
+        var text_with_button_type = "#text_with_button_type_"+button_id+"_<?php echo $k; ?>";
 
         var text_with_buttons_text_check = $(text_with_buttons_text).val();
         if(text_with_buttons_text_check == ''){
@@ -1465,7 +1463,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           return;
         }else if(text_with_button_type_check == 'post_back'){
 
-          var text_with_button_post_id = "#text_with_button_post_id_"+button_id+"_<?php echo $template_type; ?>";
+          var text_with_button_post_id = "#text_with_button_post_id_"+button_id+"_<?php echo $k; ?>";
           var text_with_button_post_id_check = $(text_with_button_post_id).val();
           if(text_with_button_post_id_check == ''){
             showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
@@ -1474,7 +1472,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           }
 
         }else if(text_with_button_type_check == 'web_url' || text_with_button_type_check == 'web_url_compact' || text_with_button_type_check == 'web_url_tall' || text_with_button_type_check == 'web_url_full'){
-          var text_with_button_web_url = "#text_with_button_web_url_"+button_id+"_<?php echo $template_type; ?>";
+          var text_with_button_web_url = "#text_with_button_web_url_"+button_id+"_<?php echo $k; ?>";
           var text_with_button_web_url_check = $(text_with_button_web_url).val();
           if(text_with_button_web_url_check == ''){
             showerror("<?php echo lang('Please Provide Your Web Url')?>");
@@ -1482,7 +1480,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
             return;
           }
         }else if(text_with_button_type_check == 'phone_number'){
-          var text_with_button_call_us = "#text_with_button_call_us_"+button_id+"_<?php echo $template_type; ?>";
+          var text_with_button_call_us = "#text_with_button_call_us_"+button_id+"_<?php echo $k; ?>";
           var text_with_button_call_us_check = $(text_with_button_call_us).val();
           if(text_with_button_call_us_check == ''){
             showerror("<?php echo lang('Please Provide Your Phone Number')?>");
@@ -1491,28 +1489,28 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           }
         }
 
-        text_with_button_counter_<?php echo $template_type; ?>++;
+        text_with_button_counter_<?php echo $k; ?>++;
 
         // remove button hide for current div and show for next div
         $(text_with_button_type).parent().parent().next().next().hide();
         var next_item_remove_parent_div = $(text_with_button_type).parent().parent().parent().next().attr('id');
         $("#"+next_item_remove_parent_div+" div:last").show();
 
-        var x=text_with_button_counter_<?php echo $template_type; ?>;
-        $("#text_with_buttons_row_"+x+"_<?php echo $template_type; ?>").show();
-        if(text_with_button_counter_<?php echo $template_type; ?> == 3)
-          $("#text_with_button_add_button_<?php echo $template_type; ?>").hide();
+        var x=text_with_button_counter_<?php echo $k; ?>;
+        $("#text_with_buttons_row_"+x+"_<?php echo $k; ?>").show();
+        if(text_with_button_counter_<?php echo $k; ?> == 3)
+          $("#text_with_button_add_button_<?php echo $k; ?>").hide();
       });
 
 
-     var  generic_with_button_counter_<?php echo $template_type; ?> = "<?php if(isset($full_message[$template_type]['attachment']['payload']['elements'][0]['buttons'])) echo count($full_message[$template_type]['attachment']['payload']['elements'][0]['buttons']); else echo 1; ?>";
+     var  generic_with_button_counter_<?php echo $k; ?> = "<?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'])) echo count($full_message[$k]['attachment']['payload']['elements'][0]['buttons']); else echo 1; ?>";
   
-    $(document).on('click',"#generic_template_add_button_<?php echo $template_type; ?>",function(e){
+    $(document).on('click',"#generic_template_add_button_<?php echo $k; ?>",function(e){
       e.preventDefault();
 
-      var button_id = generic_with_button_counter_<?php echo $template_type; ?>;
-      var generic_template_button_text = "#generic_template_button_text_"+button_id+"_<?php echo $template_type; ?>";
-      var generic_template_button_type = "#generic_template_button_type_"+button_id+"_<?php echo $template_type; ?>";
+      var button_id = generic_with_button_counter_<?php echo $k; ?>;
+      var generic_template_button_text = "#generic_template_button_text_"+button_id+"_<?php echo $k; ?>";
+      var generic_template_button_type = "#generic_template_button_type_"+button_id+"_<?php echo $k; ?>";
 
       var generic_template_button_text_check = $(generic_template_button_text).val();
       if(generic_template_button_text_check == ''){
@@ -1528,7 +1526,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         return;
       }else if(generic_template_button_type_check == 'post_back'){
 
-        var generic_template_button_post_id = "#generic_template_button_post_id_"+button_id+"_<?php echo $template_type; ?>";
+        var generic_template_button_post_id = "#generic_template_button_post_id_"+button_id+"_<?php echo $k; ?>";
         var generic_template_button_post_id_check = $(generic_template_button_post_id).val();
         if(generic_template_button_post_id_check == ''){
           showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
@@ -1538,7 +1536,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
       }else if(generic_template_button_type_check == 'web_url' || generic_template_button_type_check == 'web_url_compact' || generic_template_button_type_check == 'web_url_tall' || generic_template_button_type_check == 'web_url_full'){
 
-        var generic_template_button_web_url = "#generic_template_button_web_url_"+button_id+"_<?php echo $template_type; ?>";
+        var generic_template_button_web_url = "#generic_template_button_web_url_"+button_id+"_<?php echo $k; ?>";
         var generic_template_button_web_url_check = $(generic_template_button_web_url).val();
         if(generic_template_button_web_url_check == ''){
           showerror("<?php echo lang('Please Provide Your Web Url')?>");
@@ -1546,7 +1544,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           return;
         }
       }else if(generic_template_button_type_check == 'phone_number'){
-        var generic_template_button_call_us = "#generic_template_button_call_us_"+button_id+"_<?php echo $template_type; ?>";
+        var generic_template_button_call_us = "#generic_template_button_call_us_"+button_id+"_<?php echo $k; ?>";
         var generic_template_button_call_us_check = $(generic_template_button_call_us).val();
         if(generic_template_button_call_us_check == ''){
           showerror("<?php echo lang('Please Provide Your Phone Number')?>");
@@ -1555,32 +1553,32 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         }
       }
 
-      generic_with_button_counter_<?php echo $template_type; ?>++;
+      generic_with_button_counter_<?php echo $k; ?>++;
 
       // remove button hide for current div and show for next div
       $(generic_template_button_type).parent().parent().next().next().hide();
       var next_item_remove_parent_div = $(generic_template_button_type).parent().parent().parent().next().attr('id');
       $("#"+next_item_remove_parent_div+" div:last").show();
     
-      var x=generic_with_button_counter_<?php echo $template_type; ?>;
+      var x=generic_with_button_counter_<?php echo $k; ?>;
     
-      $("#generic_template_row_"+x+"_<?php echo $template_type; ?>").show();
-      if(generic_with_button_counter_<?php echo $template_type; ?> == 3)
-        $("#generic_template_add_button_<?php echo $template_type; ?>").hide();
+      $("#generic_template_row_"+x+"_<?php echo $k; ?>").show();
+      if(generic_with_button_counter_<?php echo $k; ?> == 3)
+        $("#generic_template_add_button_<?php echo $k; ?>").hide();
       });
 
 
     <?php for($j=1; $j<=10; $j++) : ?>
       
-       var carousel_add_button_counter_<?php echo $j; ?>_<?php echo $template_type; ?> = "<?php if(isset($full_message[$template_type]['attachment']['payload']['elements'][$j-1]['buttons'])) echo count($full_message[$template_type]['attachment']['payload']['elements'][$j-1]['buttons']); else echo 1; ?>";
+       var carousel_add_button_counter_<?php echo $j; ?>_<?php echo $k; ?> = "<?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'])) echo count($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons']); else echo 1; ?>";
     
-      $(document).on('click',"#carousel_add_button_<?php echo $j; ?>_<?php echo $template_type; ?>",function(e){
+      $(document).on('click',"#carousel_add_button_<?php echo $j; ?>_<?php echo $k; ?>",function(e){
          e.preventDefault();
 
-         var y= carousel_add_button_counter_<?php echo $j; ?>_<?php echo $template_type; ?>;
+         var y= carousel_add_button_counter_<?php echo $j; ?>_<?php echo $k; ?>;
 
-         var carousel_button_text = "#carousel_button_text_<?php echo $j; ?>_"+y+"_<?php echo $template_type; ?>";
-         var carousel_button_type = "#carousel_button_type_<?php echo $j; ?>_"+y+"_<?php echo $template_type; ?>";
+         var carousel_button_text = "#carousel_button_text_<?php echo $j; ?>_"+y+"_<?php echo $k; ?>";
+         var carousel_button_type = "#carousel_button_type_<?php echo $j; ?>_"+y+"_<?php echo $k; ?>";
     
          var carousel_button_text_check = $(carousel_button_text).val();
          if(carousel_button_text_check == ''){
@@ -1596,7 +1594,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
            return;
          }else if(carousel_button_type_check == 'post_back'){
 
-           var carousel_button_post_id = "#carousel_button_post_id_<?php echo $j;?>_"+y+"_<?php echo $template_type; ?>";
+           var carousel_button_post_id = "#carousel_button_post_id_<?php echo $j;?>_"+y+"_<?php echo $k; ?>";
            var carousel_button_post_id_check = $(carousel_button_post_id).val();
            if(carousel_button_post_id_check == ''){
              showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
@@ -1606,7 +1604,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
 
          }else if(carousel_button_type_check == 'web_url' || carousel_button_type_check == 'web_url_compact' || carousel_button_type_check == 'web_url_full' || carousel_button_type_check == 'web_url_tall'){
 
-           var carousel_button_web_url = "#carousel_button_web_url_<?php echo $j;?>_"+y+"_<?php echo $template_type; ?>";
+           var carousel_button_web_url = "#carousel_button_web_url_<?php echo $j;?>_"+y+"_<?php echo $k; ?>";
            var carousel_button_web_url_check = $(carousel_button_web_url).val();
            if(carousel_button_web_url_check == ''){
              showerror("<?php echo lang('Please Provide Your Web Url')?>");
@@ -1614,7 +1612,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
              return;
            }
          }else if(carousel_button_type_check == 'phone_number'){
-          var carousel_button_call_us = "#carousel_button_call_us_<?php echo $j;?>_"+y+"_<?php echo $template_type; ?>";
+          var carousel_button_call_us = "#carousel_button_call_us_<?php echo $j;?>_"+y+"_<?php echo $k; ?>";
           var carousel_button_call_us_check = $(carousel_button_call_us).val();
           if(carousel_button_call_us_check == ''){
             showerror("<?php echo lang('Please Provide Your Phone Number')?>");
@@ -1623,32 +1621,32 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           }
         }
 
-          carousel_add_button_counter_<?php echo $j; ?>_<?php echo $template_type; ?> ++;
+          carousel_add_button_counter_<?php echo $j; ?>_<?php echo $k; ?> ++;
 
           // remove button hide for current div and show for next div
           $(carousel_button_type).parent().parent().next().next().hide();
           var next_item_remove_parent_div = $(carousel_button_type).parent().parent().parent().next().attr('id');
           $("#"+next_item_remove_parent_div+" div:last").show();
           
-          var x= carousel_add_button_counter_<?php echo $j; ?>_<?php echo $template_type; ?>;
-          $("#carousel_row_<?php echo $j; ?>_"+x+"_<?php echo $template_type; ?>").show();
-          if(carousel_add_button_counter_<?php echo $j; ?>_<?php echo $template_type; ?> == 3)
-            $("#carousel_add_button_<?php echo $j; ?>_<?php echo $template_type; ?>").hide();        
+          var x= carousel_add_button_counter_<?php echo $j; ?>_<?php echo $k; ?>;
+          $("#carousel_row_<?php echo $j; ?>_"+x+"_<?php echo $k; ?>").show();
+          if(carousel_add_button_counter_<?php echo $j; ?>_<?php echo $k; ?> == 3)
+            $("#carousel_add_button_<?php echo $j; ?>_<?php echo $k; ?>").hide();        
 
        });
     <?php endfor; ?>
     
     
-    var carousel_template_counter_<?php echo $template_type; ?> = "<?php if(isset($full_message[$template_type]['attachment']['payload']['elements'])) echo count($full_message[$template_type]['attachment']['payload']['elements']); else echo 1; ?>";
+    var carousel_template_counter_<?php echo $k; ?> = "<?php if(isset($full_message[$k]['attachment']['payload']['elements'])) echo count($full_message[$k]['attachment']['payload']['elements']); else echo 1; ?>";
     
-    $(document).on('click','#carousel_template_add_button_<?php echo $template_type; ?>',function(e){
+    $(document).on('click','#carousel_template_add_button_<?php echo $k; ?>',function(e){
          e.preventDefault();
 
-         var carousel_image = "#carousel_image_"+carousel_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
+         var carousel_image = "#carousel_image_"+carousel_template_counter_<?php echo $k; ?>+"_"+<?php echo $k; ?>;
          var carousel_image_check = $(carousel_image).val();
        
 
-         var carousel_title = "#carousel_title_"+carousel_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
+         var carousel_title = "#carousel_title_"+carousel_template_counter_<?php echo $k; ?>+"_"+<?php echo $k; ?>;
          var carousel_title_check = $(carousel_title).val();
          if(carousel_title_check == ''){
            showerror("<?php echo lang('Please Provide carousel title')?>");
@@ -1656,33 +1654,33 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
            return;
          }
 
-         var carousel_subtitle = "#carousel_subtitle_"+carousel_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
+         var carousel_subtitle = "#carousel_subtitle_"+carousel_template_counter_<?php echo $k; ?>+"_"+<?php echo $k; ?>;
           var carousel_subtitle_check = $(carousel_subtitle).val();
          
 
-         var carousel_image_destination_link = "#carousel_image_destination_link_"+carousel_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
+         var carousel_image_destination_link = "#carousel_image_destination_link_"+carousel_template_counter_<?php echo $k; ?>+"_"+<?php echo $k; ?>;
          var carousel_image_destination_link_check = $(carousel_image_destination_link).val();
         
 
-         carousel_template_counter_<?php echo $template_type; ?>++;
+         carousel_template_counter_<?php echo $k; ?>++;
       
-         var x = carousel_template_counter_<?php echo $template_type; ?>;
+         var x = carousel_template_counter_<?php echo $k; ?>;
       
-         $("#carousel_div_"+x+"_<?php echo $template_type; ?>").show();
-         $("#carousel_row_"+x+"_1"+"_<?php echo $template_type; ?>").show();
-         if( carousel_template_counter_<?php echo $template_type; ?> == 10)
-           $("#carousel_template_add_button_<?php echo $template_type; ?>").hide();
+         $("#carousel_div_"+x+"_<?php echo $k; ?>").show();
+         $("#carousel_row_"+x+"_1"+"_<?php echo $k; ?>").show();
+         if( carousel_template_counter_<?php echo $k; ?> == 10)
+           $("#carousel_template_add_button_<?php echo $k; ?>").hide();
     });
 
 
 
-    var list_template_counter_<?php echo $template_type; ?> = "<?php if(isset($full_message[$template_type]['attachment']['payload']['elements'])) echo count($full_message[$template_type]['attachment']['payload']['elements']); else echo 2; ?>";
+    var list_template_counter_<?php echo $k; ?> = "<?php if(isset($full_message[$k]['attachment']['payload']['elements'])) echo count($full_message[$k]['attachment']['payload']['elements']); else echo 2; ?>";
     
-    $(document).on('click','#list_template_add_button_<?php echo $template_type; ?>',function(e){
+    $(document).on('click','#list_template_add_button_<?php echo $k; ?>',function(e){
       e.preventDefault();
 
-      var list_button_text = "#list_with_buttons_text_<?php echo $template_type; ?>";
-      var list_button_type = "#list_with_button_type_<?php echo $template_type; ?>";
+      var list_button_text = "#list_with_buttons_text_<?php echo $k; ?>";
+      var list_button_type = "#list_with_button_type_<?php echo $k; ?>";
 
       var list_button_text_check = $(list_button_text).val();
       if(list_button_text_check == ''){
@@ -1698,7 +1696,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         return;
       }else if(list_button_type_check == 'post_back'){
 
-        var list_button_post_id = "#list_with_button_post_id_<?php echo $template_type; ?>";
+        var list_button_post_id = "#list_with_button_post_id_<?php echo $k; ?>";
         var list_button_post_id_check = $(list_button_post_id).val();
         if(list_button_post_id_check == ''){
           showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
@@ -1707,7 +1705,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         }
       }else if(list_button_type_check == 'web_url' || list_button_type_check == 'web_url_full' || list_button_type_check == 'web_url_tall' || list_button_type_check == 'web_url_compact'){
 
-        var list_button_web_url = "#list_with_button_web_url_<?php echo $template_type; ?>";
+        var list_button_web_url = "#list_with_button_web_url_<?php echo $k; ?>";
         var list_button_web_url_check = $(list_button_web_url).val();
         if(list_button_web_url_check == ''){
           showerror("<?php echo lang('Please Provide Your Web Url')?>");
@@ -1715,7 +1713,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
           return;
         }
       }else if(list_button_type_check == 'phone_number'){
-        var list_button_call_us = "#list_with_button_call_us_<?php echo $template_type; ?>";
+        var list_button_call_us = "#list_with_button_call_us_<?php echo $k; ?>";
         var list_button_call_us_check = $(list_button_call_us).val();
         if(list_button_call_us_check == ''){
           showerror("<?php echo lang('Please Provide Your Phone Number')?>");
@@ -1725,8 +1723,8 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
       }
 
 
-      var prev_list_image_counter = eval(list_template_counter_<?php echo $template_type; ?>+"-1");
-      var list_image_1 = "#list_image_"+prev_list_image_counter+"_"+<?php echo $template_type; ?>;
+      var prev_list_image_counter = eval(list_template_counter_<?php echo $k; ?>+"-1");
+      var list_image_1 = "#list_image_"+prev_list_image_counter+"_"+<?php echo $k; ?>;
       var list_image_check_1 = $(list_image_1).val();
       if(list_image_check_1 == ''){
         showerror("<?php echo lang('Please provide your reply image')?>");
@@ -1734,7 +1732,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         return;
       }
 
-      var list_image = "#list_image_"+list_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
+      var list_image = "#list_image_"+list_template_counter_<?php echo $k; ?>+"_"+<?php echo $k; ?>;
       var list_image_check = $(list_image).val();
       if(list_image_check == ''){
         showerror("<?php echo lang('Please provide your reply image')?>");
@@ -1742,8 +1740,8 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         return;
       }
 
-      var prev_list_title_counter = eval(list_template_counter_<?php echo $template_type; ?>+"-1");
-      var list_title_1 = "#list_title_"+prev_list_title_counter+"_"+<?php echo $template_type; ?>;
+      var prev_list_title_counter = eval(list_template_counter_<?php echo $k; ?>+"-1");
+      var list_title_1 = "#list_title_"+prev_list_title_counter+"_"+<?php echo $k; ?>;
       var list_title_check_1 = $(list_title_1).val();
       if(list_title_check_1 == ''){
         showerror("<?php echo lang('Please Provide list title')?>");
@@ -1751,7 +1749,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         return;
       }
 
-      var list_title = "#list_title_"+list_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
+      var list_title = "#list_title_"+list_template_counter_<?php echo $k; ?>+"_"+<?php echo $k; ?>;
       var list_title_check = $(list_title).val();
       if(list_title_check == ''){
         showerror("<?php echo lang('Please Provide list title')?>");
@@ -1759,8 +1757,8 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         return;
       }
 
-      var prev_list_dest_counter = eval(list_template_counter_<?php echo $template_type; ?>+"-1");
-      var list_image_destination_link_1 = "#list_image_destination_link_"+prev_list_dest_counter+"_"+<?php echo $template_type; ?>;
+      var prev_list_dest_counter = eval(list_template_counter_<?php echo $k; ?>+"-1");
+      var list_image_destination_link_1 = "#list_image_destination_link_"+prev_list_dest_counter+"_"+<?php echo $k; ?>;
       var list_image_destination_link_check_1 = $(list_image_destination_link_1).val();
       if(list_image_destination_link_check_1 == ''){
         showerror("<?php echo lang('Please Provide Image Click Destination Link')?>");
@@ -1768,7 +1766,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         return;        
       }
 
-      var list_image_destination_link = "#list_image_destination_link_"+list_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
+      var list_image_destination_link = "#list_image_destination_link_"+list_template_counter_<?php echo $k; ?>+"_"+<?php echo $k; ?>;
       var list_image_destination_link_check = $(list_image_destination_link).val();
       if(list_image_destination_link_check == ''){
         showerror("<?php echo lang('Please Provide Image Click Destination Link')?>");
@@ -1776,25 +1774,25 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
         return;        
       }
 
-      list_template_counter_<?php echo $template_type; ?>++;
+      list_template_counter_<?php echo $k; ?>++;
     
-      var x = list_template_counter_<?php echo $template_type; ?>;
+      var x = list_template_counter_<?php echo $k; ?>;
     
-      $("#list_div_"+x+"_<?php echo $template_type; ?>").show();
-      if( list_template_counter_<?php echo $template_type; ?> == 4)
-        $("#list_template_add_button_<?php echo $template_type; ?>").hide();
+      $("#list_div_"+x+"_<?php echo $k; ?>").show();
+      if( list_template_counter_<?php echo $k; ?> == 4)
+        $("#list_template_add_button_<?php echo $k; ?>").hide();
     });
 
 
 
-     var media_counter_<?php echo $template_type; ?> = "<?php if (isset($full_message[$template_type]['attachment']['payload']['elements'][0]['buttons'])) echo count($full_message[$template_type]['attachment']['payload']['elements'][0]['buttons']); else echo 1; ?>";
+     var media_counter_<?php echo $k; ?> = "<?php if (isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'])) echo count($full_message[$k]['attachment']['payload']['elements'][0]['buttons']); else echo 1; ?>";
     
-    $(document).on('click',"#media_add_button_<?php echo $template_type; ?>",function(e){
+    $(document).on('click',"#media_add_button_<?php echo $k; ?>",function(e){
        e.preventDefault();
 
-       var button_id = media_counter_<?php echo $template_type; ?>;
-       var media_text = "#media_text_"+button_id+"_<?php echo $template_type; ?>";
-       var media_type = "#media_type_"+button_id+"_<?php echo $template_type; ?>";
+       var button_id = media_counter_<?php echo $k; ?>;
+       var media_text = "#media_text_"+button_id+"_<?php echo $k; ?>";
+       var media_type = "#media_type_"+button_id+"_<?php echo $k; ?>";
 
        var media_text_check = $(media_text).val();
        if(media_text_check == ''){
@@ -1810,7 +1808,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
          return;
        }else if(media_type_check == 'post_back'){
 
-         var media_post_id = "#media_post_id_"+button_id+"_<?php echo $template_type; ?>";
+         var media_post_id = "#media_post_id_"+button_id+"_<?php echo $k; ?>";
          var media_post_id_check = $(media_post_id).val();
          if(media_post_id_check == ''){
            showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
@@ -1819,7 +1817,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
          }
          
        }else if(media_type_check == 'web_url' || media_type_check == 'web_url_compact' || media_type_check == 'web_url_tall' || media_type_check == 'web_url_full'){
-         var media_web_url = "#media_web_url_"+button_id+"_<?php echo $template_type; ?>";
+         var media_web_url = "#media_web_url_"+button_id+"_<?php echo $k; ?>";
          var media_web_url_check = $(media_web_url).val();
          if(media_web_url_check == ''){
            showerror("<?php echo lang('Please Provide Your Web Url')?>");
@@ -1827,7 +1825,7 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
            return;
          }
        }else if(media_type_check == 'phone_number'){
-         var media_call_us = "#media_call_us_"+button_id+"_<?php echo $template_type; ?>";
+         var media_call_us = "#media_call_us_"+button_id+"_<?php echo $k; ?>";
          var media_call_us_check = $(media_call_us).val();
          if(media_call_us_check == ''){
            showerror("<?php echo lang('Please Provide Your Phone Number')?>");
@@ -1836,17 +1834,17 @@ $file_upload_limit = config('MyConfig')->messengerbot_file_upload_limit;
          }
        }
 
-       media_counter_<?php echo $template_type; ?>++;
+       media_counter_<?php echo $k; ?>++;
 
        // remove button hide for current div and show for next div
        $(media_type).parent().parent().next().next().hide();
        var next_item_remove_parent_div = $(media_type).parent().parent().parent().next().attr('id');
        $("#"+next_item_remove_parent_div+" div:last").show();
 
-       var x=media_counter_<?php echo $template_type; ?>;
-       $("#media_row_"+x+"_<?php echo $template_type; ?>").show();
-       if(media_counter_<?php echo $template_type; ?> == 3)
-         $("#media_add_button_<?php echo $template_type; ?>").hide();
+       var x=media_counter_<?php echo $k; ?>;
+       $("#media_row_"+x+"_<?php echo $k; ?>").show();
+       if(media_counter_<?php echo $k; ?> == 3)
+         $("#media_add_button_<?php echo $k; ?>").hide();
      });
   <?php } ?>
 
@@ -2894,7 +2892,7 @@ function showerror(error_message)
           <p><?php echo lang('To get the Facebook URL for an image or video, do the following:'); ?></p>
           <ul>
             <li><?php echo lang('Click the image or video thumbnail to open the full-size view');?>.</li>
-            <li><?php echo $this->lang->line("Copy the URL from your browser's address bar.<");?>/li>
+            <li><?php echo lang("Copy the URL from your browser's address bar.<");?>/li>
           </ul>
           <p><?php echo lang('Facebook URLs should be in the following base format:');?></p>
           <table class='table table-condensed table-bordered table-hover table-striped' >

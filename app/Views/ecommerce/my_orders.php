@@ -120,7 +120,7 @@ $form_action = mec_add_get_param($form_action,array("subscriber_id"=>$subscriber
 	  },
 	  language: 
 	  {
-	    url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+	    url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? 'english').'.json'); ?>"
 	  },
 	  dom: '<"top"f>rt<"bottom"lip><"clear">',
 	  columnDefs: [

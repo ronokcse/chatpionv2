@@ -76,7 +76,7 @@
           <h4><i class="fas fa-envelope"></i> <?php echo lang('Test Message'); ?></h4>
         </div>
         <div class="card-body">
-          <?php include(FCPATH."application/views/messenger_tools/bulk_message/send_test_message.php") ?>            
+          <?php include(APPPATH."Views/messenger_tools/bulk_message/send_test_message.php") ?>            
         </div>
      </div>
   </div>

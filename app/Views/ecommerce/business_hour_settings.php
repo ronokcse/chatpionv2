@@ -31,7 +31,7 @@
                   { ?>
                     <div class="form-group">
                       <div class="input-group">
-                        <div class="input-group-prepend"><span class="input-group-text" style="min-width:60px;max-width: 200px;"><?php echo $this->lang->line($value); ?></span></div>
+                        <div class="input-group-prepend"><span class="input-group-text" style="min-width:60px;max-width: 200px;"><?php echo lang($value); ?></span></div>
                         <input type="hidden" name="schedule_day[]" value="<?php echo $key;?>">
                         <?php
 

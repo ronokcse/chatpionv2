@@ -1,52 +1,43 @@
 <?php
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Controllers;
 
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
-
+// CI4 fix: Use namespace instead of require_once
 class Ecommerce extends Home
-
 {    
-
   public $currency_icon;
-
   public $editor_allowed_tags;
-
   public $login_to_continue;
-
   public $ecommerce_review_comment_exist;
 
-  public function __construct()
-
+  /**
+   * CI4 fix: Use initController instead of __construct
+   */
+  public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
   {
+    parent::initController($request, $response, $logger);
 
-    parent::__construct();
+    // Load ecommerce helper
+    helper('ecommerce_helper');
 
-    $this->load->helpers(array('ecommerce_helper'));
-
-
-
-    $function_name=$this->uri->segment(2);     
+    $function_name = $this->request->getUri()->getSegment(2);     
 
     $private_functions = array("","index","qr_code","download_qr","qr_code_action","qr_code_live","notification_settings","notification_settings_action","reset_notification","reset_reminder","reminder_settings","reminder_settings_action","store_list","copy_url","order_list","change_payment_status","order_list_data","reminder_send_status_data","reminder_response","add_store","add_store_action","edit_store","edit_store_action","product_list","product_list_data","delete_store","add_product","add_product_action","edit_product","edit_product_action","delete_product","payment_accounts","payment_accounts_action","attribute_list","attribute_list_data","ajax_create_new_attribute","ajax_get_attribute_update_info","ajax_update_attribute","delete_attribute","category_list","category_list_data","ajax_create_new_category","ajax_get_category_update_info","ajax_update_category","delete_category","coupon_list","coupon_list_data","add_coupon","add_coupon_action","edit_coupon","edit_coupon_action","delete_coupon","upload_product_thumb","delete_product_thumb","upload_store_logo","delete_store_logo","upload_store_favicon","delete_store_favicon","download_csv","upload_featured_image","delete_featured_image","pickup_point_list","pickup_point_list_data","ajax_create_new_pickup_point","ajax_get_pickup_point_update_info","ajax_update_pickup_point","delete_pickup_point","appearance_settings","appearance_settings_action","business_hour_settings","business_hour_settings_action","customer_list","customer_list_data","change_user_password_action","download_result","sort_category");
 
     if(in_array($function_name, $private_functions)) 
-
     {
-
-      if($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
-
-      if($this->session->userdata('user_type') != 'Admin' && !in_array(268,$this->module_access)) redirect('home/login', 'location');        
-
+      if(session()->get('logged_in') != 1) return redirect()->to('home/login');
+      if(session()->get('user_type') != 'Admin' && !in_array(268, $this->module_access ?? [])) return redirect()->to('home/login');        
       $this->member_validity();
-
     }
 
     $this->currency_icon = $this->currency_icon();
-
     $this->editor_allowed_tags = '<h1><h2><h3><h4><h5><h6><a><b><strong><p><i><div><span><ul><li><ol><blockquote><code><table><tr><td><th>';
-
-    $this->login_to_continue = $this->lang->line("Please login to continue.");
+    $this->login_to_continue = lang("Please login to continue.");
 
   }
 
@@ -94,7 +85,7 @@ class Ecommerce extends Home
 
     if (count($info) == 0) {
 
-      echo json_encode(array("status"=>"0","message"=>$this->lang->line("invalid email or password")));
+      echo json_encode(array("status"=>"0","message"=>lang("invalid email or password")));
 
       exit();
 
@@ -108,13 +99,13 @@ class Ecommerce extends Home
 
       if ($ecom_session_subscriber_id=='') {
 
-        echo json_encode(array("status"=>"0","message"=>$this->lang->line("Subscriber not found.")));
+        echo json_encode(array("status"=>"0","message"=>lang("Subscriber not found.")));
 
         exit();
 
       }
 
-      $this->session->set_userdata($store_id."ecom_session_subscriber_id",$ecom_session_subscriber_id);
+      session()->set($store_id."ecom_session_subscriber_id", $ecom_session_subscriber_id);
 
     }
 
@@ -170,7 +161,7 @@ class Ecommerce extends Home
 
     $this->basic->insert_data("messenger_bot_subscriber",$insert_data);
 
-    $this->session->set_userdata($store_id."ecom_session_subscriber_id",$subscriber_id);    
+    session()->set($store_id."ecom_session_subscriber_id", $subscriber_id);    
 
     echo json_encode(array("status"=>"1","message"=>""));
 
@@ -206,7 +197,7 @@ class Ecommerce extends Home
 
     if (count($info) > 0) {
 
-      echo json_encode(array("status"=>"0","message"=>$this->lang->line("This email is already used.")));
+      echo json_encode(array("status"=>"0","message"=>lang("This email is already used.")));
 
       exit();
 
@@ -220,7 +211,7 @@ class Ecommerce extends Home
 
       {
 
-        echo json_encode(array("status"=>"0","message"=>$this->lang->line("Passwords does not match.")));
+        echo json_encode(array("status"=>"0","message"=>lang("Passwords does not match.")));
 
         exit();
 
@@ -290,7 +281,7 @@ class Ecommerce extends Home
 
 
 
-      $this->session->set_userdata($store_id."ecom_session_subscriber_id",$subscriber_id);
+      session()->set($store_id."ecom_session_subscriber_id", $subscriber_id);
 
     }
 
@@ -312,7 +303,7 @@ class Ecommerce extends Home
 
     $subscriber_id = $this->input->post("subscriber_id",true);
 
-    $this->session->unset_userdata($store_id."ecom_session_subscriber_id");
+    session()->remove($store_id."ecom_session_subscriber_id");
 
     if(strpos($subscriber_id, "sys") !== false && !empty($store_unique_id))  echo base_url("ecommerce/store/".$store_unique_id);
 
@@ -340,7 +331,7 @@ class Ecommerce extends Home
 
     $data['body'] = 'ecommerce/notification_settings';
 
-    $data['page_title'] = $this->lang->line("Order Status Notification");
+    $data['page_title'] = lang("Order Status Notification");
 
     $data['sms_option'] = $this->get_sms_api();
 
@@ -458,7 +449,7 @@ class Ecommerce extends Home
 
     $this->basic->update_data("ecommerce_store",array("id"=>$store_id,"user_id"=>$this->user_id),$insert_data);
 
-    echo json_encode(array("status"=>"1","message"=>$this->lang->line("Notification has been setup successfully.")));
+    echo json_encode(array("status"=>"1","message"=>lang("Notification has been setup successfully.")));
 
 
 
@@ -522,7 +513,7 @@ class Ecommerce extends Home
 
     $this->basic->update_data("ecommerce_store",array("id"=>$id,"user_id"=>$this->user_id),$insert_data);
 
-    redirect(base_url('ecommerce/notification_settings/'.$id),'location');
+    return redirect()->to('ecommerce/notification_settings/'.$id);
 
   }
 
@@ -576,7 +567,7 @@ class Ecommerce extends Home
 
     $this->basic->update_data("ecommerce_store",array("id"=>$id,"user_id"=>$this->user_id),$insert_data);
 
-    redirect(base_url('ecommerce/reminder_settings/'.$id),'location');
+    return redirect()->to('ecommerce/reminder_settings/'.$id);
 
   }
 
@@ -594,7 +585,7 @@ class Ecommerce extends Home
 
     $data['body'] = 'ecommerce/store_list';
 
-    $data['page_title'] = $this->lang->line("Ecommerce Store");
+    $data['page_title'] = lang("Ecommerce Store");
 
     $data['data_days'] = $data_days = 30;   
 
@@ -796,7 +787,7 @@ class Ecommerce extends Home
 
     {
 
-      echo '<br/><h2 style="border:1px solid red;padding:15px;color:red">'.$this->lang->line("Store not found.").'</h2>';
+      echo '<br/><h2 style="border:1px solid red;padding:15px;color:red">'.lang("Store not found.").'</h2>';
 
       exit();
 
@@ -864,7 +855,7 @@ class Ecommerce extends Home
 
     $fb_app_id = $this->get_app_id();
 
-    $data = array('body'=>"ecommerce/store_single","page_title"=>$store_data[0]['store_name']." | ".$this->lang->line("Products"),"fb_app_id"=>$fb_app_id,"favicon"=>base_url('upload/ecommerce/'.$store_data[0]['store_favicon']));
+    $data = array('body'=>"ecommerce/store_single","page_title"=>$store_data[0]['store_name']." | ".lang("Products"),"fb_app_id"=>$fb_app_id,"favicon"=>base_url('upload/ecommerce/'.$store_data[0]['store_favicon']));
 
 
 
@@ -968,7 +959,7 @@ class Ecommerce extends Home
 
     {
 
-      echo '<br/><h1 style="text-align:center">'.$this->lang->line("Product not found.").'</h1>';
+      echo '<br/><h1 style="text-align:center">'.lang("Product not found.").'</h1>';
 
       exit();
 

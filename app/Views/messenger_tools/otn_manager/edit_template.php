@@ -123,7 +123,7 @@ $redirect_url = site_url("messenger_bot/otn_template_manager/{$bot_info['page_id
                   $display = '';
                   if($is_default=='default') $display = "style='display: none;'";
 
-                  $popover='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Labels').'" data-content="'.$this->lang->line("If you choose labels, then when user click on this PostBack they will be added in those labels, that will help you to segment your leads & broadcasting from Messenger Broadcaster. If you don't want to add labels for this PostBack , then just keep it blank as it is.").'"><i class="fa fa-info-circle"></i> </a>';
+                  $popover='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Labels').'" data-content="'.lang("If you choose labels, then when user click on this PostBack they will be added in those labels, that will help you to segment your leads & broadcasting from Messenger Broadcaster. If you don't want to add labels for this PostBack , then just keep it blank as it is.").'"><i class="fa fa-info-circle"></i> </a>';
 
                   echo '<div class="row" '.$display.'>
                   <div class="'.$first_col.'"> 
@@ -155,7 +155,7 @@ $redirect_url = site_url("messenger_bot/otn_template_manager/{$bot_info['page_id
 
                   if($this->is_drip_campaigner_exist)
                   {
-                    $popover2='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Sequence Campaign').'" data-content="'.$this->lang->line("Choose any drip or sequence campaign to set when user click on this postback button. Keep it blank if you don't want to set.").'"><i class="fa fa-info-circle"></i> </a>';
+                    $popover2='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Sequence Campaign').'" data-content="'.lang("Choose any drip or sequence campaign to set when user click on this postback button. Keep it blank if you don't want to set.").'"><i class="fa fa-info-circle"></i> </a>';
                   echo 
                   '<div class="col-12 col-sm-6"> 
                       <div class="form-group">

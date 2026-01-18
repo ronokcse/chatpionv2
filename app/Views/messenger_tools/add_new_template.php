@@ -168,7 +168,7 @@
             <input type="hidden" name="media_type" id="media_type" value="<?php echo $media_type; ?>">
             <div class="text-left" style="display: none;">
               <?php foreach ($keyword_types as $key => $value) { ?>
-                  <input type="radio" name="keyword_type" value="<?php echo $value; ?>" id="keyword_type_<?php echo $value;?>" class="css-checkbox keyword_type"/><label for="keyword_type_<?php echo $value;?>" class="css-label radGroup2"><?php echo $this->lang->line($value);?></label>
+                  <input type="radio" name="keyword_type" value="<?php echo $value; ?>" id="keyword_type_<?php echo $value;?>" class="css-checkbox keyword_type"/><label for="keyword_type_<?php echo $value;?>" class="css-label radGroup2"><?php echo lang($value);?></label>
                    &nbsp;&nbsp;              
               <?php } ?>  
             </div>
@@ -250,7 +250,7 @@
             <?php 
             $first_col= "col-12 col-sm-6";
             if(!$this->is_drip_campaigner_exist)  $first_col="col-12";              
-            $popover='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Labels').'" data-content="'.$this->lang->line("If you choose labels, then when user click on this PostBack they will be added in those labels, that will help you to segment your leads & broadcasting from Messenger Broadcaster. If you don't want to add labels for this PostBack , then just keep it blank as it is.").'"><i class="fa fa-info-circle"></i> </a>';
+            $popover='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Labels').'" data-content="'.lang("If you choose labels, then when user click on this PostBack they will be added in those labels, that will help you to segment your leads & broadcasting from Messenger Broadcaster. If you don't want to add labels for this PostBack , then just keep it blank as it is.").'"><i class="fa fa-info-circle"></i> </a>';
             echo '<div class="row">
               <div class="'.$first_col.'"> 
                   <div class="form-group">
@@ -264,7 +264,7 @@
 
               if($this->is_drip_campaigner_exist)
               {
-                $popover2='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Sequence Campaign').'" data-content="'.$this->lang->line("Choose any drip or sequence campaign to set when user click on this postback button. Keep it blank if you don't want to set.").'"><i class="fa fa-info-circle"></i> </a>';
+                $popover2='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Sequence Campaign').'" data-content="'.lang("Choose any drip or sequence campaign to set when user click on this postback button. Keep it blank if you don't want to set.").'"><i class="fa fa-info-circle"></i> </a>';
                  echo '
                   <div class="col-12 col-sm-6 hidden dropdown_con"> 
                       <div class="form-group">
@@ -343,7 +343,7 @@
                           <?php 
                            foreach ($templates as $key => $value)
                            {
-                              echo '<option value="'.$value.'">'.$this->lang->line($value).'</option>';
+                              echo '<option value="'.$value.'">'.lang($value).'</option>';
                            } 
                           ?>
                         </select>
@@ -400,7 +400,7 @@
 
                         <div class="col-12"> 
                           <div class="form-group">
-                            <label><?php echo $this->lang->line("Please provide 'Buy Now' button text"); ?></label>
+                            <label><?php echo lang("Please provide 'Buy Now' button text"); ?></label>
                             <input type="text" name="ecommerce_button_text<?php echo $k; ?>" id="ecommerce_button_text<?php echo $k; ?>" class="form-control">
                           </div>       
                         </div>
@@ -554,11 +554,11 @@
                                   <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                                   <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                                   <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                                  <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                  <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                                  <option value="web_url_email"><?php echo $this->lang->line("User's Email"); ?></option>
-                                  <option value="web_url_phone"><?php echo $this->lang->line("User's Phone"); ?></option>
-                                  <option value="web_url_location"><?php echo $this->lang->line("User's Location"); ?></option>
+                                  <option value="web_url_email"><?php echo lang("User's Email"); ?></option>
+                                  <option value="web_url_phone"><?php echo lang("User's Phone"); ?></option>
+                                  <option value="web_url_location"><?php echo lang("User's Location"); ?></option>
 
                                   <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                                   
@@ -671,10 +671,10 @@
                                   <option value=""><?php echo lang('please select a type'); ?></option>
                                   <option value="post_back"><?php echo lang('Post Back'); ?></option>
                                   <?php if($media_type != 'ig') : ?>
-                                  <option value="phone_number"><?php echo $this->lang->line("User's Phone Number"); ?></option>
-                                  <option value="user_email"><?php echo $this->lang->line("User's E-mail Address"); ?></option>
+                                  <option value="phone_number"><?php echo lang("User's Phone Number"); ?></option>
+                                  <option value="user_email"><?php echo lang("User's E-mail Address"); ?></option>
                                   <?php endif; ?>
-                                  <!-- <option value="location"><?php echo $this->lang->line("User's location"); ?></option> -->
+                                  <!-- <option value="location"><?php echo lang("User's location"); ?></option> -->
                                 </select>
                               </div>
                             </div>
@@ -770,11 +770,11 @@
                                   <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                                   <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                                   <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                                  <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                  <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                                  <option value="web_url_email"><?php echo $this->lang->line("User's Email"); ?></option>
-                                  <option value="web_url_phone"><?php echo $this->lang->line("User's Phone"); ?></option>
-                                  <option value="web_url_location"><?php echo $this->lang->line("User's Location"); ?></option>
+                                  <option value="web_url_email"><?php echo lang("User's Email"); ?></option>
+                                  <option value="web_url_phone"><?php echo lang("User's Phone"); ?></option>
+                                  <option value="web_url_location"><?php echo lang("User's Location"); ?></option>
 
                                   <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                                   
@@ -902,11 +902,11 @@
                                         <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
                                         <?php endif; ?>
 
-                                        <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                        <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                                        <option value="web_url_email"><?php echo $this->lang->line("User's Email"); ?></option>
-                                        <option value="web_url_phone"><?php echo $this->lang->line("User's Phone"); ?></option>
-                                        <option value="web_url_location"><?php echo $this->lang->line("User's Location"); ?></option>
+                                        <option value="web_url_email"><?php echo lang("User's Email"); ?></option>
+                                        <option value="web_url_phone"><?php echo lang("User's Phone"); ?></option>
+                                        <option value="web_url_location"><?php echo lang("User's Location"); ?></option>
 
                                         <?php if(!$hide_generic_item) : ?>
                                         <option value="phone_number"><?php echo lang('Call Us'); ?></option>
@@ -1041,11 +1041,11 @@
                                           <option value="web_url_compact"><?php echo lang('WebView [Compact]'); ?></option>
                                           <option value="web_url_tall"><?php echo lang('WebView [Tall]'); ?></option>
                                           <option value="web_url_full"><?php echo lang('WebView [Full]'); ?></option>
-                                          <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                          <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                                          <option value="web_url_email"><?php echo $this->lang->line("User's Email"); ?></option>
-                                          <option value="web_url_phone"><?php echo $this->lang->line("User's Phone"); ?></option>
-                                          <option value="web_url_location"><?php echo $this->lang->line("User's Location"); ?></option>
+                                          <option value="web_url_email"><?php echo lang("User's Email"); ?></option>
+                                          <option value="web_url_phone"><?php echo lang("User's Phone"); ?></option>
+                                          <option value="web_url_location"><?php echo lang("User's Location"); ?></option>
 
                                           <option value="phone_number"><?php echo lang('Call Us'); ?></option>
                                           

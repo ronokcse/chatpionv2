@@ -21,7 +21,7 @@
 				<h4 style="margin:0">
 					<div class="alert alert-info" style="margin-bottom:0;background:#fff !important; color:<?php echo $THEMECOLORCODE;?> !important;border-color:#fff;">
 						<i class="fa fa-clock-o"></i> <?php echo lang('Update Profile Information');?> [<?php echo lang('every 5 minutes'); ?>]
-						<br><i><small><?php echo $this->lang->line("If you don't migrate facebook lead to bot subscirber then you do not need this cron job.");?></small>&nbsp;&nbsp;<small style="color: red;font-size: 12px;"><?php echo lang('[ Set This Cron Job Once BOT Inboxer APP Is APPROVED & LIVE ]') ?></small></i>
+						<br><i><small><?php echo lang("If you don't migrate facebook lead to bot subscirber then you do not need this cron job.");?></small>&nbsp;&nbsp;<small style="color: red;font-size: 12px;"><?php echo lang('[ Set This Cron Job Once BOT Inboxer APP Is APPROVED & LIVE ]') ?></small></i>
 					</div>
 				</h4>
 				<div class="well" style="background:#fff;margin-top:0;border-radius:0;">

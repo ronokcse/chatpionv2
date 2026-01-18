@@ -23,7 +23,7 @@
         $js_user_id = isset($social_analytics_codes['user_id']) ? $social_analytics_codes['user_id'] : $social_analytics_codes['user_id'];  
         $subscriberId=$this->session->userdata($js_store_id."ecom_session_subscriber_id");
         if($subscriberId=="")  $subscriberId = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
-        if($subscriberId=='') $subscriberId = $this->uri->segment(4);
+        if($subscriberId=='') $subscriberId = ($uri ?? service('uri'))->getSegment(4) ?? '';
         ?>
         <div class="card mt-2 mb-2 no_shadow" id="comment_section">
           <div class="card-header p-0 pt-3 pb-3">

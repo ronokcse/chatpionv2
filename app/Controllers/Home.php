@@ -1245,7 +1245,7 @@ class Home extends BaseController
         // Optional properties used by some modules/controllers (CI3 -> CI4 view compatibility)
         $data['sms_email_drip_exist'] = property_exists($this, 'sms_email_drip_exist') ? ($this->sms_email_drip_exist ?? false) : false;
         $data['is_sms_email_drip_campaigner_exist'] = property_exists($this, 'is_sms_email_drip_campaigner_exist') ? ($this->is_sms_email_drip_campaigner_exist ?? false) : false;
-        
+
         // CI4 compatibility: Create $controller object for views (like CI3's $this) so $controller->user_id works in views
         // Note: We can't use $this in views as it's reserved, so we use $controller instead
         // Views can use either $user_id (direct variable) or $controller->user_id (object property)

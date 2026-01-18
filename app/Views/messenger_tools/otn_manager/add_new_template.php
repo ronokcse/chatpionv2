@@ -102,7 +102,7 @@
             <?php 
             $first_col= "col-12 col-sm-6";
             if(!$this->is_drip_campaigner_exist)  $first_col="col-12";              
-            $popover='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Labels').'" data-content="'.$this->lang->line("If you choose labels, then when user click on this PostBack they will be added in those labels, that will help you to segment your leads & broadcasting from Messenger Broadcaster. If you don't want to add labels for this PostBack , then just keep it blank as it is.").'"><i class="fa fa-info-circle"></i> </a>';
+            $popover='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Labels').'" data-content="'.lang("If you choose labels, then when user click on this PostBack they will be added in those labels, that will help you to segment your leads & broadcasting from Messenger Broadcaster. If you don't want to add labels for this PostBack , then just keep it blank as it is.").'"><i class="fa fa-info-circle"></i> </a>';
             echo '<div class="row">
               <div class="'.$first_col.'"> 
                   <div class="form-group">
@@ -116,7 +116,7 @@
 
               if($this->is_drip_campaigner_exist)
               {
-                $popover2='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Sequence Campaign').'" data-content="'.$this->lang->line("Choose any drip or sequence campaign to set when user click on this postback button. Keep it blank if you don't want to set.").'"><i class="fa fa-info-circle"></i> </a>';
+                $popover2='<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="'.lang('Choose Sequence Campaign').'" data-content="'.lang("Choose any drip or sequence campaign to set when user click on this postback button. Keep it blank if you don't want to set.").'"><i class="fa fa-info-circle"></i> </a>';
                  echo '
                   <div class="col-12 col-sm-6 hidden dropdown_con"> 
                       <div class="form-group">

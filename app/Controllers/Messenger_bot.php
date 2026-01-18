@@ -11153,6 +11153,8 @@ class Messenger_bot extends Home
         $this->is_engagement_exist = $this->engagement_exist();
         $data['body'] = 'messenger_tools/menu_block';
         $data['page_title'] = $this->lang->line('Messenger Bot');
+        // CI4 fix: Pass controller properties to view
+        $data['is_engagement_exist'] = $this->is_engagement_exist ?? false;
         $this->_viewcontroller($data);
     }
 
@@ -11380,7 +11382,7 @@ class Messenger_bot extends Home
             if (is_string($where['where'])) {
                 $where['where'] .= " AND template_category_id='" . $category_id . "'";
             } else {
-                $where['where']['template_category_id'] = $category_id;
+            $where['where']['template_category_id'] = $category_id;
             }
         }
         $info = $this->basic->get_data($table, $where, '', '', $limit, $start);

@@ -313,7 +313,7 @@
                        {
                           if(isset($full_message[$k]["template_type"]) && $full_message[$k]["template_type"] == $value) $selected='selected';
                           else $selected='';
-                          echo '<option value="'.$value.'" '.$selected.'>'.$this->lang->line($value).'</option>';
+                          echo '<option value="'.$value.'" '.$selected.'>'.lang($value).'</option>';
                        } 
                       ?>
                     </select>
@@ -435,7 +435,7 @@
 
                     <div class="col-12"> 
                       <div class="form-group">
-                        <label><?php echo $this->lang->line("Please provide 'Buy Now' button text"); ?></label>
+                        <label><?php echo lang("Please provide 'Buy Now' button text"); ?></label>
                         <input type="text" value="<?php echo $buy_now_button_text; ?>" name="ecommerce_button_text<?php echo $k; ?>" id="ecommerce_button_text<?php echo $k; ?>" class="form-control">
                       </div>       
                     </div>
@@ -584,10 +584,10 @@
                               <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
                               <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?> ><?php echo lang('WebView [Full]'); ?></option>
                               
-                              <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
-                              <option value="web_url_email" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_email') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Email"); ?></option>
-                              <option value="web_url_phone" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_phone') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Phone"); ?></option>
-                              <option value="web_url_location" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_location') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Location"); ?></option>
+                              <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
+                              <option value="web_url_email" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_email') !== false) echo 'selected'; ?> ><?php echo lang("User's Email"); ?></option>
+                              <option value="web_url_phone" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_phone') !== false) echo 'selected'; ?> ><?php echo lang("User's Phone"); ?></option>
+                              <option value="web_url_location" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_location') !== false) echo 'selected'; ?> ><?php echo lang("User's Location"); ?></option>
 
                               <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
                               
@@ -709,7 +709,7 @@
                               <option value="phone_number" <?php if(isset($full_message[$k]['quick_replies'][$i-1]['content_type']) && $full_message[$k]['quick_replies'][$i-1]['content_type'] == 'user_phone_number') echo 'selected'; ?> ><?php echo lang('User Phone Number'); ?></option>
                               <option value="user_email" <?php if(isset($full_message[$k]['quick_replies'][$i-1]['content_type']) && $full_message[$k]['quick_replies'][$i-1]['content_type'] == 'user_email') echo 'selected'; ?> ><?php echo lang('User E-mail Address'); ?></option>
                               <?php endif; ?>
-                              <!-- <option value="location" <?php if(isset($full_message[$k]['quick_replies'][$i-1]['content_type']) && $full_message[$k]['quick_replies'][$i-1]['content_type'] == 'location') echo 'selected'; ?> ><?php echo $this->lang->line("User's Location"); ?></option> -->
+                              <!-- <option value="location" <?php if(isset($full_message[$k]['quick_replies'][$i-1]['content_type']) && $full_message[$k]['quick_replies'][$i-1]['content_type'] == 'location') echo 'selected'; ?> ><?php echo lang("User's Location"); ?></option> -->
                             </select>
                           </div>
                         </div>
@@ -803,10 +803,10 @@
                               <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
                               <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?> ><?php echo lang('WebView [Full]'); ?></option>
                               
-                              <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
-                              <option value="web_url_email" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_email') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Email"); ?></option>
-                              <option value="web_url_phone" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_phone') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Phone"); ?></option>
-                              <option value="web_url_location" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_location') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Location"); ?></option>
+                              <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
+                              <option value="web_url_email" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_email') !== false) echo 'selected'; ?> ><?php echo lang("User's Email"); ?></option>
+                              <option value="web_url_phone" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_phone') !== false) echo 'selected'; ?> ><?php echo lang("User's Phone"); ?></option>
+                              <option value="web_url_location" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['buttons'][$i-1]['url'],'webview_builder/get_location') !== false) echo 'selected'; ?> ><?php echo lang("User's Location"); ?></option>
 
 
                               <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
@@ -948,10 +948,10 @@
                                     <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?>><?php echo lang('WebView [Full]'); ?></option>
                                   <?php endif; ?>
                                     
-                                    <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Birthday"); ?></option>
-                                    <option value="web_url_email" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_email') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Email"); ?></option>
-                                    <option value="web_url_phone" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_phone') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Phone"); ?></option>
-                                    <option value="web_url_location" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_location') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Location"); ?></option>
+                                    <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?> ><?php echo lang("User's Birthday"); ?></option>
+                                    <option value="web_url_email" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_email') !== false) echo 'selected'; ?> ><?php echo lang("User's Email"); ?></option>
+                                    <option value="web_url_phone" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_phone') !== false) echo 'selected'; ?> ><?php echo lang("User's Phone"); ?></option>
+                                    <option value="web_url_location" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['url'],'webview_builder/get_location') !== false) echo 'selected'; ?> ><?php echo lang("User's Location"); ?></option>
 
                                     <?php if(!$hide_generic_item) : ?>
                                     <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][0]['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
@@ -1102,10 +1102,10 @@
                                     <option value="web_url_tall" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio'] == 'tall') echo 'selected'; ?> ><?php echo lang('WebView [Tall]'); ?></option>
                                     <option value="web_url_full" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['webview_height_ratio'] == 'full') echo 'selected'; ?>><?php echo lang('WebView [Full]'); ?></option>
                                     
-                                    <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?>><?php echo $this->lang->line("User's Birthday"); ?></option>
-                                    <option value="web_url_email" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_email') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Email"); ?></option>
-                                    <option value="web_url_phone" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_phone') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Phone"); ?></option>
-                                    <option value="web_url_location" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_location') !== false) echo 'selected'; ?> ><?php echo $this->lang->line("User's Location"); ?></option>
+                                    <option value="web_url_birthday" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_birthdate') !== false) echo 'selected'; ?>><?php echo lang("User's Birthday"); ?></option>
+                                    <option value="web_url_email" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_email') !== false) echo 'selected'; ?> ><?php echo lang("User's Email"); ?></option>
+                                    <option value="web_url_phone" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_phone') !== false) echo 'selected'; ?> ><?php echo lang("User's Phone"); ?></option>
+                                    <option value="web_url_location" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url']) && strpos($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['url'],'webview_builder/get_location') !== false) echo 'selected'; ?> ><?php echo lang("User's Location"); ?></option>
 
                                     <option value="phone_number" <?php if(isset($full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['type']) && $full_message[$k]['attachment']['payload']['elements'][$j-1]['buttons'][$i-1]['type'] == 'phone_number') echo 'selected'; ?> ><?php echo lang('call us'); ?></option>
 
@@ -3305,7 +3305,7 @@ $(document).ready(function(){
           <p><?php echo lang('To get the Facebook URL for an image or video, do the following:'); ?></p>
           <ul>
             <li><?php echo lang('Click the image or video thumbnail to open the full-size view');?>.</li>
-            <li><?php echo $this->lang->line("Copy the URL from your browser's address bar.<");?>/li>
+            <li><?php echo lang("Copy the URL from your browser's address bar.<");?>/li>
           </ul>
           <p><?php echo lang('Facebook URLs should be in the following base format:');?></p>
           <div class="table-responsive2">

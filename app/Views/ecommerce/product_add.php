@@ -304,11 +304,11 @@
                 </div>
               </div>
 
-              <?php if($this->basic->is_exist('add_ons',array('unique_name'=>'ecommerce_related_products')) 
-                      && $this->basic->is_exist("modules",array("id"=>317))) : ?>
+              <?php if(($basic ?? null) && $basic->is_exist('add_ons',array('unique_name'=>'ecommerce_related_products')) 
+                      && $basic->is_exist("modules",array("id"=>317))) : ?>
 
               <?php if(session()->get('user_type') == 'Admin' 
-                      || in_array(317,$this->module_access)) : ?>
+                      || in_array(317,($module_access ?? []))) : ?>
               <div class="col-6 col-md-4">
                 <div class="form-group">
                   <label for="is_featured" > <?php echo lang('Featured');?></label><br>
