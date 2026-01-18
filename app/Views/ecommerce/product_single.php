@@ -1,5 +1,5 @@
   <?php
-  $subscriber_id=$this->session->userdata($product_data['store_id']."ecom_session_subscriber_id");
+  $subscriber_id=session()->get($product_data['store_id']."ecom_session_subscriber_id");
   if($subscriber_id=="")  $subscriber_id = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
   $pickup = isset($_GET['pickup']) ? $_GET['pickup'] : '';
 
@@ -125,7 +125,7 @@
           </h4>
         </div>
         <?php
-        if($this->ecommerce_review_comment_exist && isset($review_data[0])) : 
+        if(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist && isset($review_data[0])) : 
           $rating = mec_average_rating($review_data[0]['total_point'],$review_data[0]['total_review']);
           $review_star = mec_display_rating_starts($rating);
           if(!empty($rating)) echo '<div class="pr-2 text-right">'.$review_star.' <b>'.number_format($rating,2).'</b></div>';
@@ -147,14 +147,14 @@
             </li>
             <?php endif; ?>   
 
-            <?php if($this->ecommerce_review_comment_exist): ?>
+            <?php if(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist): ?>
             <li class="nav-item">
               <a class="nav-link <?php echo (!$have_attributes && empty($product_data['product_description'])) ? 'active show' : '';?>"  id="reviews-tab2" data-toggle="tab" href="#reviews" role="tab" aria-controls="reviews" aria-selected="false"><?php echo lang('Reviews'); ?></a>
             </li>
             <?php endif; ?>
             <?php if(!empty($product_data['purchase_note'])): ?>
             <li class="nav-item">
-              <a class="nav-link <?php echo (!$have_attributes && empty($product_data['product_description']) && !$this->ecommerce_review_comment_exist) ? 'active show' : '';?>"  id="purchase_note-tab2" data-toggle="tab" href="#purchase_note" role="tab" aria-controls="purchase_note" aria-selected="false"><?php echo lang('Note'); ?></a>
+              <a class="nav-link <?php echo (!$have_attributes && empty($product_data['product_description']) && !(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist)) ? 'active show' : '';?>"  id="purchase_note-tab2" data-toggle="tab" href="#purchase_note" role="tab" aria-controls="purchase_note" aria-selected="false"><?php echo lang('Note'); ?></a>
             </li>
             <?php endif; ?>
           </ul>
@@ -243,7 +243,7 @@
             </div>
             <?php endif; ?>
 
-            <?php if($this->ecommerce_review_comment_exist): ?>
+            <?php if(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist): ?>
             <div class="tab-pane fade p-3 pb-0 <?php echo (!$have_attributes && empty($product_data['product_description'])) ? 'active show' : '';?>" id="reviews" role="tabpanel" aria-labelledby="reviews-tab2">
               <?php 
               if(empty($review_list_data)) 
@@ -310,7 +310,7 @@
             </div>
             <?php endif; ?>
             <?php if(!empty($product_data['purchase_note'])): ?>
-            <div class="tab-pane fade p-2 pb-0 <?php echo (!$have_attributes && empty($product_data['product_description']) && !$this->ecommerce_review_comment_exist) ? 'active show' : '';?>" id="purchase_note" role="tabpanel" aria-labelledby="purchase_note-tab2">
+            <div class="tab-pane fade p-2 pb-0 <?php echo (!$have_attributes && empty($product_data['product_description']) && !(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist)) ? 'active show' : '';?>" id="purchase_note" role="tabpanel" aria-labelledby="purchase_note-tab2">
               <?php echo $product_data['purchase_note']; ?>
             </div>
             <?php endif; ?>
@@ -378,7 +378,7 @@
     </div>
   </div>
 
-  <?php if($this->is_ecommerce_related_product_exist) : ?>
+  <?php if(isset($is_ecommerce_related_product_exist) && $is_ecommerce_related_product_exist) : ?>
 
     <?php if(!empty($upsell_product_lists)) : ?>
       <?php 
@@ -438,10 +438,10 @@
     <div class="col-12 always_padded">     
 
       <?php 
-      if($this->ecommerce_review_comment_exist):      
+      if(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist):      
         $js_store_id = isset($social_analytics_codes['store_id']) ? $social_analytics_codes['store_id'] : $social_analytics_codes['id'];
         $js_user_id = isset($social_analytics_codes['user_id']) ? $social_analytics_codes['user_id'] : $social_analytics_codes['user_id'];  
-        $subscriberId=$this->session->userdata($js_store_id."ecom_session_subscriber_id");
+        $subscriberId=session()->get($js_store_id."ecom_session_subscriber_id");
         if($subscriberId=="")  $subscriberId = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
         if($subscriberId=='') $subscriberId = ($uri ?? service('uri'))->getSegment(4) ?? '';
         ?>
@@ -482,7 +482,7 @@
     </div>
   </div>
 
-  <?php if($this->is_ecommerce_related_product_exist) : ?>
+  <?php if(isset($is_ecommerce_related_product_exist) && $is_ecommerce_related_product_exist) : ?>
     <?php if(!empty($related_product_lists)) : ?>
       <div class="row mt-2 section">
         <div class="col-12 p-0">
@@ -547,8 +547,8 @@
   var store_favicon = "<?php echo isset($social_analytics_codes['store_favicon'])?$social_analytics_codes['store_favicon']:'';?>";
   var store_name = "<?php echo isset($social_analytics_codes['store_name'])?$social_analytics_codes['store_name']:'';?>";
   var product_name = "<?php echo isset($product_data['product_name'])?$product_data['product_name']:'';?>";
-  var ecommerce_review_comment_exist = '<?php echo $this->ecommerce_review_comment_exist;?>';
-  var ecommerce_related_product_exist = '<?php echo $this->is_ecommerce_related_product_exist;?>';
+  var ecommerce_review_comment_exist = '<?php echo isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist ? '1' : '0';?>';
+  var ecommerce_related_product_exist = '<?php echo isset($is_ecommerce_related_product_exist) && $is_ecommerce_related_product_exist ? '1' : '0';?>';
  
 
   $(document).ready(function() {
@@ -594,7 +594,7 @@
 </script>
 
 <?php include(APPPATH."views/ecommerce/attribute_value.php"); ?>
-<?php if($this->ecommerce_review_comment_exist) include(APPPATH."views/ecommerce/comment_js.php"); ?>
+<?php if(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist) include(APPPATH."Views/ecommerce/comment_js.php"); ?>
 
 <style type="text/css">
   .article-title a{font-size: 10px !important;font-weight: 500 !important;}
@@ -622,7 +622,7 @@
   .text-medium{font-size: 12px !important;}
 </style>
 
-<?php if($this->ecommerce_review_comment_exist) : ?>
+<?php if(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist) : ?>
 <div class="modal fade" id="ReviewModal" tabindex="-1" role="dialog" aria-labelledby="ReviewModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">

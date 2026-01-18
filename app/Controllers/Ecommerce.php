@@ -907,7 +907,8 @@ class Ecommerce extends Home
 
     }
 
-
+    // CI4 fix: Pass property to view via $data array
+    $data['is_ecommerce_related_product_exist'] = $this->is_ecommerce_related_product_exist;
 
     $data["category_list"] = $cat_info;
 
@@ -928,7 +929,8 @@ class Ecommerce extends Home
     $data["show_header"] = true;
 
     $data['is_rtl'] = (isset($store_data[0]['is_rtl']) && $store_data[0]['is_rtl']=='1') ? true : false;
-
+    // CI4 fix: Pass property to view via $data array
+    $data['ecommerce_review_comment_exist'] = $this->ecommerce_review_comment_exist;
     $this->load->view('ecommerce/bare-theme', $data);
 
   }
@@ -1132,7 +1134,10 @@ class Ecommerce extends Home
       }
 
     }
-
+    // CI4 fix: Pass property to view via $data array
+    $data['is_ecommerce_related_product_exist'] = $this->is_ecommerce_related_product_exist;
+    $data['ecommerce_review_comment_exist'] = $this->ecommerce_review_comment_exist;
+    
     $data['related_product_lists'] = isset($related_product_lists) ? $related_product_lists:array();
 
     $data['upsell_product_lists'] = isset($upsell_product_lists) ? $upsell_product_lists:array();
@@ -1176,6 +1181,8 @@ class Ecommerce extends Home
     $data['current_store_id'] = isset($product_data[0]['store_id']) ? $product_data[0]['store_id'] : 0;
 
     $data['is_rtl'] = (isset($product_data[0]['is_rtl']) && $product_data[0]['is_rtl']=='1') ? true : false;
+    // CI4 fix: Pass property to view via $data array
+    $data['ecommerce_review_comment_exist'] = $this->ecommerce_review_comment_exist;
 
     $this->load->view('ecommerce/bare-theme', $data);
 
@@ -1608,6 +1615,8 @@ public function comment($comment_id=0)
   $data['comment_id'] = $comment_id;
 
   $data['ecommerce_config'] = $this->get_ecommerce_config($product_data[0]["store_id"]);
+  // CI4 fix: Pass property to view via $data array
+  $data['ecommerce_review_comment_exist'] = $this->ecommerce_review_comment_exist;
 
   $data['is_rtl'] = (isset($product_data[0]['is_rtl']) && $product_data[0]['is_rtl']=='1') ? true : false;
 
@@ -1684,6 +1693,8 @@ public function review($review_id=0)
   $data['review_id'] = $review_id;
 
   $data['ecommerce_config'] = $this->get_ecommerce_config($product_data[0]["store_id"]);
+  // CI4 fix: Pass property to view via $data array
+  $data['ecommerce_review_comment_exist'] = $this->ecommerce_review_comment_exist;
 
   $data['is_rtl'] = (isset($product_data[0]['is_rtl']) && $product_data[0]['is_rtl']=='1') ? true : false;
 
@@ -10355,11 +10366,13 @@ public function my_orders_data()
 
 
 
-  if($search_status!="") $this->db->where(array("ecommerce_cart.status"=>$search_status));    
+  // CI4 fix: Build where clause as raw SQL string
+  $where_custom="action_type='checkout' AND ecommerce_cart.subscriber_id = '".$this->db->escapeString($subscriber_id)."' AND store_id=".intval($store_id);
 
-  $where_custom="action_type='checkout' AND ecommerce_cart.subscriber_id = '".$subscriber_id."' AND store_id=".$store_id;
-
-
+  // Add search_status condition if provided
+  if($search_status!="") {
+    $where_custom .= " AND ecommerce_cart.status = '".$this->db->escapeString($search_status)."'";
+  }
 
   if($search_value != '') 
 
@@ -10367,7 +10380,7 @@ public function my_orders_data()
 
     foreach ($search_columns as $key => $value) 
 
-      $temp[] = $value." LIKE "."'%$search_value%'";
+      $temp[] = $value." LIKE "."'%".$this->db->escapeLikeString($search_value)."%'";
 
     $imp = implode(" OR ", $temp);
 
@@ -10387,13 +10400,12 @@ public function my_orders_data()
 
     if($from_date!="Invalid date" && $to_date!="Invalid date")
 
-      $where_custom .= " AND ecommerce_cart.updated_at >= '{$from_date}' AND ecommerce_cart.updated_at <='{$to_date}'";
+      $where_custom .= " AND ecommerce_cart.updated_at >= '".$this->db->escapeString($from_date)."' AND ecommerce_cart.updated_at <='".$this->db->escapeString($to_date)."'";
 
   }
 
-  $this->db->where($where_custom);      
-
-  
+  // CI4 fix: Pass where_custom as array with 'where' key (raw SQL string)
+  $where = array('where' => $where_custom);
 
   $table="ecommerce_cart";
 
@@ -10401,15 +10413,9 @@ public function my_orders_data()
 
   $join = array('ecommerce_store'=>"ecommerce_store.id=ecommerce_cart.store_id,left");
 
-  $info=$this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='');
+  $info=$this->basic->get_data($table,$where,$select,$join,$limit,$start,$order_by,$group_by='');
 
-  
-
-  if($search_status!="") $this->db->where(array("ecommerce_cart.status"=>$search_status));
-
-  $this->db->where($where_custom);
-
-  $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+  $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
 
 
@@ -10747,15 +10753,18 @@ public function order_list_data()
 
   $order_by=$sort." ".$order;
 
+  // CI4 fix: Build where clause as raw SQL string
+  $where_custom="ecommerce_cart.user_id = ".intval($this->user_id)." AND ecommerce_cart.action_type = 'checkout'";
 
+  // Add store_id condition if provided
+  if($store_id!="") {
+    $where_custom .= " AND store_id = ".intval($store_id);
+  }
 
-  if($store_id!="") $this->db->where(array("store_id"=>$store_id));    
-
-  if($search_status!="") $this->db->where(array("ecommerce_cart.status"=>$search_status));  
-
-  $where_custom="ecommerce_cart.user_id = ".$this->user_id." AND ecommerce_cart.action_type = 'checkout'";
-
-
+  // Add search_status condition if provided
+  if($search_status!="") {
+    $where_custom .= " AND ecommerce_cart.status = '".$this->db->escapeString($search_status)."'";
+  }
 
   if ($search_value != '') 
 
@@ -10763,7 +10772,7 @@ public function order_list_data()
 
     foreach ($search_columns as $key => $value) 
 
-      $temp[] = $value." LIKE "."'%$search_value%'";
+      $temp[] = $value." LIKE "."'%".$this->db->escapeLikeString($search_value)."%'";
 
     $imp = implode(" OR ", $temp);
 
@@ -10783,9 +10792,12 @@ public function order_list_data()
 
     if($from_date!="Invalid date" && $to_date!="Invalid date")
 
-      $where_custom .= " AND ecommerce_cart.updated_at >= '{$from_date}' AND ecommerce_cart.updated_at <='{$to_date}'";
+      $where_custom .= " AND ecommerce_cart.updated_at >= '".$this->db->escapeString($from_date)."' AND ecommerce_cart.updated_at <='".$this->db->escapeString($to_date)."'";
 
   }
+
+  // CI4 fix: Pass where_custom as array with 'where' key (raw SQL string)
+  $where = array('where' => $where_custom);
 
   $table="ecommerce_cart";
 
@@ -10795,7 +10807,7 @@ public function order_list_data()
 
   $join = array('ecommerce_store'=>"ecommerce_store.id=ecommerce_cart.store_id,left");
 
-  $info=$this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='');
+  $info=$this->basic->get_data($table,$where,$select,$join,$limit,$start,$order_by,$group_by='');
 
   // Get compiled SQL for session storage
   $builder_temp = $this->db->table($table);
@@ -10828,15 +10840,8 @@ public function order_list_data()
 
   $this->session->set_userdata("latest_order_list_sql",$latest_order_list_sql);
 
-  
-
-  if($store_id!="") $this->db->where(array("store_id"=>$store_id));    
-
-  if($search_status!="") $this->db->where(array("ecommerce_cart.status"=>$search_status));  
-
-  $this->db->where($where_custom);
-
-  $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+  // CI4 fix: Use $where array for count_row instead of $this->db->where()
+  $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
 
 
@@ -11593,7 +11598,7 @@ public function add_store_action()
 
     
 
-    $this->db->trans_start(); 
+    $this->db->transStart(); 
 
 
 
@@ -11701,14 +11706,14 @@ public function add_store_action()
 
     $this->_insert_usage_log($module_id=268,$request=1);
 
-    $this->db->trans_complete();
+    $this->db->transComplete();
 
 
 
-    if($this->db->trans_status() === false)
+    if($this->db->transStatus() === false)
 
     {
-
+     $this->db->transRollback();
      echo json_encode(array('status'=>'0','message'=>"".$this->lang->line('Something went wrong, please try again.')));
 
      exit();
@@ -12023,20 +12028,20 @@ public function reminder_settings_action()
 
   
 
-  $this->db->trans_start(); 
+  $this->db->transStart(); 
 
   
 
   $this->basic->update_data("ecommerce_store",array("id"=>$hidden_id,"user_id"=>$this->user_id),$insert_data2);
 
-  $this->db->trans_complete();
+  $this->db->transComplete();
 
 
 
-  if($this->db->trans_status() === false)
+  if($this->db->transStatus() === false)
 
   {
-
+   $this->db->transRollback();
    echo json_encode(array('status'=>'0','message'=>"".$this->lang->line('Something went wrong, please try again.')));
 
    exit();
@@ -12163,7 +12168,13 @@ public function qr_code($id=0,$pickup_point_id='')
 
       $response=$this->fb_rx_login->domain_whitelist($page_access_token,$domain_only_whitelist);
 
-      $this->basic->insert_data("messenger_bot_domain_whitelist",array("user_id"=>$this->user_id,"messenger_bot_user_info_id"=>$xdata[0]['facebook_rx_fb_user_info_id'],"page_id"=>$xdata[0]['page_auto_id'],"domain"=>$domain_only_whitelist,"created_at"=>date("Y-m-d H:i:s")));
+      // CI4 fix: Check if messenger_bot_user_info_id is not null before inserting
+      $messenger_bot_user_info_id = isset($xdata[0]['facebook_rx_fb_user_info_id']) && !empty($xdata[0]['facebook_rx_fb_user_info_id']) ? $xdata[0]['facebook_rx_fb_user_info_id'] : null;
+      
+      // Only insert if messenger_bot_user_info_id is not null
+      if($messenger_bot_user_info_id !== null) {
+        $this->basic->insert_data("messenger_bot_domain_whitelist",array("user_id"=>$this->user_id,"messenger_bot_user_info_id"=>$messenger_bot_user_info_id,"page_id"=>$xdata[0]['page_auto_id'],"domain"=>$domain_only_whitelist,"created_at"=>date("Y-m-d H:i:s")));
+      }
 
     }
 
@@ -12355,7 +12366,7 @@ public function edit_store_action()
 
   
 
-  $this->db->trans_start(); 
+  $this->db->transStart(); 
 
 
 
@@ -12431,14 +12442,14 @@ public function edit_store_action()
 
   $this->basic->update_data("ecommerce_store",array("id"=>$hidden_id,"user_id"=>$this->user_id),$insert_data);
 
-  $this->db->trans_complete();
+  $this->db->transComplete();
 
 
 
-  if($this->db->trans_status() === false)
+  if($this->db->transStatus() === false)
 
   {
-
+   $this->db->transRollback();
    echo json_encode(array('status'=>'0','message'=>"".$this->lang->line('Something went wrong, please try again.')));
 
    exit();
@@ -12595,13 +12606,12 @@ public function product_list_data()
 
   }
 
-  $this->db->where($where_custom);
-
-
-
-  if($store_id!="") $this->db->where(array("ecommerce_product.store_id"=>$store_id));       
-
+  // CI4 fix: Combine where conditions and pass as array to get_data method
+  if($store_id!="") {
+    $where_custom .= " AND ecommerce_product.store_id = " . (int)$store_id;
+  }
   
+  $where = array('where' => $where_custom);
 
   $table="ecommerce_product";
 
@@ -12609,17 +12619,12 @@ public function product_list_data()
 
   $join = array('ecommerce_store'=>"ecommerce_store.id=ecommerce_product.store_id,left",'ecommerce_category'=>"ecommerce_category.id=ecommerce_product.category_id,left");
 
-  $info=$this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='');
+  $info=$this->basic->get_data($table,$where,$select,$join,$limit,$start,$order_by,$group_by='');
 
     // echo $this->db->last_query(); exit();
 
-  
-
-  $this->db->where($where_custom);
-
-  if($store_id!="") $this->db->where(array("ecommerce_product.store_id"=>$store_id)); 
-
-  $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+  // CI4 fix: Use same where array for count_row method
+  $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
 
 
@@ -12761,7 +12766,7 @@ public function delete_store($campaign_id=0)
 
 
 
-  $this->db->trans_start();
+  $this->db->transStart();
 
   $this->basic->delete_data('ecommerce_store',$where=array('id'=>$id,"user_id"=>$this->user_id));
 
@@ -12789,12 +12794,12 @@ public function delete_store($campaign_id=0)
 
 
 
-  $this->db->trans_complete();
+  $this->db->transComplete();
 
-  if($this->db->trans_status() === false) 
+  if($this->db->transStatus() === false) 
 
   {
-
+    $this->db->transRollback();
     $response['status'] = '0';
 
     $response['message'] = $this->lang->line('Something went wrong.');
@@ -12885,7 +12890,8 @@ public function add_product()
 
   }
 
-
+  // CI4 fix: Pass property to view via $data array
+  $data['is_ecommerce_related_product_addon_exist'] = $this->is_ecommerce_related_product_addon_exist;
 
   $data['ecommerce_config'] = $this->get_ecommerce_config();
 
@@ -13205,7 +13211,7 @@ public function add_product_action()
 
       
 
-      redirect('ecommerce/product_list','location');                 
+      return redirect()->to('ecommerce/product_list')->send();                 
 
       
 
@@ -13277,7 +13283,8 @@ public function edit_product($id='0',$operation='edit')
 
   }
 
-
+  // CI4 fix: Pass property to view via $data array
+  $data['is_ecommerce_related_product_addon_exist'] = $this->is_ecommerce_related_product_addon_exist;
 
   $attribute_list = $this->get_attribute_list();
 
@@ -13805,7 +13812,7 @@ public function edit_product_action()
 
       
 
-      redirect('ecommerce/product_list','location');                 
+      return redirect()->to('ecommerce/product_list')->send();                 
 
       
 
@@ -13931,7 +13938,7 @@ public function upload_product_file()
 
 
 
-  $upload_dir = APPPATH . '../upload/ecommerce/digital_product';
+  $upload_dir = FCPATH . 'upload/ecommerce/digital_product';
 
 
 
@@ -14055,7 +14062,7 @@ public function delete_product_file()
 
   // Upload dir path
 
-  $upload_dir = APPPATH . '../upload/ecommerce/digital_product';
+  $upload_dir = FCPATH . 'upload/ecommerce/digital_product';
 
 
 
@@ -14563,7 +14570,7 @@ public function payment_accounts_action()
 
         $this->session->set_flashdata('error_message', 1);
 
-        redirect('ecommerce/payment_accounts', 'location');
+        return redirect()->to('ecommerce/payment_accounts')->send();
 
         exit();
 
@@ -14581,7 +14588,7 @@ public function payment_accounts_action()
 
           $this->session->set_flashdata('error_message2', 1);
 
-          redirect('ecommerce/payment_accounts', 'location');
+          return redirect()->to('ecommerce/payment_accounts')->send();
 
           exit();
 
@@ -14769,7 +14776,7 @@ public function payment_accounts_action()
 
       $this->session->set_flashdata('success_message', 1);
 
-      redirect('ecommerce/payment_accounts', 'location');
+          return redirect()->to('ecommerce/payment_accounts')->send();
 
     }
 
@@ -15003,7 +15010,7 @@ public function appearance_settings_action()
 
       $this->session->set_flashdata('success_message', 1);
 
-      redirect('ecommerce/appearance_settings', 'location');
+      return redirect()->to('ecommerce/appearance_settings')->send();
 
     }
 
@@ -15091,15 +15098,12 @@ public function attribute_list_data()
 
   $join = array('ecommerce_store'=>"ecommerce_store.id=ecommerce_attribute.store_id,left");
 
-  $this->db->where($where_custom);
+  // CI4 fix: Pass where_custom as array to get_data method instead of using $this->db->where()
+  $where = array('where' => $where_custom);
+  $info = $this->basic->get_data($table,$where,$select,$join,$limit,$start,$order_by,$group_by='');
 
-  $info = $this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='');
-
-
-
-  $this->db->where($where_custom);
-
-  $total_rows_array = $this->basic->count_row($table,$where='',$count="ecommerce_attribute.id",$join,$group_by='');
+  // CI4 fix: Pass where_custom as array to count_row method instead of using $this->db->where()
+  $total_rows_array = $this->basic->count_row($table,$where,$count="ecommerce_attribute.id",$join,$group_by='');
 
   $total_result=$total_rows_array[0]['total_rows'];
 
@@ -15581,9 +15585,8 @@ public function pickup_point_list_data()
 
 
 
-  $where_custom = '';
-
-  $where_custom="ecommerce_cart_pickup_points.store_id = ".$this->session->userdata("ecommerce_selected_store");
+  // CI4 fix: Build where clause as raw SQL string
+  $where_custom="ecommerce_cart_pickup_points.store_id = ".intval($this->session->userdata("ecommerce_selected_store"));
 
   if($search_value != '') 
 
@@ -15591,7 +15594,7 @@ public function pickup_point_list_data()
 
     foreach ($search_columns as $key => $value) 
 
-      $temp[] = $value." LIKE "."'%$search_value%'";
+      $temp[] = $value." LIKE "."'%".$this->db->escapeLikeString($search_value)."%'";
 
     $imp = implode(" OR ", $temp);
 
@@ -15599,7 +15602,8 @@ public function pickup_point_list_data()
 
   }   
 
-
+  // CI4 fix: Pass where_custom as array with 'where' key (raw SQL string)
+  $where = array('where' => $where_custom);
 
   $table = "ecommerce_cart_pickup_points";
 
@@ -15607,15 +15611,9 @@ public function pickup_point_list_data()
 
     // $join = array('ecommerce_store'=>"ecommerce_store.id=ecommerce_cart_pickup_points.store_id,left");
 
-  $this->db->where($where_custom);
+  $info = $this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
 
-  $info = $this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-
-
-
-  $this->db->where($where_custom);
-
-  $total_rows_array = $this->basic->count_row($table,$where='',$count="ecommerce_cart_pickup_points.id",$join,$group_by='');
+  $total_rows_array = $this->basic->count_row($table,$where,$count="ecommerce_cart_pickup_points.id",$join,$group_by='');
 
   $total_result=$total_rows_array[0]['total_rows'];
 
@@ -16027,15 +16025,12 @@ public function category_list_data()
 
   $join = array('ecommerce_store'=>"ecommerce_store.id=ecommerce_category.store_id,left");
 
-  $this->db->where($where_custom);
+  // CI4 fix: Pass where_custom as array to get_data method instead of using $this->db->where()
+  $where = array('where' => $where_custom);
+  $info = $this->basic->get_data($table,$where,$select,$join,$limit,$start,$order_by,$group_by='');
 
-  $info = $this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='');
-
-
-
-  $this->db->where($where_custom);
-
-  $total_rows_array = $this->basic->count_row($table,$where='',$count="ecommerce_category.id",$join,$group_by='');
+  // CI4 fix: Pass where_custom as array to count_row method instead of using $this->db->where()
+  $total_rows_array = $this->basic->count_row($table,$where,$count="ecommerce_category.id",$join,$group_by='');
 
   $total_result=$total_rows_array[0]['total_rows'];
 
@@ -16110,6 +16105,11 @@ public function ajax_create_new_category()
     $store_id = $this->input->post("store_id",true);
 
     $thumbnail=$this->input->post('thumbnail',true);
+    // Get latest uploaded filename from session if available (prioritize session over POST)
+    $session_thumbnail = $this->session->userdata('category_thumb_uploaded_file');
+    if(!empty($session_thumbnail)) {
+      $thumbnail = $session_thumbnail;
+    }
 
 
 
@@ -16146,6 +16146,8 @@ public function ajax_create_new_category()
       $result['status'] = "1";
 
       $result['message'] = $this->lang->line("Category has been added successfully.");
+      // Clear session after successful save
+      $this->session->unset_userdata('category_thumb_uploaded_file');
 
     }            
 
@@ -16424,6 +16426,11 @@ public function ajax_get_category_update_info()
                 $category_name = strip_tags($this->input->post("category_name2",true));
 
                 $thumbnail = $this->input->post("thumbnail2",true);
+                // Get latest uploaded filename from session if available (prioritize session over POST)
+                $session_thumbnail = $this->session->userdata('category_thumb_uploaded_file');
+                if(!empty($session_thumbnail)) {
+                  $thumbnail = $session_thumbnail;
+                }
 
 
 
@@ -16466,6 +16473,8 @@ public function ajax_get_category_update_info()
                   $result['status'] = "1";
 
                   $result['message'] = $this->lang->line("Category has been updated successfully.");
+                  // Clear session after successful save
+                  $this->session->unset_userdata('category_thumb_uploaded_file');
 
                 }                     
 
@@ -16605,11 +16614,13 @@ public function ajax_get_category_update_info()
 
               $order_by=$sort." ".$order;
 
+              // CI4 fix: Build where clause as raw SQL string
+              $where_custom="ecommerce_coupon.user_id = ".intval($this->user_id);
 
-
-              $where_custom="ecommerce_coupon.user_id = ".$this->user_id;
-
-
+              // Add store_id condition if provided
+              if($store_id!="") {
+                $where_custom .= " AND store_id = ".intval($store_id);
+              }
 
               if ($search_value != '') 
 
@@ -16617,7 +16628,7 @@ public function ajax_get_category_update_info()
 
                 foreach ($search_columns as $key => $value) 
 
-                  $temp[] = $value." LIKE "."'%$search_value%'";
+                  $temp[] = $value." LIKE "."'%".$this->db->escapeLikeString($search_value)."%'";
 
                 $imp = implode(" OR ", $temp);
 
@@ -16637,17 +16648,12 @@ public function ajax_get_category_update_info()
 
                 if($from_date!="Invalid date" && $to_date!="Invalid date")
 
-                  $where_custom .= " AND expiry_date >= '{$from_date}' AND expiry_date <='{$to_date}'";
+                  $where_custom .= " AND expiry_date >= '".$this->db->escapeString($from_date)."' AND expiry_date <='".$this->db->escapeString($to_date)."'";
 
               }
 
-              $this->db->where($where_custom);
-
-
-
-              if($store_id!="") $this->db->where(array("store_id"=>$store_id));       
-
-              
+              // CI4 fix: Pass where_custom as array with 'where' key (raw SQL string)
+              $where = array('where' => $where_custom);
 
               $table="ecommerce_coupon";
 
@@ -16655,19 +16661,11 @@ public function ajax_get_category_update_info()
 
               $join = array('ecommerce_store'=>"ecommerce_store.id=ecommerce_coupon.store_id,left");
 
-              $info=$this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='');
-
-
+              $info=$this->basic->get_data($table,$where,$select,$join,$limit,$start,$order_by,$group_by='');
 
     // echo $this->db->last_query(); exit();
 
-              
-
-              $this->db->where($where_custom);
-
-              if($store_id!="") $this->db->where(array("store_id"=>$store_id)); 
-
-              $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+              $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
 
 
@@ -16883,7 +16881,7 @@ public function ajax_get_category_update_info()
 
                   
 
-                  redirect('ecommerce/coupon_list','location');
+                  return redirect()->to('ecommerce/coupon_list')->send();
 
                 }
 
@@ -17045,7 +17043,7 @@ public function ajax_get_category_update_info()
 
                   else $this->session->set_flashdata('error_message',1); 
 
-                  redirect('ecommerce/coupon_list','location');                 
+                  return redirect()->to('ecommerce/coupon_list')->send();                 
 
                   
 
@@ -17273,9 +17271,9 @@ public function ajax_get_category_update_info()
 
               $order_by=$sort." ".$order;
 
-
-
-              $where_custom="messenger_bot_subscriber.store_id = ".$this->session->userdata('ecommerce_selected_store');
+              // CI4 fix: Build where clause as raw SQL string with proper escaping
+              $store_id = intval($this->session->userdata('ecommerce_selected_store'));
+              $where_custom="messenger_bot_subscriber.store_id = ".$store_id;
 
               if ($search_value != '') 
 
@@ -17283,7 +17281,7 @@ public function ajax_get_category_update_info()
 
                 foreach ($search_columns as $key => $value) 
 
-                  $temp[] = $value." LIKE "."'%$search_value%'";
+                  $temp[] = $value." LIKE "."'%".$this->db->escapeLikeString($search_value)."%'";
 
                 $imp = implode(" OR ", $temp);
 
@@ -17291,9 +17289,10 @@ public function ajax_get_category_update_info()
 
               }
 
+              // CI4 fix: Pass where_custom as array with 'where' key (raw SQL string)
+              $where = array('where' => $where_custom);
 
-
-              $info=$this->basic->get_data($table='messenger_bot_subscriber',$where='',$select='id,image_path,profile_pic,subscribe_id,first_name,last_name,email,subscribed_at',$join='',$limit,$start,$order_by,$group_by='');
+              $info=$this->basic->get_data($table='messenger_bot_subscriber',$where,$select='id,image_path,profile_pic,subscribe_id,first_name,last_name,email,subscribed_at',$join='',$limit,$start,$order_by,$group_by='');
 
               // Get compiled SQL for session storage
               $builder_temp = $this->db->table('messenger_bot_subscriber');
@@ -17320,11 +17319,8 @@ public function ajax_get_category_update_info()
 
       // echo $this->db->last_query();      
 
-              
-
-              $this->db->where($where_custom);
-
-              $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+              // CI4 fix: Use $where array for count_row instead of $this->db->where()
+              $total_rows_array=$this->basic->count_row($table='messenger_bot_subscriber',$where,$count=$table.".id",$join='',$group_by='');
 
 
 
@@ -17572,7 +17568,7 @@ public function ajax_get_category_update_info()
 
 
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -17698,7 +17694,7 @@ public function ajax_get_category_update_info()
 
     // Upload dir path
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -17776,7 +17772,7 @@ public function ajax_get_category_update_info()
 
 
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -17896,7 +17892,7 @@ public function ajax_get_category_update_info()
 
     // Upload dir path
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -17966,7 +17962,7 @@ public function ajax_get_category_update_info()
 
 
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -18092,7 +18088,7 @@ public function ajax_get_category_update_info()
 
       // Upload dir path
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -18172,7 +18168,7 @@ public function ajax_get_category_update_info()
 
 
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -18298,7 +18294,7 @@ public function ajax_get_category_update_info()
 
       // Upload dir path
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -18376,7 +18372,7 @@ public function ajax_get_category_update_info()
 
 
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -18502,7 +18498,7 @@ public function ajax_get_category_update_info()
 
     // Upload dir path
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -18580,7 +18576,7 @@ public function ajax_get_category_update_info()
 
 
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -18706,7 +18702,7 @@ public function ajax_get_category_update_info()
 
       // Upload dir path
 
-          $upload_dir = APPPATH . '../upload/ecommerce';
+          $upload_dir = FCPATH . 'upload/ecommerce';
 
 
 
@@ -19090,11 +19086,14 @@ public function ajax_get_category_update_info()
 
     $where_simple = array("store_id"=>$store_id,"status"=>"1");
 
+    $where_custom = "";
+
     if(isset($default_where['product_name'])) {
 
       $product_name = $default_where['product_name'];
-
-      $this->db->where(" product_name LIKE "."'%".$product_name."%'");
+      // CI4 fix: Build custom where clause as raw SQL string
+      // generate_where_clause() supports raw SQL strings in the 'where' key
+      $where_custom = " product_name LIKE '%".$this->db->escapeLikeString($product_name)."%'";
 
       unset($default_where['product_name']);
 
@@ -19116,11 +19115,26 @@ public function ajax_get_category_update_info()
 
     if($order_by=="") $order_by = "product_name ASC";     
 
-    $product_list = $this->basic->get_data("ecommerce_product",array("where"=>$where_simple),$select='',$join='',$limit='',$start=NULL,$order_by);
+    // CI4 fix: If we have custom where clause, combine it with where_simple as raw SQL string
+    // generate_where_clause() supports both array and string for 'where' key
+    if(!empty($where_custom)) {
+      // Build raw SQL string combining where_simple conditions with custom where
+      $where_parts = array();
+      foreach($where_simple as $key => $value) {
+        $where_parts[] = $key . " = '" . $this->db->escapeString($value) . "'";
+      }
+      $where_parts[] = trim($where_custom);
+      $where = array("where" => implode(" AND ", $where_parts));
+    } else {
+      $where = array("where"=>$where_simple);
+    }
 
-    
+    $product_list = $this->basic->get_data("ecommerce_product",$where,$select='',$join='',$limit='',$start=NULL,$order_by);
 
-    // echo $this->db->last_query();
+    // DEBUG: Uncomment to see query and result
+    // log_message('debug', 'get_product_list_array - Store ID: ' . $store_id);
+    // log_message('debug', 'get_product_list_array - Query: ' . $this->db->last_query());
+    // log_message('debug', 'get_product_list_array - Result count: ' . (is_array($product_list) ? count($product_list) : 'not array'));
 
     return $product_list;
 
@@ -19248,21 +19262,17 @@ public function ajax_get_category_update_info()
 
     $id = $this->input->post('hidden_id',true);
 
-    $this->db->select('id');
+    // CI4 fix: Use query builder instead of CI3 methods
+    $builder = $this->db->table('ecommerce_coupon');
+    $builder->select('id');
+    $builder->where('store_id', $store_id);
+    $builder->where('coupon_code', $coupon_code);
+    // $builder->where('user_id', $this->user_id);
 
-    $this->db->from('ecommerce_coupon');
+    if($id!='') $builder->where('id !=', $id);
 
-    $this->db->where('store_id', $store_id);
-
-    $this->db->where('coupon_code', $coupon_code);
-
-    // $this->db->where('user_id', $this->user_id);
-
-    if($id!='') $this->db->where('id !=', $id);
-
-    $query = $this->db->get();
-
-    $num = $query->num_rows();
+    $query = $builder->get();
+    $num = $query->getNumRows();
 
     if ($num > 0) 
 
@@ -19408,7 +19418,7 @@ public function ajax_get_category_update_info()
 
 
 
-        if(!$this->db->table_exists('messenger_bot_broadcast_contact_group')) return array();
+        if(!$this->db->tableExists('messenger_bot_broadcast_contact_group')) return array();
 
 
 
@@ -19912,9 +19922,13 @@ public function ajax_get_category_update_info()
 
     $join='';
 
-    if(!empty($latest_order_list_sql)) $this->db->where($latest_order_list_sql);
+    // CI4 fix: Pass latest_order_list_sql as where array instead of using $this->db->where()
+    $where = array();
+    if(!empty($latest_order_list_sql)) {
+      $where = array('where' => $latest_order_list_sql);
+    }
 
-    $info=$this->basic->get_data($table,$where='',$select,$join,$limit='',$start=NULL,$order_by='id asc');
+    $info=$this->basic->get_data($table,$where,$select,$join,$limit='',$start=NULL,$order_by='id asc');
 
       // echo $this->db->last_query(); exit();
 

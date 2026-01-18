@@ -13563,7 +13563,7 @@ class Sms_email_manager extends Home
 
         // Determines upload path
 
-        $upload_dir = APPPATH . '../upload/image/';
+        $upload_dir = FCPATH . 'upload/image/';
 
 
 

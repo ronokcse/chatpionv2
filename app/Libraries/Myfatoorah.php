@@ -42,23 +42,26 @@ class Myfatoorah{
 
 	function __construct(){
 
+		// CI4 fix: Use CI4 database service instead of CI3 get_instance()
+		$db = \Config\Database::connect();
 		
-
-		$this->CI =& get_instance();
-
-
-
-		$query = $this->CI->db->get('payment_config');
-
-		$config_data = $query->result_array();
-
-
+		// CI4 fix: Use query builder to get payment_config
+		$builder = $db->table('payment_config');
+		$query = $builder->get();
+		$config_data = $query->getResultArray();
 
 		$this->myfatoorah_api_key =isset($config_data[0]['myfatoorah_api_key'])?$config_data[0]['myfatoorah_api_key']:"";
 
 		$this->myfatoorah_mode =isset($config_data[0]['myfatoorah_mode'])?$config_data[0]['myfatoorah_mode']:"live";
 
 		$this->myfatoorah_currency = isset($config_data[0]['currency'])?$config_data[0]['currency']:"KWD";
+		
+		// CI4 fix: Store CI instance for compatibility (if get_instance() is available)
+		if(function_exists('get_instance')) {
+			$this->CI =& get_instance();
+		} else {
+			$this->CI = null;
+		}
 
 		
 
@@ -84,9 +87,8 @@ class Myfatoorah{
 
 	function set_button(){
 
-
-
-		$button_lang = !empty($this->button_lang)?$this->button_lang:$this->CI->lang->line("Pay With Myfatoorah");
+		// CI4 fix: Use lang() helper instead of $this->CI->lang->line()
+		$button_lang = !empty($this->button_lang)?$this->button_lang:lang("Pay With Myfatoorah");
 
 	
 

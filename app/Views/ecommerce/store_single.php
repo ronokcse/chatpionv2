@@ -16,7 +16,7 @@
       if($currency_position=='left') $currency_left = $currency_icon;
       if($currency_position=='right') $currency_right = $currency_icon;
 
-      $subscriber_id=$this->session->userdata($store_data['id']."ecom_session_subscriber_id");
+      $subscriber_id=session()->get($store_data['id']."ecom_session_subscriber_id");
       if($subscriber_id=="")  $subscriber_id = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
       $pickup = isset($_GET['pickup']) ? $_GET['pickup'] : '';
 
@@ -46,8 +46,18 @@
         }
         if(isset($product_list_grouped["other"])) $product_list_grouped_ordered["other"] = $product_list_grouped["other"];
       }
-      else $product_list_grouped_ordered['none'] =  $product_list;
+      else {
+        // CI4 fix: Ensure product_list is properly assigned
+        if(!empty($product_list) && is_array($product_list)) {
+          $product_list_grouped_ordered['none'] = $product_list;
+        } else {
+          $product_list_grouped_ordered['none'] = array();
+        }
+      }
 
+      // Debug: Check product_list
+      // var_dump('product_list count: ' . (is_array($product_list) ? count($product_list) : 'not array'));
+      // var_dump('product_list_grouped_ordered count: ' . count($product_list_grouped_ordered));
 
       $featured_product_lists = array();
       foreach ($product_list as $feature_product) {
@@ -67,9 +77,16 @@
 
       foreach ($category_list_raw as $key => $value)
       {
-        $url = $value['thumbnail']=='' ? base_url('assets/img/icon/rocket.png') : base_url("upload/ecommerce/").$value["thumbnail"];
+        // CI4 fix: Prevent directory URL by checking if thumbnail is not empty before concatenating
+        $thumb_val = isset($value['thumbnail']) ? trim($value['thumbnail']) : '';
+        // Strict validation: ensure thumbnail is not empty, not just '/', and has a valid filename
+        if(empty($thumb_val) || $thumb_val == '' || $thumb_val == '/' || !preg_match('/\.(jpg|jpeg|png|gif|webp|svg)$/i', $thumb_val)) {
+          $final_url = base_url('assets/img/icon/rocket.png');
+        } else {
+          $final_url = base_url("upload/ecommerce/".$thumb_val);
+        }
         $active_class2 = ($value['id']==$url_cat) ? 'border border-primary bg-white' : 'border bg-white';
-        echo '<div class="slide text-center"><a class="pointer cat_nav nav-link '.$active_class2.'" href="" data-val="'.$value['id'].'"><img class="rounded-circle mx-auto d-block" style="width:40px;height:40px;" src="'.$url.'">'.$value["category_name"].'</a></div>';
+        echo '<div class="slide text-center"><a class="pointer cat_nav nav-link '.$active_class2.'" href="" data-val="'.$value['id'].'"><img class="rounded-circle mx-auto d-block" style="width:40px;height:40px;" src="'.htmlspecialchars($final_url).'" onerror="this.src=\''.base_url('assets/img/icon/rocket.png').'\'">'.$value["category_name"].'</a></div>';
       } ?>
       
     </div>
@@ -91,7 +108,7 @@
     }?>
     <div class="row" id="product-container" style="margin-left: -3px;margin-right: -3px;">
 
-      <?php if($this->is_ecommerce_related_product_exist) : ?>
+      <?php if(isset($is_ecommerce_related_product_exist) && $is_ecommerce_related_product_exist) : ?>
         <?php if(!empty($featured_product_lists)) : ?>
         <div class="col-12 p-0">
           <div class="section-title mt-3 mb-1"><?php echo lang('Featured Products') ?></div>
@@ -100,9 +117,16 @@
           <div class="owl-carousel owl-theme" id="featured-products-carousel">
             <?php foreach($featured_product_lists as $featured) : ?>
               <?php 
-                  $imgSrcs = ($featured['thumbnail']!='') ? base_url('upload/ecommerce/'.$featured['thumbnail']) : base_url('assets/img/products/product-1.jpg');
-                   if(isset($featured["woocommerce_product_id"]) && !is_null($featured["woocommerce_product_id"]) && $featured['thumbnail']!='')
-                  $imgSrcs = $featured['thumbnail'];
+                  // CI4 fix: Strict empty check to prevent directory URL
+                  $imgSrcs = base_url('assets/img/products/product-1.jpg'); // Default fallback
+                  $thumb_val = isset($featured['thumbnail']) ? trim($featured['thumbnail']) : '';
+                  if(isset($featured["woocommerce_product_id"]) && !is_null($featured["woocommerce_product_id"]) && !empty($thumb_val) && $thumb_val != '' && $thumb_val != '/') {
+                    // WooCommerce product - use external URL directly
+                    $imgSrcs = $thumb_val;
+                  } elseif(!empty($thumb_val) && $thumb_val != '' && $thumb_val != '/' && preg_match('/\.(jpg|jpeg|png|gif|webp|svg)$/i', $thumb_val)) {
+                    // Regular product - use local upload path (ensure thumbnail has valid extension)
+                    $imgSrcs = base_url('upload/ecommerce/'.$thumb_val);
+                  }
 
                   $product_url = base_url("ecommerce/product/".$featured['id']);
                   $product_url = mec_add_get_param($product_url,array("subscriber_id"=>$subscriber_id,"pickup"=>$pickup));
@@ -113,7 +137,11 @@
               <article class="article article-style-c mb-1 mt-1" data-cat="<?php echo $featured['category_id'];?>">
                 <div class="article-header">
                   <a href="<?php echo $product_url; ?>">
-                    <div class="article-image" data-background="<?php echo $imgSrcs;?> " style="background-image: url('<?php echo $imgSrcs;?>');"></div>
+                    <?php 
+                    // CI4 fix: Final validation - use validated imgSrcs directly
+                    $final_imgSrcs = $imgSrcs;
+                    ?>
+                    <div class="article-image" data-background="<?php echo htmlspecialchars($final_imgSrcs);?>" style="background-image: url('<?php echo htmlspecialchars($final_imgSrcs);?>');"></div>
                   </a>
                   <?php echo $display_featured_product_discount; ?>
 
@@ -136,6 +164,14 @@
 
 
       <?php
+      // CI4 fix: Debug - check if product_list_grouped_ordered is empty
+      if(empty($product_list_grouped_ordered)) {
+        // If empty, try to use product_list directly
+        if(!empty($product_list) && is_array($product_list)) {
+          $product_list_grouped_ordered['none'] = $product_list;
+        }
+      }
+      
       foreach($product_list_grouped_ordered as $key_main => $value_main) :   
        if($is_category_wise_product_view=='1')
        {
@@ -143,6 +179,8 @@
           echo '<div class="col-12"><div class="section-title mt-3 mb-1">'.$echo_cat.'</div></div>'; 
        }
        
+       // CI4 fix: Ensure value_main is an array and not empty
+       if(!empty($value_main) && is_array($value_main)) {
        foreach ($value_main as $key => $value) :         
           $product_link = base_url("ecommerce/product/".$value['id']);
           $product_link = mec_add_get_param($product_link,array("subscriber_id"=>$subscriber_id,"pickup"=>$pickup));
@@ -159,16 +197,23 @@
             $preperationtime = $value["preparation_time_unit"]!="" ? $preparation_time."".$preparation_time_unit : "";
           }
 
-          $imgSrc = ($value['thumbnail']!='') ? base_url('upload/ecommerce/'.$value['thumbnail']) : base_url('assets/img/products/product-1.jpg');
-           if(isset($value["woocommerce_product_id"]) && !is_null($value["woocommerce_product_id"]) && $value['thumbnail']!='')
-          $imgSrc = $value['thumbnail'];
+          // CI4 fix: Strict empty check to prevent directory URL
+          $imgSrc = base_url('assets/img/products/product-1.jpg'); // Default fallback
+          $thumb_val = isset($value['thumbnail']) ? trim($value['thumbnail']) : '';
+          if(isset($value["woocommerce_product_id"]) && !is_null($value["woocommerce_product_id"]) && !empty($thumb_val) && $thumb_val != '' && $thumb_val != '/') {
+            // WooCommerce product - use external URL directly
+            $imgSrc = $thumb_val;
+          } elseif(!empty($thumb_val) && $thumb_val != '' && $thumb_val != '/' && preg_match('/\.(jpg|jpeg|png|gif|webp|svg)$/i', $thumb_val)) {
+            // Regular product - use local upload path (ensure thumbnail has valid extension)
+            $imgSrc = base_url('upload/ecommerce/'.$thumb_val);
+          }
 
           $display_price = mec_display_price($value['original_price'],$value['sell_price'],$currency_icon,'1',$currency_position,$decimal_point,$thousand_comma);
           $display_discount = mec_display_price($value['original_price'],$value['sell_price'],$currency_icon,'4',$currency_position,$decimal_point,$thousand_comma);
 
           $display_review = "";
           $rating = "";
-          if($this->ecommerce_review_comment_exist && isset($review_data[$value['id']])) : 
+          if(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist && isset($review_data[$value['id']])) : 
             $float_review = 'float-right';
             $rating = mec_average_rating($review_data[$value['id']]['total_point'],$review_data[$value['id']]['total_review']);
             $review_star = mec_display_rating_starts($rating,'text-small');
@@ -216,7 +261,11 @@
             <div class="col-12 col-sm-12 col-md-6 col-lg-4 product-single pl-1 pr-1" data-cat="<?php echo $value['category_id'];?>">
               <ul class="list-unstyled list-unstyled-border bg-white mb-2 mt-1 rounded bordered">
                   <li class="media align-items-center">                 
-                     <a href="<?php echo $product_link;?>"><img width="110" height="110" class="mr-2 rounded-left bordered-right" src="<?php echo $imgSrc; ?>"/>
+                     <?php 
+                     // CI4 fix: Final validation - use validated imgSrc directly
+                     $final_imgSrc_list = $imgSrc;
+                     ?>
+                     <a href="<?php echo $product_link;?>"><img width="110" height="110" class="mr-2 rounded-left bordered-right" src="<?php echo htmlspecialchars($final_imgSrc_list); ?>" onerror="this.src='<?php echo base_url('assets/img/products/product-1.jpg'); ?>'"/>
                      </a>
                     <?php echo $display_discount; ?>
 
@@ -254,7 +303,11 @@
               <article class="article article-style-c mb-1 mt-1">
                 <div class="article-header">
                    <a href="<?php echo $product_link;?>">
-                    <div class="article-image" data-background="<?php echo $imgSrc;?> " style="background-image: url('<?php echo $imgSrc;?>');"></div>
+                    <?php 
+                    // CI4 fix: Final validation - use validated imgSrc directly
+                    $final_imgSrc = $imgSrc;
+                    ?>
+                    <div class="article-image" data-background="<?php echo htmlspecialchars($final_imgSrc);?>" style="background-image: url('<?php echo htmlspecialchars($final_imgSrc);?>');"></div>
                    </a>
                    <?php echo $display_discount; ?>
                    <?php  if($show_preperation_time): ?>
@@ -287,6 +340,7 @@
           ?>
        <?php
        endforeach;
+       } // End CI4 fix: is_array check
       endforeach; ?>       
     </div>
 
@@ -333,6 +387,15 @@
     });
 
 
+    // CI4 fix: Validate all data-background URLs before owl-carousel initialization
+    $('#featured-products-carousel [data-background*="upload/ecommerce"]').each(function() {
+      var bg = $(this).attr('data-background');
+      if(bg && (bg.endsWith('upload/ecommerce/') || bg.endsWith('upload/ecommerce'))) {
+        $(this).attr('data-background', '<?php echo base_url('assets/img/products/product-1.jpg'); ?>');
+        $(this).css('background-image', 'url(<?php echo base_url('assets/img/products/product-1.jpg'); ?>)');
+      }
+    });
+    
     $("#featured-products-carousel").owlCarousel({
       items: 3,
       rtl : is_rtl,
@@ -443,10 +506,9 @@
   </style>
 
 
-<?php include(APPPATH."views/ecommerce/cart_js.php"); ?>
-<?php include(APPPATH."views/ecommerce/cart_style.php"); ?>
-<?php include(APPPATH."views/ecommerce/common_style.php"); ?>
-
+<?php include(APPPATH."Views/ecommerce/cart_js.php"); ?>
+<?php include(APPPATH."Views/ecommerce/cart_style.php"); ?>
+<?php include(APPPATH."Views/ecommerce/common_style.php"); ?>
 
 <div class="modal fade" id="add_to_cart_modal_view" tabindex="-1" role="dialog" aria-labelledby="add_to_cart_modal_viewLabel" aria-hidden="true" style="height: calc(100% - 79px) !important;" data-backdrop="false">
   <div class="modal-dialog" role="document">

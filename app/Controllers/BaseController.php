@@ -249,7 +249,14 @@ abstract class BaseController extends Controller
             }
             
             public function view($view, $data = [], $return = false) {
-                return view($view, $data);
+                // CI3 -> CI4 compatibility: $this->load->view() echoes by default in CI3
+                // In CI4, view() returns the output, so we need to echo it unless $return is true
+                $output = view($view, $data);
+                if ($return === false) {
+                    echo $output;
+                    return;
+                }
+                return $output;
             }
             
             public function database() {
@@ -303,20 +310,30 @@ abstract class BaseController extends Controller
         };
         
         // Form validation compatibility for CI3 -> CI4 migration
-        $this->form_validation = new class() {
+        $controller = $this; // Store controller reference for callbacks
+        $this->form_validation = new class($controller) {
             private $validation;
             private $rules = [];
+            private $controller;
+            private $messages = [];
             
-            public function __construct() {
+            public function __construct($controller) {
                 $this->validation = \Config\Services::validation();
+                $this->controller = $controller;
             }
             
             public function set_rules($field, $label = '', $rules = '') {
-                // Store rules for later use
+                // Store rules for later processing
                 $this->rules[$field] = [
                     'label' => $label,
                     'rules' => $rules
                 ];
+                return $this;
+            }
+            
+            public function set_message($rule, $message) {
+                // Store custom error messages for callback rules
+                $this->messages[$rule] = $message;
                 return $this;
             }
             
@@ -332,8 +349,44 @@ abstract class BaseController extends Controller
                     }
                 }
                 
+                // Process rules to handle callbacks - convert callback_ rules to closures
+                $ci4Rules = [];
+                foreach ($this->rules as $field => $ruleConfig) {
+                    $rulesStr = $ruleConfig['rules'];
+                    $rulesArray = explode('|', $rulesStr);
+                    $processedRules = [];
+                    
+                    foreach ($rulesArray as $rule) {
+                        $rule = trim($rule);
+                        if (strpos($rule, 'callback_') === 0) {
+                            // CI4 fix: Convert callback_ rule to closure
+                            $callbackMethod = str_replace('callback_', '', $rule);
+                            $errorMessage = isset($this->messages[$callbackMethod]) ? $this->messages[$callbackMethod] : 'Validation failed';
+                            
+                            $processedRules[] = function($value, $data, $error, $field) use ($callbackMethod, $errorMessage) {
+                                // Call the controller's callback method
+                                if (method_exists($this->controller, $callbackMethod)) {
+                                    $result = $this->controller->$callbackMethod();
+                                    if ($result === false) {
+                                        return $errorMessage;
+                                    }
+                                    return true;
+                                }
+                                return 'Callback method not found';
+                            };
+                        } else {
+                            $processedRules[] = $rule;
+                        }
+                    }
+                    
+                    $ci4Rules[$field] = [
+                        'label' => $ruleConfig['label'],
+                        'rules' => $processedRules
+                    ];
+                }
+                
                 // Set rules
-                $this->validation->setRules($this->rules);
+                $this->validation->setRules($ci4Rules);
                 
                 // Run validation
                 return $this->validation->run($data, $group);
@@ -378,6 +431,34 @@ abstract class BaseController extends Controller
             
             public function is_ajax_request() {
                 return $this->request->isAJAX();
+            }
+        };
+        
+        // Security compatibility for CI3 -> CI4 migration
+        // Load html helper for esc() function
+        helper('html');
+        $this->security = new class() {
+            /**
+             * XSS Clean - CI3 compatibility method
+             * In CI4, we use esc() helper or htmlspecialchars for escaping
+             * This method provides backward compatibility
+             */
+            public function xss_clean($str) {
+                if (is_array($str)) {
+                    return array_map([$this, 'xss_clean'], $str);
+                }
+                
+                if ($str === null || $str === '') {
+                    return $str;
+                }
+                
+                // Use CI4's esc() helper for XSS protection if available
+                // Otherwise fall back to htmlspecialchars
+                if (function_exists('esc')) {
+                    return esc($str, 'html');
+                } else {
+                    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+                }
             }
         };
         

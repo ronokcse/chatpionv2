@@ -5,7 +5,7 @@ $currency = isset($ecommerce_config['currency']) ? $ecommerce_config['currency']
 $currency_icon = isset($currency_icons[$currency]) ? $currency_icons[$currency] : "$";
 
 $form_action = base_url('ecommerce/store/'.$store_data['store_unique_id']);
-$subscriber_id=$this->session->userdata($store_id."ecom_session_subscriber_id");
+$subscriber_id=session()->get($store_id."ecom_session_subscriber_id");
 if($subscriber_id=="")$subscriber_id = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
 $form_action = mec_add_get_param($form_action,array("subscriber_id"=>$subscriber_id,"pickup"=>$pickup));
 ?>

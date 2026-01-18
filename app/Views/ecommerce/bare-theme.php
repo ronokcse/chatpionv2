@@ -37,7 +37,7 @@
         $is_guest_login = isset($ecommerce_config['is_guest_login']) ? $ecommerce_config['is_guest_login'] : "0";
         $font = isset($ecommerce_config['font']) ? $ecommerce_config['font'] : '"Trebuchet MS",Arial,sans-serif';
         if($font=='') $font = '"Trebuchet MS",Arial,sans-serif';
-		include("application/views/admin/theme/style_theme.php");
+		include(APPPATH . "Views/admin/theme/style_theme.php");
 		?>
 		<style type="text/css">
 			a.bg-primary:focus, a.bg-primary:hover, button.bg-primary:focus, button.bg-primary:hover{background-color: #000!important;}
@@ -191,7 +191,7 @@
     $js_store_unique_id = isset($social_analytics_codes['store_unique_id']) ? $social_analytics_codes['store_unique_id'] : "";
     $js_store_id = isset($social_analytics_codes['store_id']) ? $social_analytics_codes['store_id'] : $social_analytics_codes['id'];
     $js_user_id = isset($social_analytics_codes['user_id']) ? $social_analytics_codes['user_id'] : $social_analytics_codes['user_id'];  
-    $subscriberId=$this->session->userdata($js_store_id."ecom_session_subscriber_id");
+    $subscriberId=session()->get($js_store_id."ecom_session_subscriber_id");
 	if($subscriberId=="")  $subscriberId = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
 	if($subscriberId=='') $subscriberId = ($uri ?? service('uri'))->getSegment(4) ?? '';
 	$currentCart = isset($current_cart)?$current_cart:array();    
@@ -202,7 +202,8 @@
    	{
    		$store_link = base_url("ecommerce/store/".$social_analytics_codes['store_unique_id']);
    		if($subscriberId!='') $store_link.='?subscriber_id='.$subscriberId;
-   		$store_name_logo = ($social_analytics_codes['store_favicon']!='') ? '<img alt="'.$social_analytics_codes['store_name'].'" class="rounded-circle" style="width:40px;height:40px;" src="'.base_url("upload/ecommerce/".$social_analytics_codes['store_favicon']).'">' : '';
+   		// CI4 fix: Strict empty check to prevent directory URL
+   		$store_name_logo = (!empty($social_analytics_codes['store_favicon']) && trim($social_analytics_codes['store_favicon']) != '') ? '<img alt="'.$social_analytics_codes['store_name'].'" class="rounded-circle" style="width:40px;height:40px;" src="'.base_url("upload/ecommerce/".$social_analytics_codes['store_favicon']).'">' : '';
    		$first_menu = !empty($store_name_logo) ? '<a class="mr-3" href="'.$store_link.'">'.$store_name_logo.'</a>' : '';
    	}
 
@@ -238,8 +239,13 @@
 	    <div class="main-wrapper h-100">
 			<div class="container" id="d-main-container">
 				<?php 
-					if(isset($body)) view($body);
-					else echo $output;
+					if(isset($body)) {
+						// CI4 fix: Use view() helper to render the body view
+						$body_output = view($body);
+						echo $body_output;
+					} else {
+						echo isset($output) ? $output : '';
+					}
 				?>
 			</div>
 			<?php if(isset($social_analytics_codes)) echo mec_sidebar($social_analytics_codes,$subscriberId,$currentCart); ?>

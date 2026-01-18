@@ -1,7 +1,7 @@
   <?php
   $pickup = isset($_GET['pickup']) ? $_GET['pickup'] : '';
   $product_data = $review_data[0];
-  $subscriber_id=$this->session->userdata($product_data['store_id']."ecom_session_subscriber_id");
+  $subscriber_id=session()->get($product_data['store_id']."ecom_session_subscriber_id");
   if($subscriber_id=="")  $subscriber_id = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
 
   $product_link = base_url("ecommerce/product/".$product_data['id']); 
@@ -19,10 +19,10 @@
     <div class="col-12 always_padded">     
 
       <?php 
-      if($this->ecommerce_review_comment_exist):      
+      if(isset($ecommerce_review_comment_exist) && $ecommerce_review_comment_exist):      
         $js_store_id = isset($social_analytics_codes['store_id']) ? $social_analytics_codes['store_id'] : $social_analytics_codes['id'];
         $js_user_id = isset($social_analytics_codes['user_id']) ? $social_analytics_codes['user_id'] : $social_analytics_codes['user_id'];  
-        $subscriberId=$this->session->userdata($js_store_id."ecom_session_subscriber_id");
+        $subscriberId=session()->get($js_store_id."ecom_session_subscriber_id");
         if($subscriberId=="")  $subscriberId = isset($_GET['subscriber_id']) ? $_GET['subscriber_id'] : "";
         if($subscriberId=='') $subscriberId = ($uri ?? service('uri'))->getSegment(4) ?? '';
         ?>

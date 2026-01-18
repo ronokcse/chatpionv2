@@ -8,6 +8,6 @@ use CodeIgniter\Router\RouteCollection;
 // Default Controller
 
 // 404 Override
-$routes->set404Override('Home::error_404');
+$routes->set404Override('App\Controllers\Home::error_404');
 
 

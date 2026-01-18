@@ -21,7 +21,8 @@ Options -Indexes
 	RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
 	RewriteRule ^ http://%1%{REQUEST_URI} [R=301,L]
 
-	# Exclude static file extensions from rewrite
+	# Exclude static file extensions from rewrite (only if file exists)
+	RewriteCond %{REQUEST_FILENAME} -f
 	RewriteCond %{REQUEST_FILENAME} \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|pdf|zip|mp3|mp4)$ [NC]
 	RewriteRule .* - [L]
 	

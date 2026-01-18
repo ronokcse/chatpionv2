@@ -78,7 +78,7 @@
               </div>
             </div>
 
-            <?php if($this->is_ecommerce_related_product_addon_exist) : ?>
+            <?php if(isset($is_ecommerce_related_product_addon_exist) && $is_ecommerce_related_product_addon_exist) : ?>
               <div class="row">
                 <div class="col-12 col-md-4">
                   <?php 

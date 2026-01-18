@@ -147,7 +147,7 @@
 							           	 	foreach ($notification_list as $key => $value) 
 							             	{ $i++;?>
 							                   <div class="reminder_badge_warpper tab-pane fade <?php if($i==1) echo 'active show';?> " style="border:none;padding: 0" id="email_reminder<?php echo $i;?>" role="tabpanel" aria-labelledby="email_reminder_link>">
-							                       <span class="reminder_badge" data-toggle="tooltip" title="<?php echo lang('Status')." : ".$this->lang->line($value); ?>"><i class="fas fa-bell"></i> <?php echo $i;?></span>
+							                       <span class="reminder_badge" data-toggle="tooltip" title="<?php echo lang('Status')." : ".lang($value); ?>"><i class="fas fa-bell"></i> <?php echo $i;?></span>
 							                       <textarea class="visual_editor" data-toggle="tooltip" title="<?php echo lang('Email content goes here.');?>" name="email_text[]" id="email_text<?php echo $i;?>"><?php echo isset($notification_message['email'][$value]) ? $notification_message['email'][$value] : $notification_default['email']; ?></textarea>							                       	
 							                   </div>
 							               	 <?php 

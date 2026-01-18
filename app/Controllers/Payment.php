@@ -484,7 +484,7 @@ class Payment extends Home
             exit();
         }
 
-        $upload_dir = APPPATH . '../upload/manual_payment';
+        $upload_dir = FCPATH . 'upload/manual_payment';
 
         // Makes upload directory
         if( ! file_exists($upload_dir)) {
@@ -547,7 +547,7 @@ class Payment extends Home
         }
 
         // Upload dir path
-        $upload_dir = APPPATH . '../upload/manual_payment';
+        $upload_dir = FCPATH . 'upload/manual_payment';
 
         // Grabs filename
         $filename = (string) $this->input->post('filename');
@@ -653,7 +653,7 @@ class Payment extends Home
                 $update_data['filename'] = $filename;
 
                 // Upload dir path
-                $upload_dir = APPPATH . '../upload/manual_payment';
+                $upload_dir = FCPATH . 'upload/manual_payment';
 
                 // Prepares file path
                 $filepath = $upload_dir . DIRECTORY_SEPARATOR . $mp_resubmitted_data['filename'];
@@ -1038,7 +1038,7 @@ class Payment extends Home
                 $message = $this->lang->line('No file to download.');
                 echo json_encode(['msg' => $message]);
             } else {
-                $file = APPPATH . '../upload/manual_payment/' . $filename;
+                $file = FCPATH . 'upload/manual_payment/' . $filename;
 
                 header('Expires: 0');
                 header('Pragma: public');
