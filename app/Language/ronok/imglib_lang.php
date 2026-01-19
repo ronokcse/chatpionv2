@@ -1,0 +1,21 @@
+<?php
+$lang = array(
+    "imglib_source_image_required" => "",
+    "imglib_gd_required" => "",
+    "imglib_gd_required_for_props" => "",
+    "imglib_unsupported_imagecreate" => "",
+    "imglib_gif_not_supported" => "",
+    "imglib_jpg_not_supported" => "",
+    "imglib_png_not_supported" => "",
+    "imglib_jpg_or_png_required" => "",
+    "imglib_copy_error" => "",
+    "imglib_rotate_unsupported" => "",
+    "imglib_libpath_invalid" => "",
+    "imglib_image_process_failed" => "",
+    "imglib_rotation_angle_required" => "",
+    "imglib_writing_failed_gif" => "",
+    "imglib_invalid_path" => "",
+    "imglib_copy_failed" => "",
+    "imglib_missing_font" => "",
+    "imglib_save_failed" => "",
+);

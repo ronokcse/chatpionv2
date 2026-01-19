@@ -1,0 +1,21 @@
+<?php
+$lang = array(
+    "connect accounts" => "",
+    "comment manager" => "",
+    "team member" => "",
+    "team members" => "",
+    "mine" => "",
+    "unread" => "",
+    "archived" => "",
+    "unarchived" => "",
+    "No data available to show" => "",
+    "type a message..." => "",
+    "Rcn post-back manager" => "",
+    "Postback Manager" => "",
+    "all post list" => "",
+    "reports" => "",
+    "Recurring notification broadcast" => "",
+    "Recurring notification request follow-up message broadcasting." => "",
+    "Assigned agent" => "",
+    "mark as" => "",
+);

@@ -152,7 +152,8 @@
 
 <?php 
 $giveAname = lang('Please put a language name & save it first.');
-$editable_language = $this->uri->segment(3);
+// CI4 compatibility: Use $uri from data array instead of $this->uri
+$editable_language = isset($uri) ? $uri->segment(3) : (isset($controller->uri) ? $controller->uri->segment(3) : null);
 ?>
 
 <script>
@@ -371,7 +372,7 @@ $editable_language = $this->uri->segment(3);
 				<div class="row">
 				    <div class="col-12 col-md-6">
 				        <div class="form-group">
-				            <input type="text" name="search_update_index" id="search_update_index" class="form-control" style="width:50%;" placeholder="<?php echolang('search...');?>" onkeyup="search_in_td(this,'update_language_form_table')">
+				            <input type="text" name="search_update_index" id="search_update_index" class="form-control" style="width:50%;" placeholder="<?php echo lang('search...');?>" onkeyup="search_in_td(this,'update_language_form_table')">
 				        </div>
 				    </div>
 				</div>

@@ -1,0 +1,23 @@
+<?php
+$lang = array(
+    "profiler_database" => "",
+    "profiler_controller_info" => "",
+    "profiler_benchmarks" => "",
+    "profiler_queries" => "",
+    "profiler_get_data" => "",
+    "profiler_post_data" => "",
+    "profiler_uri_string" => "",
+    "profiler_memory_usage" => "",
+    "profiler_config" => "",
+    "profiler_session_data" => "",
+    "profiler_headers" => "",
+    "profiler_no_db" => "",
+    "profiler_no_queries" => "",
+    "profiler_no_post" => "",
+    "profiler_no_get" => "",
+    "profiler_no_uri" => "",
+    "profiler_no_memory" => "",
+    "profiler_no_profiles" => "",
+    "profiler_section_hide" => "",
+    "profiler_section_show" => "",
+);

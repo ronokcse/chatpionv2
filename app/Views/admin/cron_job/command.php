@@ -7,7 +7,7 @@
     </div>
   </div>
 
-  <?php view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="section-body">
   	<div class="row">
@@ -21,7 +21,7 @@
           </div>
         </div>
   
-        <?php if($this->basic->is_exist("add_ons",array("project_id"=>30)) || $this->basic->is_exist("add_ons",array("project_id"=>40))) :?>
+        <?php if($is_broadcaster_exist) :?>
         <div class="card">
           <div class="card-header">
             <h4><i class="fas fa-circle"></i> 
@@ -54,7 +54,7 @@
             <h4>
               <i class="fas fa-circle"></i> 
               <?php echo lang('Auto Comment');?>
-              <?php if($this->basic->is_exist("add_ons",array("project_id"=>29))) : ?>
+              <?php if($is_connectivity_exist) : ?>
                 <?php echo ' & '.lang('Auto Share');?>
                 <?php echo " & ".lang('Cart Reminder'); ?>
 

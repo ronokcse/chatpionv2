@@ -65,7 +65,6 @@
 							<div class="card">
 			                  <div class="card-header langFile">
 			                    <i class="fa fa-tags"></i> &nbsp;<?php echo str_replace(array('.php','_','lang'), ' ', $addon); ?>
-								<i id="<?php echo str_replace(".php",'',$value); ?>" style="color:#13d408;display: none;" class="fa fa-check-circle"></i>
 								&nbsp;<i id="<?php echo str_replace(array('.php','_','lang'), array('','',''), $addon); ?>" style="color:#13d408; display: none;" class="fa fa-check-circle"></i>
 			                  </div>
 			                </div>
@@ -286,7 +285,7 @@
 				<div class="row">
 				    <div class="col-12 col-md-6">
 				        <div class="form-group">
-				            <input type="text" name="search_index" id="search_index" class="form-control" style="width:50%;" placeholder="<?php echolang('search...');?>" onkeyup="search_in_td(this,'add_language_form_table')">
+				            <input type="text" name="search_index" id="search_index" class="form-control" style="width:50%;" placeholder="<?php echo lang('search...');?>" onkeyup="search_in_td(this,'add_language_form_table')">
 				        </div>
 				    </div>
 				</div>

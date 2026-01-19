@@ -1,0 +1,22 @@
+<?php
+$lang = array(
+    "ut_test_name" => "",
+    "ut_test_datatype" => "",
+    "ut_res_datatype" => "",
+    "ut_result" => "",
+    "ut_undefined" => "",
+    "ut_file" => "",
+    "ut_line" => "",
+    "ut_passed" => "",
+    "ut_failed" => "",
+    "ut_boolean" => "",
+    "ut_integer" => "",
+    "ut_float" => "",
+    "ut_double" => "",
+    "ut_string" => "",
+    "ut_array" => "",
+    "ut_object" => "",
+    "ut_resource" => "",
+    "ut_null" => "",
+    "ut_notes" => "",
+);

@@ -71,6 +71,8 @@ class Cron_job extends Home
 
         $data['body'] = "admin/cron_job/command";
         $data['page_title'] = lang("Cron Job");
+        $data['is_broadcaster_exist'] = $this->basic->is_exist("add_ons",array("project_id"=>30)) || $this->basic->is_exist("add_ons",array("project_id"=>40));
+        $data['is_connectivity_exist'] = $this->basic->is_exist("add_ons",array("project_id"=>29));
         return $this->_viewcontroller($data);
     }
 

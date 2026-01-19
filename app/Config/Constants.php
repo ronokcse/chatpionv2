@@ -17,6 +17,31 @@ defined('APP_NAMESPACE') || define('APP_NAMESPACE', 'App');
 
 /*
  | --------------------------------------------------------------------------
+ | BASEPATH (CI3 Compatibility)
+ | --------------------------------------------------------------------------
+ |
+ | CodeIgniter 3 compatibility constant. In CI3, BASEPATH pointed to the
+ | system directory. In CI4, we define it for backward compatibility with
+ | legacy code that checks for BASEPATH to prevent direct script access.
+ */
+if (!defined('BASEPATH')) {
+    // Use SYSTEMPATH if available (defined by CI4 framework), otherwise use relative path
+    if (defined('SYSTEMPATH')) {
+        define('BASEPATH', SYSTEMPATH);
+    } else {
+        // Fallback: define relative to Config directory (where this file is located)
+        $systemPath = realpath(__DIR__ . '/../../vendor/codeigniter4/framework/system');
+        if ($systemPath !== false) {
+            define('BASEPATH', $systemPath . DIRECTORY_SEPARATOR);
+        } else {
+            // Last resort: use expected path even if realpath fails
+            define('BASEPATH', __DIR__ . '/../../vendor/codeigniter4/framework/system' . DIRECTORY_SEPARATOR);
+        }
+    }
+}
+
+/*
+ | --------------------------------------------------------------------------
  | Composer Path
  | --------------------------------------------------------------------------
  |

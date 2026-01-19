@@ -1,35 +1,45 @@
 <?php 
 
-require_once("Home.php"); // loading home controller
+namespace App\Controllers;
+
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Multi_language extends Home
 {
 
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
+        parent::initController($request, $response, $logger);
 
-        parent::__construct();
-        if ($this->session->userdata('logged_in') != 1)
-        redirect('home/login_page', 'location');
+        if ($this->session->userdata('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
         // team user can not access
-        if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        if($this->is_manager==1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
-        if($this->session->userdata('user_type') != 'Admin')
-        redirect('home/login_page', 'location');
+        if($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
         if($this->is_demo == '1')
         {
-            if($this->uri->segment(2)!="index")
-             if($this->is_demo == '1')
-              {
+            if($this->uri->segment(2)!="index") {
                  $response['status'] = 0;
                  $response['message'] = "This feature has been disbaled in this demo.";
                  echo json_encode($response);
                  exit();
-              }
-      
+            }
         }
 
         set_time_limit(0);
@@ -42,7 +52,7 @@ class Multi_language extends Home
     {
         // Root application language
         $language_list = array();
-        $dir           = FCPATH.'application/language/';
+        $dir           = APPPATH.'Language/';
         $fileList      = scandir($dir, 0);
         $fileCount     = count($fileList);
         $single_file   = array();
@@ -66,7 +76,7 @@ class Multi_language extends Home
         $data['plugins_files'] = $plugin_files;
 
         // Addon Language
-        $addon_directory = FCPATH."application/modules/";
+        $addon_directory = APPPATH . 'modules/';
         $scan_directory  = array_diff(scandir($addon_directory),array('.','..'));
 
         $addon_folder_scanner = array();
@@ -86,7 +96,7 @@ class Multi_language extends Home
 
         $data['addons']     = $addon_folder_scanner;
         $data['body']       = 'admin/multi_language/language_list';
-        $data['page_title'] =  $this->lang->line("Language Editor");
+        $data['page_title'] =  lang("Language Editor");
         $this->_viewcontroller($data);
 
     }
@@ -95,15 +105,16 @@ class Multi_language extends Home
     public function create_new_lang()
     {  
         // sending language directory name to view
-        $root_directory      = FCPATH."application/language/";
+        $root_directory      = APPPATH . 'Language/';
         $scan_root_directory = array_diff(scandir($root_directory),array('.','..'));
         $data['root_dir']    = $scan_root_directory;
 
         // Application Languages
-        $directory        = FCPATH."application/language/english";
+        $directory        = APPPATH . 'Language/english';
         $file_lists       = scandir($directory,0);
         $total_file       = count($file_lists);
         $language_Files   = array();
+        $data['file_name'] = array(); // Initialize to prevent undefined variable error
 
         for($i = 2; $i< $total_file; $i++) 
         {
@@ -113,7 +124,7 @@ class Multi_language extends Home
         for ($i = 0; $i < count($language_Files); $i++) 
         {
             $file_name = $language_Files[$i];
-            include FCPATH."application/language/english/".$file_name;
+            include APPPATH . 'Language/english/'.$file_name;
             $data['file_name'][$i] = $file_name;
         }
 
@@ -147,7 +158,7 @@ class Multi_language extends Home
 
 
         // Addon Language
-        $addon_directory = FCPATH."application/modules/";
+        $addon_directory = APPPATH . 'modules/';
         $scan_directory  = scandir($addon_directory,0);
         $addon_files     = array();
 
@@ -159,7 +170,7 @@ class Multi_language extends Home
         $addon_lang_folder = array();
         for ($i = 0; $i < count($addon_files); $i++) 
         {
-            $module_directory = FCPATH."application/modules/".$addon_files[$i]."/language";
+            $module_directory = APPPATH . 'modules/'.$addon_files[$i]."/language";
             if(file_exists($module_directory))
             {
                 $scan_module_directories = array_diff(scandir($module_directory),array('.','..'));
@@ -180,10 +191,10 @@ class Multi_language extends Home
             $addon_lang_file_dir_scan[] = scandir($addon_lang_file_dir,1);
             array_push($addon_dir_arr,$addon_lang_file_dir_scan[$i][0]);
         }
-        $data['addons'] = $addon_dir_arr;
+        $data['addons'] = $addon_dir_arr; // Initialize to prevent undefined variable error
 
         $data['body']      = 'admin/multi_language/add_language';
-        $data['page_title']     = $this->lang->line("New Language");
+        $data['page_title']     = lang("New Language");
         $this->_viewcontroller($data);
     }
 
@@ -262,9 +273,9 @@ class Multi_language extends Home
             }
 
             // creating language folder into main application language folder
-            $add_file_dir      = FCPATH."application/language/english";
+            $add_file_dir      = APPPATH . 'Language/english';
             $scan_add_file_dir = array_diff(scandir($add_file_dir),array('.','..'));
-            $new_dir           = FCPATH."application/language/".$name;
+            $new_dir           = APPPATH . 'Language/'.$name;
             $main_languages = '';
             
             // making new language directory with all files from english folder
@@ -307,7 +318,7 @@ class Multi_language extends Home
 
 
             // // addon directory
-            // $addon_dir         = FCPATH."application/modules/";
+            // $addon_dir         = APPPATH . 'modules/';
             // $scan_addon_dir    = array_diff(scandir($addon_dir),array('.','..'));
 
             // // creating addon language folder name with language file name and contents
@@ -390,8 +401,8 @@ class Multi_language extends Home
                                     <table class="table table-condensed" id="add_language_form_table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">'.$this->lang->line("Index (English)").'</th>
-                                                <th class="text-center">'.$this->lang->line("Translation").'</th>
+                                                <th class="text-center">'.lang("Index (English)").'</th>
+                                                <th class="text-center">'.lang("Translation").'</th>
                                             </tr>
                                         </thead>
                                         <tbody>';
@@ -413,7 +424,7 @@ class Multi_language extends Home
             $language_name = $finalType[1];
 
             // search if the folder exists
-            $search_dir = FCPATH."application/language/".$languagename;
+            $search_dir = APPPATH . 'Language/'.$languagename;
 
             if(!file_exists($search_dir))
             {
@@ -436,11 +447,11 @@ class Multi_language extends Home
                     }
                     else 
                     {
-                        $directory  = FCPATH."application/language/english/";
+                        $directory  = APPPATH . 'Language/english/';
                         $file_lists = scandir($directory,0);
                         $lang_file  = $file_lists[$language_name + 2];
 
-                        include FCPATH."application/language/english/".$lang_file;
+                        include APPPATH . 'Language/english/'.$lang_file;
                         $alldata = $lang;
                     } 
                 }
@@ -554,7 +565,7 @@ class Multi_language extends Home
         // {
         //     $language_name   = $finalType[1];
         //     $languagename    = trim($this->input->post("languageName"));
-        //     $addon_directory = FCPATH."application/modules/";
+        //     $addon_directory = APPPATH . 'modules/';
         //     $scan_directory  = array_diff(scandir($addon_directory),array('.','..'));
         //     $module_name     = $scan_directory[$language_name+2];
 
@@ -577,7 +588,7 @@ class Multi_language extends Home
 
         //         } else 
         //         {
-        //             $module_lang_file = FCPATH."application/modules/".$module_name."/language/english/";
+        //             $module_lang_file = APPPATH . 'modules/'.$module_name."/language/english/";
         //             $module_lang_dir = scandir($module_lang_file,1);
 
         //             include $module_lang_file.$module_lang_dir[0];
@@ -639,7 +650,7 @@ class Multi_language extends Home
                 $file_id = $lang_file[1];
 
                 // include the directory path and scan the direcotry
-                $dir      = FCPATH."application/language/english/";
+                $dir      = APPPATH . 'Language/english/';
                 $scan_dir = scandir($dir,0);
 
                 // getting file name to create the file name in new language
@@ -647,7 +658,7 @@ class Multi_language extends Home
                 $return['file_name'] = str_replace(".php",'',$file_name);
 
                 // getting folder path and create language folder
-                $folder_path = FCPATH."application/language/".$folder_name;
+                $folder_path = APPPATH . 'Language/'.$folder_name;
                 if(!file_exists($folder_path)) {
                     mkdir($folder_path, 0777, true);
                 }
@@ -675,7 +686,7 @@ class Multi_language extends Home
                 file_put_contents($file_path, $languages,LOCK_EX);
 
                 $return['status']  = 1;
-                $return['message'] = $this->lang->line("Your data has been successfully saved.");
+                $return['message'] = lang("Your data has been successfully saved.");
 
             }
             else if($lang_file[0] == "plugin") 
@@ -683,7 +694,7 @@ class Multi_language extends Home
                 $file_type = $lang_file[1];
 
                 // search the language folder is exists or not, if not then create.
-                $folder_dir = FCPATH."application/language/".$folder_name;
+                $folder_dir = APPPATH . 'Language/'.$folder_name;
                 if(!file_exists($folder_dir))
                 {
                     mkdir($folder_dir,0777,true);
@@ -752,14 +763,14 @@ class Multi_language extends Home
                 file_put_contents($file_path, $languages,LOCK_EX);
 
                 $return['status']   = 1;
-                $return['message']  = $this->lang->line("Your data has been successfully saved.");
+                $return['message']  = lang("Your data has been successfully saved.");
                 $return['file_name'] = "plugins1";
 
             }
             else if($lang_file[0] == "add-on") 
             {
                 $file_type      = $lang_file[1];
-                $dir            = FCPATH."application/modules/";
+                $dir            = APPPATH . 'modules/';
                 $addon_dir_scan = scandir($dir,0);
                 $addons_list    = array();
 
@@ -801,13 +812,13 @@ class Multi_language extends Home
                 file_put_contents($language_file_path, $languages,LOCK_EX);
 
                 $return['status']    = 1;
-                $return['message']   = $this->lang->line("Your data has been successfully saved.");
+                $return['message']   = lang("Your data has been successfully saved.");
                 $return['file_name'] = str_replace("_",'',$addons_list[$file_type]);
 
             } else 
             {
                 $return['status']  = 0;
-                $return['message'] = $this->lang->line("Something went wrong, please try again.");
+                $return['message'] = lang("Something went wrong, please try again.");
             }
 
             echo json_encode($return);
@@ -823,7 +834,7 @@ class Multi_language extends Home
 
         if($type == "main_app") 
         {
-            $dir          = FCPATH."application/language/".$language_name;
+            $dir          = APPPATH . 'Language/'.$language_name;
             $scan_dir     = scandir($dir,0);
             $folder_files = array();
 
@@ -840,7 +851,7 @@ class Multi_language extends Home
         
         } else if($type == 'addon')
         {
-            $module_dir      = FCPATH."application/modules/".$language_name."/language/";
+            $module_dir      = APPPATH . 'modules/'.$language_name."/language/";
             if(file_exists($module_dir))
             {
                 $scan_module_dir = scandir($module_dir,0);
@@ -860,7 +871,7 @@ class Multi_language extends Home
 
         $data['languagename'] = $language_name;
         $data['languageName'] = $type;
-        $data['page_title']   = $this->lang->line("Update Language");
+        $data['page_title']   = lang("Update Language");
         $data['body']         = 'admin/multi_language/update_language';
         $this->_viewcontroller($data);
     }
@@ -881,7 +892,7 @@ class Multi_language extends Home
             $pre_language = trim($this->input->post('pre_value',true));
             
             // checking if the language is alrady exist,return false 
-            $dir              = FCPATH."application/language/";
+            $dir              = APPPATH . 'Language/';
             $scan_dir         = array_diff(scandir($dir), array('.','..'));
             $search_existance = array_search($updated_language_name, $scan_dir);
 
@@ -907,7 +918,7 @@ class Multi_language extends Home
                     rename($plugin_dir,$updated_dir);
                 }
 
-                // $addon_dir      = FCPATH."application/modules/";
+                // $addon_dir      = APPPATH . 'modules/';
                 // $scan_addon_dir = array_diff(scandir($addon_dir), array('.','..'));
                 // foreach ($scan_addon_dir as $addon) 
                 // {
@@ -940,7 +951,7 @@ class Multi_language extends Home
     {
         $fType          = $this->input->post('fileType');
         $updated_or_not = trim($this->input->post("langname_existance",true));
-        $search_dir     = FCPATH."application/language/".$updated_or_not;
+        $search_dir     = APPPATH . 'Language/'.$updated_or_not;
         $finalType      = explode('_', $fType);
         $result = array();
 
@@ -961,8 +972,8 @@ class Multi_language extends Home
                                     <table class="table table-condensed" id="update_language_form_table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">'.$this->lang->line("Index (English)").'</th>
-                                                <th class="text-center">'.$this->lang->line("Translation").'</th>
+                                                <th class="text-center">'.lang("Index (English)").'</th>
+                                                <th class="text-center">'.lang("Translation").'</th>
                                             </tr>
                                         </thead>
                                         <tbody>';
@@ -988,7 +999,7 @@ class Multi_language extends Home
             {
                 $language_file_id = $finalType[1];
                 $folderName       = $this->input->post('languageName');
-                $directory        = FCPATH."application/language/".$folderName;
+                $directory        = APPPATH . 'Language/'.$folderName;
                 $file_lists       = scandir($directory,0);
                 $lang_file        = $file_lists[$language_file_id + 2];
 
@@ -1071,12 +1082,12 @@ class Multi_language extends Home
         {
             $language_file_id       = $finalType[1];
             $addonName              = $this->input->post('languageName');
-            $addon_directory        = FCPATH."application/modules/".$addonName."/language/";
+            $addon_directory        = APPPATH . 'modules/'.$addonName."/language/";
             if(file_exists($addon_directory))
             {
                 $scan_directory         = scandir($addon_directory,0);
                 $module_language_folder = $scan_directory[$language_file_id + 2];
-                $module_lang_file       = FCPATH."application/modules/".$addonName."/language/".$module_language_folder;
+                $module_lang_file       = APPPATH . 'modules/'.$addonName."/language/".$module_language_folder;
                 $module_lang_dir        = scandir($module_lang_file,0);
 
                 include $module_lang_file."/".$module_lang_dir[2];
@@ -1129,17 +1140,17 @@ class Multi_language extends Home
             {
                 $language_folder      = $clicked_type[1];
                 $language_folder_name = trim($this->input->post("language_folder_name",true));
-                $directory            = FCPATH."application/language/".$language_folder_name;
+                $directory            = APPPATH . 'Language/'.$language_folder_name;
                 $file_path            = $directory."/";
                 $scan_file_path       = scandir($file_path,0);
                 $updated_file_name    = $scan_file_path[$language_folder+2];
-                $file_path            = FCPATH."application/language/".$language_folder_name."/".$updated_file_name;
+                $file_path            = APPPATH . 'Language/'.$language_folder_name."/".$updated_file_name;
 
                 // file doesnot exist in the folder then return false
                 if(!file_exists($file_path)) 
                 {
                     $return['status']   = 0;
-                    $return['message']  = $this->lang->line("Something went wrong, please try again.");
+                    $return['message']  = lang("Something went wrong, please try again.");
                 } else
                 {
                     // creating array of language file
@@ -1158,7 +1169,7 @@ class Multi_language extends Home
                     file_put_contents($file_path,$languages,LOCK_EX);
 
                     $return['status']   = 1;
-                    $return['message']  = $this->lang->line("Your data has been updated successfully.");
+                    $return['message']  = lang("Your data has been updated successfully.");
                     $return['fileName'] = str_replace(".php","",$updated_file_name);
                 }
                 
@@ -1173,7 +1184,7 @@ class Multi_language extends Home
                 if(!file_exists($dir))
                 {
                     $return['status']   = 0;
-                    $return['message']  = $this->lang->line("Something went wrong, please try again.");
+                    $return['message']  = lang("Something went wrong, please try again.");
                 } else
                 {
 
@@ -1230,7 +1241,7 @@ class Multi_language extends Home
                     file_put_contents($dir,$languages,LOCK_EX);
 
                     $return['status']   = 1;
-                    $return['message']  = $this->lang->line("Your data has been updated successfully.");
+                    $return['message']  = lang("Your data has been updated successfully.");
                     $return['fileName'] = "plugins1";
                 }
 
@@ -1240,7 +1251,7 @@ class Multi_language extends Home
             {
                 $language_folder        = $clicked_type[1];
                 $module_name            = $this->input->post("language_folder_name",true);
-                $module_dir             = FCPATH."application/modules/".$module_name."/language/";
+                $module_dir             = APPPATH . 'modules/'.$module_name."/language/";
                 if(file_exists($module_dir))
                 {
                     $scan_module_dir        = scandir($module_dir,0);
@@ -1252,7 +1263,7 @@ class Multi_language extends Home
                     if(!file_exists($theFile))
                     {
                         $return['status']  = 0;
-                        $return['message'] = $this->lang->line("Something went wrong, please try again.");
+                        $return['message'] = lang("Something went wrong, please try again.");
                     } else
                     {
                         // creating array of language file
@@ -1271,7 +1282,7 @@ class Multi_language extends Home
                         file_put_contents($theFile,$languages,LOCK_EX);
 
                         $return['status'] = 1;
-                        $return['message'] = $this->lang->line("Your data has been updated successfully.");
+                        $return['message'] = lang("Your data has been updated successfully.");
                         $return['fileName'] = $module_lang_folder;
                     }
 
@@ -1284,39 +1295,99 @@ class Multi_language extends Home
 
     public function downloading_language_folder_zip()
     {
-        $this->load->library('zip');
-        $this->load->helper('download');
-
         $download_type          = $this->uri->segment(5);
         $download_language      = $this->uri->segment(3);
         $download_language_type = $this->uri->segment(4);
 
+        // Create temporary zip file
+        $tempZipPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('lang_') . '.zip';
+        $zip = new \ZipArchive();
+        
+        if ($zip->open($tempZipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== TRUE) {
+            die('Cannot create zip file');
+        }
+
         if($download_language_type == "main_app") 
         {   
-            $path = FCPATH.'application/language/'.$download_language;
-            $this->zip->read_dir($path,FALSE);
-
-            // Download
-            $this->zip->download($download_language);
+            $path = APPPATH . 'Language/'.$download_language;
+            
+            // Add directory to zip (CI3 zip->read_dir equivalent)
+            if (is_dir($path)) {
+                $files = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($path),
+                    \RecursiveIteratorIterator::LEAVES_ONLY
+                );
+                
+                foreach ($files as $file) {
+                    if (!$file->isDir()) {
+                        $filePath = $file->getRealPath();
+                        $relativePath = str_replace($path . DIRECTORY_SEPARATOR, '', $filePath);
+                        $zip->addFile($filePath, $relativePath);
+                    }
+                }
+            }
+            
+            $zip->close();
+            
+            // Download the zip file
+            $zipFileName = $download_language . '.zip';
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $zipFileName . '"');
+            header('Content-Length: ' . filesize($tempZipPath));
+            readfile($tempZipPath);
+            unlink($tempZipPath);
+            exit();
         }
         else if($download_language_type == "plugin")   
         {
             $path  = FCPATH."assets/modules/datatables/language/".$download_language.".json";
-            $this->zip->read_file($path,FALSE);
-
-            // Download
-            $this->zip->download(str_replace(".json","",$download_language));
+            
+            // Add file to zip (CI3 zip->read_file equivalent)
+            if (file_exists($path)) {
+                $zip->addFile($path, basename($path));
+            }
+            
+            $zip->close();
+            
+            // Download the zip file
+            $zipFileName = str_replace(".json", "", $download_language) . '.zip';
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $zipFileName . '"');
+            header('Content-Length: ' . filesize($tempZipPath));
+            readfile($tempZipPath);
+            unlink($tempZipPath);
+            exit();
         }
         // else if($download_type == "addons")
         // {
         //     $addon_Name = $download_language;
         //     $folder = $download_language_type;
 
-        //     $path = FCPATH."application/modules/".$addon_Name."/language/".$folder;
-        //     $this->zip->read_dir($path,FALSE);
-
-        //     // Download
-        //     $this->zip->download($folder);
+        //     $path = APPPATH . 'modules/'.$addon_Name."/language/".$folder;
+        //     if (is_dir($path)) {
+        //         $files = new \RecursiveIteratorIterator(
+        //             new \RecursiveDirectoryIterator($path),
+        //             \RecursiveIteratorIterator::LEAVES_ONLY
+        //         );
+        //         
+        //         foreach ($files as $file) {
+        //             if (!$file->isDir()) {
+        //                 $filePath = $file->getRealPath();
+        //                 $relativePath = str_replace($path . DIRECTORY_SEPARATOR, '', $filePath);
+        //                 $zip->addFile($filePath, $relativePath);
+        //             }
+        //         }
+        //     }
+        //     
+        //     $zip->close();
+        //     
+        //     $zipFileName = $folder . '.zip';
+        //     header('Content-Type: application/zip');
+        //     header('Content-Disposition: attachment; filename="' . $zipFileName . '"');
+        //     header('Content-Length: ' . filesize($tempZipPath));
+        //     readfile($tempZipPath);
+        //     unlink($tempZipPath);
+        //     exit();
         // }
     }
 
@@ -1325,7 +1396,7 @@ class Multi_language extends Home
         if($_POST)
         {
             $addon_name = $this->input->post("addon");
-            $addon_dir  = FCPATH."application/modules/".$addon_name."/language";
+            $addon_dir  = APPPATH . 'modules/'.$addon_name."/language";
             $scan_addon_dir = scandir($addon_dir,0);
 
             $rmv = array(".","..");
@@ -1360,7 +1431,7 @@ class Multi_language extends Home
 
     public function get_all_languages_to_delete()
     {
-        $directory      = FCPATH."application/language/";
+        $directory      = APPPATH . 'Language/';
         $scan_directory = array_diff(scandir($directory), array('.','..'));
 
         if(!empty($scan_directory))
@@ -1373,7 +1444,7 @@ class Multi_language extends Home
                 <div class="col-md-3 col-12">
                     <div class="card">
                       <div class="card-body">
-                        <a href="#" class="no_hover" title="'.$this->lang->line('Click to delete').'"><div class="delete_language">'.$value.'</div></a>
+                        <a href="#" class="no_hover" title="'.lang('Click to delete').'"><div class="delete_language">'.$value.'</div></a>
                       </div>
                     </div>                 
                 </div>';
@@ -1390,7 +1461,7 @@ class Multi_language extends Home
     public function delete_language_from_all()
     {
         $delete_language    = $this->input->post("langname");
-        $main_dir           = FCPATH."application/language/";
+        $main_dir           = APPPATH . 'Language/';
         $scan_main_dir      = array_diff(scandir($main_dir), array('.','..'));
 
         // delete from the main language folder
@@ -1414,7 +1485,7 @@ class Multi_language extends Home
         }
 
         // delete from all modules language folder
-        // $addon_dir      = FCPATH."application/modules/";
+        // $addon_dir      = APPPATH . 'modules/';
         // $scan_addon_dir = array_diff(scandir($addon_dir), array('.','..'));
 
         // foreach ($scan_addon_dir as $modules) 

@@ -1,0 +1,21 @@
+<?php
+$lang = array(
+    "email_must_be_array" => "",
+    "email_invalid_address" => "",
+    "email_attachment_missing" => "",
+    "email_attachment_unreadable" => "",
+    "email_no_recipients" => "",
+    "email_send_failure_phpmail" => "",
+    "email_send_failure_sendmail" => "",
+    "email_send_failure_smtp" => "",
+    "email_sent" => "",
+    "email_no_socket" => "",
+    "email_no_hostname" => "",
+    "email_smtp_error" => "",
+    "email_no_smtp_unpw" => "",
+    "email_failed_smtp_login" => "",
+    "email_smtp_auth_un" => "",
+    "email_smtp_auth_pw" => "",
+    "email_smtp_data_failure" => "",
+    "email_exit_status" => "",
+);
