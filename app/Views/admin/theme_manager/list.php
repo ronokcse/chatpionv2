@@ -1,4 +1,7 @@
-<?php $is_demo=$this->is_demo;?>
+<?php 
+// CI4 compatibility: Use $is_demo from data array instead of $this->is_demo
+$is_demo = isset($is_demo) ? $is_demo : (isset($controller->is_demo) ? $controller->is_demo : '0');
+?>
 <section class="section">
   <div class="section-header">
     <h1><i class="fas fa-plug"></i> <?php echo $page_title; ?></h1>    
@@ -58,10 +61,10 @@
                   <a title="<?php echo lang('activate'); ?>" class="btn btn-outline-primary activate_action" data-i='<?php echo $i; ?>' href="" data-unique-name="<?php echo $value['folder_name'];?>"><i class="fa fa-check"></i> <?php echo lang('activate');?></a>
 
                 <?php else: ?>
-                  <a title="<?php echo lang('deactivate'); ?>" class="<?php if($this->is_demo=='1' || count($theme_list)<=1) echo 'disabled'; ?> btn btn-outline-dark deactivate_action" href="" data-i='<?php echo $i; ?>' data-unique-name="<?php echo $value['folder_name'];?>"><i class="fa fa-ban"></i> <?php echo lang('deactivate');?></a>
+                  <a title="<?php echo lang('deactivate'); ?>" class="<?php if($is_demo=='1' || count($theme_list)<=1) echo 'disabled'; ?> btn btn-outline-dark deactivate_action" href="" data-i='<?php echo $i; ?>' data-unique-name="<?php echo $value['folder_name'];?>"><i class="fa fa-ban"></i> <?php echo lang('deactivate');?></a>
                 <?php endif; ?>
                 <?php if($value['folder_name'] != 'mordern'): ?>
-                <a title="<?php echo lang('delete'); ?>" class="<?php if($this->is_demo=='1') echo 'disabled'; ?> btn btn-outline-danger delete_action" href="" data-i='<?php echo $i; ?>' data-unique-name="<?php echo $value['folder_name'];?>"><i class="fa fa-trash"></i> <?php echo lang('delete');?></a>
+                <a title="<?php echo lang('delete'); ?>" class="<?php if($is_demo=='1') echo 'disabled'; ?> btn btn-outline-danger delete_action" href="" data-i='<?php echo $i; ?>' data-unique-name="<?php echo $value['folder_name'];?>"><i class="fa fa-trash"></i> <?php echo lang('delete');?></a>
                 <?php endif; ?>
               </div>
             </div>

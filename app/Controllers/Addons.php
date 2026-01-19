@@ -1,23 +1,34 @@
 <?php 
-require_once("Home.php"); // including home controller
+
+namespace App\Controllers;
+
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Addons extends Home
 {
-  
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
-        if ($this->session->userdata('logged_in')!= 1) {
-            redirect('home/login', 'location');
+        if ($this->session->userdata('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
 
         // team user can not access
-        if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        if($this->is_manager == 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
-        if ($this->session->userdata('user_type')!= 'Admin') {
-            redirect('home/login_page', 'location');
+        if ($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
 
         $this->important_feature();
@@ -159,10 +170,10 @@ class Addons extends Home
             $ret[]= $filename;
 
 
-            $zip = new ZipArchive;
+            $zip = new \ZipArchive;
             if ($zip->open($output_dir.'/'.$filename) === TRUE) 
             {
-                $addon_path=FCPATH."application/modules/";
+                $addon_path = APPPATH . 'modules/';
                 $zip->extractTo($addon_path);
                 $zip->close();
                 @unlink($output_dir.'/'.$filename);
@@ -176,10 +187,10 @@ class Addons extends Home
     public function _scanFolder($myDir)
     {
         $dirTree = array();
-        $di = new RecursiveDirectoryIterator($myDir,RecursiveDirectoryIterator::SKIP_DOTS);
+        $di = new \RecursiveDirectoryIterator($myDir,\RecursiveDirectoryIterator::SKIP_DOTS);
 
         $i=0;
-        foreach (new IteratorIterator($di) as $filename) {
+        foreach (new \RecursiveIteratorIterator($di) as $filename) {
             if ($filename->isDir()) 
             {
                 $dir = str_replace($myDir, '', dirname($filename));

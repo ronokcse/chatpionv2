@@ -1,23 +1,34 @@
 <?php 
-require_once("Home.php"); // including home controller
+
+namespace App\Controllers;
+
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Themes extends Home
 {
-  
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
-        if ($this->session->userdata('logged_in')!= 1) {
-            redirect('home/login', 'location');
+        if ($this->session->userdata('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
 
         // team user can not access
-        if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        if($this->is_manager == 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
-        if ($this->session->userdata('user_type')!= 'Admin') {
-            redirect('home/login_page', 'location');
+        if ($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
 
         $this->important_feature();
@@ -41,9 +52,10 @@ class Themes extends Home
 
     public function theme_list()
     {
-        $myDir = APPPATH.'views/site';
+        $myDir = APPPATH . 'Views/site';
         $file_list = $this->_scanFolder($myDir);
-        $one_list_array=array();
+        $one_list_array = array();
+        $addon_data     = array(); // Initialize to avoid undefined variable notice
 
         foreach ($file_list as $file) {
             $i = 0;
@@ -59,13 +71,16 @@ class Themes extends Home
             $pos=count($value)-1; // addonController.php
 
             $folder_name = $value[$pos];
-            $path=APPPATH.'views/site/'.$folder_name;
-            $addon_data[$i]=$this->get_theme_data($path."/index.php"); // inside home.php
-            $thumb_path = 'application/views/site/'.$folder_name.'/thumb.png';
-            if(file_exists($thumb_path))
-                $addon_data[$i]['thumb']='application/views/site/'.$folder_name.'/thumb.png';
+            $path = APPPATH . 'Views/site/' . $folder_name;
+            $addon_data[$i] = $this->get_theme_data($path . "/index.php"); // inside home.php
+
+            // Thumb path (absolute filesystem path)
+            $thumb_path = APPPATH . 'Views/site/' . $folder_name . '/thumb.png';
+            if (file_exists($thumb_path))
+                $addon_data[$i]['thumb'] = $thumb_path;
             else
-                $addon_data[$i]['thumb']='';
+                $addon_data[$i]['thumb'] = '';
+
             $addon_data[$i]['folder_name'] = $folder_name;
             $i++;
         }
@@ -124,10 +139,10 @@ class Themes extends Home
             move_uploaded_file($_FILES["myfile"]["tmp_name"], $output_dir.'/'.$filename);
             $ret[]= $filename;
 
-            $zip = new ZipArchive;
+            $zip = new \ZipArchive;
             if ($zip->open($output_dir.'/'.$filename) === TRUE) 
             {
-                $addon_path=FCPATH."application/views/site/";
+                $addon_path = APPPATH . 'Views/site/';
                 $zip->extractTo($addon_path);
                 $zip->close();
                 @unlink($output_dir.'/'.$filename);
@@ -140,10 +155,10 @@ class Themes extends Home
     public function _scanFolder($myDir)
     {
         $dirTree = array();
-        $di = new RecursiveDirectoryIterator($myDir,RecursiveDirectoryIterator::SKIP_DOTS);
+        $di = new \RecursiveDirectoryIterator($myDir,\RecursiveDirectoryIterator::SKIP_DOTS);
 
         $i=0;
-        foreach (new IteratorIterator($di) as $filename) {
+        foreach (new \RecursiveIteratorIterator($di) as $filename) {
             if ($filename->isDir()) 
             {
                 $dir = str_replace($myDir, '', dirname($filename));
@@ -174,11 +189,12 @@ class Themes extends Home
             exit();
         }
         $response = [];
-        $folder_name = $this->input->post('folder_name',true);
-        $active_or_deactive = $this->input->post('active_or_deactive',true);
+        $folder_name = $this->request->getPost('folder_name');
+        $active_or_deactive = $this->request->getPost('active_or_deactive');
         $response['status'] = '1';
 
-        include('application/config/my_config.php');
+        // Update legacy my_config.php so MyConfig loader can pick it up
+        include(APPPATH . 'Config/my_config.php');
         if($active_or_deactive == 'active')
         {
             $config['current_theme'] = $folder_name;
@@ -190,7 +206,7 @@ class Themes extends Home
             $response['message'] = $this->lang->line('Theme has been deactivated successfully.');
         }
 
-        file_put_contents('application/config/my_config.php', '<?php $config = ' . var_export($config, true) . ';');
+        file_put_contents(APPPATH . 'Config/my_config.php', '<?php $config = ' . var_export($config, true) . ';');
 
         echo json_encode($response);
     }
@@ -199,7 +215,7 @@ class Themes extends Home
     {
         $this->ajax_check();
         $response = [];
-        $folder_name = $this->input->post('folder_name',true);
+        $folder_name = $this->request->getPost('folder_name');
         if($folder_name == 'new_default')
         {
             $response['status'] = '0';
@@ -213,16 +229,16 @@ class Themes extends Home
             exit();
         }
 
-        $path = "application/views/site/".$folder_name;
+        $path = APPPATH . "Views/site/" . $folder_name;
         $this->delete_directory($path);
         $response['status'] = '1';
         $response['message'] = $this->lang->line('Theme has been deleted successfully.');
 
         if($folder_name == $this->config->item('current_theme'))
         {
-            include('application/config/my_config.php');
+            include(APPPATH . 'Config/my_config.php');
             $config['current_theme'] = 'modern';
-            file_put_contents('application/config/my_config.php', '<?php $config = ' . var_export($config, true) . ';');
+            file_put_contents(APPPATH . 'Config/my_config.php', '<?php $config = ' . var_export($config, true) . ';');
         }
 
 

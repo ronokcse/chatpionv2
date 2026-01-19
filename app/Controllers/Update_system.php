@@ -1,11 +1,14 @@
 <?php
 
+namespace App\Controllers;
 
-require_once("Home.php"); // including home controller
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 /**
 * @category controller
-* class Admin
+* class Update_system
 */
 
 class Update_system extends Home
@@ -14,21 +17,32 @@ class Update_system extends Home
 	public $user_id;    
 
 	
-	public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+	public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
 	{
-	    parent::__construct();
-	    if ($this->session->userdata('logged_in') != 1)
-	    redirect('home/login_page', 'location');   
+	    parent::initController($request, $response, $logger);
+
+	    if ($this->session->userdata('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
 		// team user can not access
-		if($this->is_manager==1)
-		redirect('home/login_page', 'location');
+		if($this->is_manager==1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
-	    if ($this->session->userdata('user_type') != 'Admin')
-	    redirect('home/login_page', 'location');	 
+	    if ($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
-	     $q= "SET SESSION wait_timeout=50000";
-         $this->db->query($q);
+        // Increase wait_timeout as before
+	    $q = "SET SESSION wait_timeout=50000";
+        $this->db->query($q);
 
 
 	}
@@ -41,7 +55,8 @@ class Update_system extends Home
 	public function update_list()
 	{
 		$product_id = $this->app_product_id;
-		$current_version = $this->db->where('current', '1')->get('version')->row(); // fbinboxer project ids
+		// CI4 DB: use query builder instead of CI3 where()->get()
+		$current_version = $this->db->table('version')->where('current', '1')->get()->getRow(); // fbinboxer project ids
 
 		$server_url='https://xeroneit.solutions';
 		
@@ -167,7 +182,8 @@ class Update_system extends Home
 	public function update_list_v2()
 	{
 		$product_id = $this->app_product_id;
-		$current_version = $this->db->where('current', '1')->get('version')->row(); // fbinboxer project ids
+		// CI4 DB: use query builder instead of CI3 where()->get()
+		$current_version = $this->db->table('version')->where('current', '1')->get()->getRow(); // fbinboxer project ids
 
 		$server_url='https://xeroneit.solutions';
 		

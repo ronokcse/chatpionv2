@@ -1,5 +1,8 @@
 <?php echo view("include/upload_js"); ?>
-<?php $is_demo=$this->is_demo;?>
+<?php 
+// CI4 compatibility: Use $is_demo from data array instead of $this->is_demo
+$is_demo = isset($is_demo) ? $is_demo : (isset($controller->is_demo) ? $controller->is_demo : '0');
+?>
 <section class="section">
   <div class="section-header">
     <h1><i class="fas fa-cloud-upload-alt"></i> <?php echo $page_title; ?></h1>    
