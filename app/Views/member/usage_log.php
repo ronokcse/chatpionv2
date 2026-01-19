@@ -140,7 +140,7 @@ $unlimited_module_array=array();
             				if(isset($monthly_limit[$row["module_id"]])) 
             				{
             					echo $monthly_limit[$row["module_id"]];
-            					if($monthly_limit[$row["module_id"]]>0 && $row["extra_text"]!="") echo " / ".$this->lang->line($row["extra_text"]);
+            					if($monthly_limit[$row["module_id"]]>0 && $row["extra_text"]!="") echo " / ".lang($row["extra_text"]);
             					if(in_array($row["module_id"],$bulk_limit_modules)) echo " [".lang('Bulk Limit')." : ". $bulk_limit_print."]";
             				}
             				echo "</td>";

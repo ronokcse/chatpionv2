@@ -1,28 +1,35 @@
 <?php
 
-require_once("Home.php"); // loading home controller
+namespace App\Controllers;
 
-/**
-* @category controller
-* class Admin
-*/
-
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Admin extends Home
 {
    
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
-        if ($this->session->userdata('logged_in') != 1)
-        redirect('home/login_page', 'location');
+        parent::initController($request, $response, $logger);
+        if ($this->session->userdata('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
         // team user can not access
-        if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        if($this->is_manager==1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
-        if ($this->session->userdata('user_type') != 'Admin')
-        redirect('home/login_page', 'location');
+        if ($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
     
         $this->important_feature();
         $this->periodic_check();
@@ -37,11 +44,20 @@ class Admin extends Home
 
     public function general_settings()
     {        
-        $this->is_broadcaster_exist=$this->broadcaster_exist();     
+        $is_broadcaster_exist=$this->broadcaster_exist();
+        $this->is_broadcaster_exist = $is_broadcaster_exist;     
         $data['body'] = "admin/settings/general";
         $data['time_zone'] = $this->_time_zone_list();        
         $data['language_info'] = $this->_language_list();
         $data['page_title'] = $this->lang->line('General Settings');
+        $data['is_broadcaster_exist'] = $is_broadcaster_exist;
+        $data['module_access'] = $this->module_access;
+
+        $mysql_variables = $this->basic->execute_query("SHOW VARIABLES;");
+        $data['mysql_variables'] = $mysql_variables;
+
+        $data['is_google_sheet_exist'] = $this->basic->is_exist("add_ons",array("project_id"=>70));
+        $data['is_vidcaster_exist'] = $this->basic->is_exist("add_ons",array("project_id"=>41));
 
         $join = array('mailchimp_list'=>"mailchimp_config.id=mailchimp_list.mailchimp_config_id,right");
         $mailchimp_info = $this->basic->get_data('mailchimp_config',array('where'=>array('user_id'=>$this->user_id,'service_type'=>'mailchimp')),array("list_name","list_id","tracking_name","mailchimp_list.id","mailchimp_config.id as config_id"),$join);
@@ -128,13 +144,10 @@ class Admin extends Home
 
         /* Google Sheet List */
         if($this->basic->is_exist("add_ons",array("project_id"=>70))){
-            $google_sheet = $this->db
-            ->select(['google_sheets.id', 'google_sheets.name', 'google_accounts.email', 'google_sheets.sheet_names'])
-            ->from('google_sheets')
-            ->where('google_sheets.user_id', $this->user_id)
-            ->join('google_accounts', 'google_sheets.google_account_id = google_accounts.id', 'left')
-            ->get()
-            ->result_array();
+            $join = array('google_accounts' => 'google_sheets.google_account_id = google_accounts.id,left');
+            $select = array('google_sheets.id', 'google_sheets.name', 'google_accounts.email', 'google_sheets.sheet_names');
+            $google_sheet = $this->basic->get_data('google_sheets', array('where' => array('google_sheets.user_id' => $this->user_id)), $select, $join);
+
             $google_sheet_list = [];
             foreach ($google_sheet as $row) {
                 $email = $row['email'];
@@ -188,7 +201,7 @@ class Admin extends Home
             exit();
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            redirect('home/access_forbidden', 'location');
+            return redirect()->to(base_url('home/access_forbidden'));
         }
         if ($_POST) 
         {
@@ -267,12 +280,12 @@ class Admin extends Home
              $this->form_validation->set_rules('enable_open_rate',  '<b>'.$this->lang->line("Email Open Rate").'</b>','trim');
              $this->form_validation->set_rules('enable_click_rate',  '<b>'.$this->lang->line("Email Click Rate").'</b>','trim');
 
-             $this->form_validation->set_rules('mailchimp_list_id','<b>'.$this->lang->line("MailChimp List").'</b>','trim');
-             $this->form_validation->set_rules('sendinblue_list_id','<b>'.$this->lang->line("Sendinblue List").'</b>','trim');
-             $this->form_validation->set_rules('activecampaign_list_id','<b>'.$this->lang->line("Activecampaign List").'</b>','trim');
-             $this->form_validation->set_rules('mautic_list_id','<b>'.$this->lang->line("Mautic List").'</b>','trim');
-             $this->form_validation->set_rules('acelle_list_id','<b>'.$this->lang->line("Acelle List").'</b>','trim');
-             $this->form_validation->set_rules('google_sheets_list','<b>'.$this->lang->line("Google Sheet List").'</b>','trim');
+             $this->form_validation->set_rules('mailchimp_list_id','<b>'.$this->lang->line("MailChimp List").'</b>','permit_empty');
+             $this->form_validation->set_rules('sendinblue_list_id','<b>'.$this->lang->line("Sendinblue List").'</b>','permit_empty');
+             $this->form_validation->set_rules('activecampaign_list_id','<b>'.$this->lang->line("Activecampaign List").'</b>','permit_empty');
+             $this->form_validation->set_rules('mautic_list_id','<b>'.$this->lang->line("Mautic List").'</b>','permit_empty');
+             $this->form_validation->set_rules('acelle_list_id','<b>'.$this->lang->line("Acelle List").'</b>','permit_empty');
+             $this->form_validation->set_rules('google_sheet_list','<b>'.$this->lang->line("Google Sheet List").'</b>','permit_empty');
              $this->form_validation->set_rules('delete_junk_data_after_how_many_days','<b>'.$this->lang->line("Delete Junk Data").'</b>','trim');
              $this->form_validation->set_rules('delete_livechat_old_message_day','<b>'.$this->lang->line("Delete Junk Data").'</b>','trim');
 
@@ -376,41 +389,41 @@ class Admin extends Home
                 endif;
                 
                 $mailchimp_list_id=$this->input->post('mailchimp_list_id', true);
-                if($mailchimp_list_id == '') 
+                if(empty($mailchimp_list_id)) 
                 	$mail_service = array('mailchimp'=>array());
                 else
                 	$mail_service = array('mailchimp'=>$mailchimp_list_id);
 
                 /* sendinblue */
                 $sendinblue_list_id=$this->input->post('sendinblue_list_id', true);
-                if($sendinblue_list_id == '') 
+                if(empty($sendinblue_list_id)) 
                     $mail_service['sendinblue'] = array();
                 else
                     $mail_service['sendinblue'] = $sendinblue_list_id;
 
                 /* activecampaign */
                 $activecampaign_list_id=$this->input->post('activecampaign_list_id', true);
-                if($activecampaign_list_id == '') 
+                if(empty($activecampaign_list_id)) 
                     $mail_service['activecampaign'] = array();
                 else
                     $mail_service['activecampaign'] = $activecampaign_list_id;
 
                 /* mautic */
                 $mautic_list_id=$this->input->post('mautic_list_id', true);
-                if($mautic_list_id == '') 
+                if(empty($mautic_list_id)) 
                     $mail_service['mautic'] = array();
                 else
                     $mail_service['mautic'] = $mautic_list_id;
 
                 /* acelle */
                 $acelle_list_id=$this->input->post('acelle_list_id', true);
-                if($acelle_list_id == '') 
+                if(empty($acelle_list_id)) 
                     $mail_service['acelle'] = array();
                 else
                     $mail_service['acelle'] = $acelle_list_id;
 
                 $google_sheet_list=$this->input->post('google_sheet_list', true);
-                if($google_sheet_list == '') 
+                if(empty($google_sheet_list)) 
                     $mail_service['google_sheet'] = array();
                 else
                     $mail_service['google_sheet'] = $google_sheet_list;
@@ -588,13 +601,13 @@ class Admin extends Home
                 if($this->config->item('id_demo')!="") $app_my_config_data.= "\n\$config['id_demo'] = '".$this->config->item('id_demo')."';\n";
                    
 
-                file_put_contents(APPPATH.'config/my_config.php', $app_my_config_data, LOCK_EX); //writting  application/config/my_config
+                file_put_contents(APPPATH.'Config/my_config.php', $app_my_config_data, LOCK_EX); //writting  application/config/my_config
                 if($backup_mode == '1') $mode_to_write = 1;
                 else $mode_to_write = 0;
 
                 $app_package_config_data = "<?php ";
                 $app_package_config_data.= "\n\$config['backup_mode'] = '$mode_to_write';\n";
-                file_put_contents(APPPATH.'config/package_config.php', $app_package_config_data, LOCK_EX); 
+                file_put_contents(APPPATH.'Config/package_config.php', $app_package_config_data, LOCK_EX); 
                 
                 //writing application/config/pusher
 
@@ -604,11 +617,11 @@ class Admin extends Home
                 $app_pusher_config_data.= "\n\$config['pusher_app_secret'] = '".$pusher_app_secret."';\n";
                 $app_pusher_config_data.= "\n\$config['pusher_cluster'] = '".$pusher_cluster."';\n";
                 $app_pusher_config_data.= "\n\$config['pusher_debug'] = FALSE;\n";
-                file_put_contents(APPPATH.'config/pusher.php', $app_pusher_config_data, LOCK_EX); 
+                file_put_contents(APPPATH.'Config/pusher.php', $app_pusher_config_data, LOCK_EX); 
 
 
                 $this->session->set_flashdata('success_message', 1);
-                redirect('admin/general_settings', 'location');
+                return redirect()->to(base_url('admin/general_settings'));
             }
         }
     }
@@ -631,7 +644,7 @@ class Admin extends Home
             exit();
         }
         
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') { redirect('home/access_forbidden', 'location'); }
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') { return redirect()->to(base_url('home/access_forbidden')); }
 
         if ($_POST) 
         {
@@ -709,9 +722,9 @@ class Admin extends Home
             $app_frontend_config_data.= "\$config['customer_review'] = ".$review_string.";\n";
             $app_frontend_config_data.= "\n\$config['custom_video'] = ".$video_string.";\n";
 
-            file_put_contents(APPPATH.'config/frontend_config.php', $app_frontend_config_data, LOCK_EX);
+            file_put_contents(APPPATH.'Config/frontend_config.php', $app_frontend_config_data, LOCK_EX);
             $this->session->set_flashdata('success_message', 1);
-            redirect('admin/frontend_settings', 'location');
+            return redirect()->to(base_url('admin/frontend_settings'));
 
         }
     }
@@ -743,7 +756,7 @@ class Admin extends Home
             exit();
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            redirect('home/access_forbidden', 'location');
+            return redirect()->to(base_url('home/access_forbidden'));
         }
         if ($_POST) 
         {
@@ -791,7 +804,7 @@ class Admin extends Home
                 else $this->basic->insert_data("email_config",$update_data);                 
                                          
                 $this->session->set_flashdata('success_message', 1);
-                redirect('admin/smtp_settings', 'location');
+                return redirect()->to(base_url('admin/smtp_settings'));
             }
         }
     }
@@ -820,11 +833,11 @@ class Admin extends Home
         $pixel_code = $this->input->post('pixel_code');
         $google_code = $this->input->post('google_code');
 
-        file_put_contents(APPPATH.'views/include/fb_px.php', $pixel_code, LOCK_EX);
-        file_put_contents(APPPATH.'views/include/google_code.php', $google_code, LOCK_EX);
+        file_put_contents(APPPATH.'Views/include/fb_px.php', $pixel_code, LOCK_EX);
+        file_put_contents(APPPATH.'Views/include/google_code.php', $google_code, LOCK_EX);
 
         $this->session->set_flashdata('success_message', 1);
-        redirect('admin/analytics_settings','location');
+        return redirect()->to(base_url('admin/analytics_settings'));
     }
 
 
@@ -846,7 +859,7 @@ class Admin extends Home
         }
         
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            redirect('home/access_forbidden', 'location');
+            return redirect()->to(base_url('home/access_forbidden'));
         }
 
         if ($_POST) 
@@ -886,7 +899,7 @@ class Admin extends Home
                 else $this->basic->insert_data("ad_config",$insert_update_data);
                   
                 $this->session->set_flashdata('success_message', 1);
-                redirect('admin/advertisement_settings', 'location');
+                return redirect()->to(base_url('admin/advertisement_settings'));
             }
         }
     }
@@ -896,6 +909,7 @@ class Admin extends Home
     {
         $data['body']='admin/user/user_list';
         $data['page_title']=$this->lang->line("User Manager");
+        $data['language'] = $this->language;
         $this->_viewcontroller($data);  
     }
 
@@ -1012,7 +1026,7 @@ class Admin extends Home
         }
 
         if($_SERVER['REQUEST_METHOD'] === 'GET') 
-        redirect('home/access_forbidden','location');
+        return redirect()->to(base_url('home/access_forbidden'));
 
         if($_POST)
         {
@@ -1078,7 +1092,7 @@ class Admin extends Home
                 if($this->basic->insert_data('users',$data)) $this->session->set_flashdata('success_message',1);   
                 else $this->session->set_flashdata('error_message',1);     
                 
-                redirect('admin/user_manager','location');                 
+                return redirect()->to(base_url('admin/user_manager'));                 
                 
             }
         }   
@@ -1113,7 +1127,7 @@ class Admin extends Home
         }
 
         if($_SERVER['REQUEST_METHOD'] === 'GET') 
-        redirect('home/access_forbidden','location');
+        return redirect()->to(base_url('home/access_forbidden'));
 
         if($_POST)
         {
@@ -1180,7 +1194,7 @@ class Admin extends Home
                 if($this->basic->update_data('users',array("id"=>$id),$data)) $this->session->set_flashdata('success_message',1);   
                 else $this->session->set_flashdata('error_message',1);     
                 
-                redirect('admin/user_manager','location');                 
+                return redirect()->to(base_url('admin/user_manager'));                 
                 
             }
         }   
@@ -1365,6 +1379,11 @@ class Admin extends Home
 
    public function email_template_settings()
    {
+       $data['is_affiliate_exist'] = $this->basic->is_exist("add_ons",array("project_id"=>31));
+       $data['is_ecommerce_exist'] = $this->basic->is_exist("add_ons",array("project_id"=>47));
+       $data['is_user_input_flow_exist'] = $this->basic->is_exist("add_ons",array("project_id"=>49));
+       $data['is_email_optin_exist'] = $this->basic->is_exist("add_ons",array("project_id"=>57));
+
        $data['emailTemplatetabledata'] = $this->basic->get_data("email_template_management");
     
        $data['default_values'] = array(
@@ -1559,7 +1578,7 @@ Thank you,<br>
        
        if ($_SERVER['REQUEST_METHOD'] === 'GET') 
        { 
-           redirect('home/access_forbidden', 'location'); 
+           return redirect()->to(base_url('home/access_forbidden')); 
        }
 
        if($_POST)
@@ -1593,7 +1612,7 @@ Thank you,<br>
 
            }
            $this->session->set_flashdata('success_message', 1);
-           redirect('admin/email_template_settings', 'location');
+           return redirect()->to(base_url('admin/email_template_settings'));
 
        }
  
@@ -1611,7 +1630,7 @@ Thank you,<br>
        {
            
            $this->session->set_flashdata('success_message', 1);
-           redirect('admin/email_template_settings','refresh');
+           return redirect()->to(base_url('admin/email_template_settings'));
        }
 
        

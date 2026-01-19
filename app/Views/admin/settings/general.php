@@ -8,7 +8,7 @@
 		</div>
 	</div>
 
-	<?php view('admin/theme/message'); ?>
+	<?php echo view('admin/theme/message'); ?>
 
 	<?php $save_button = '<div class="card-footer bg-whitesmoke">
 	                      <button class="btn btn-primary btn-lg" id="save-btn" type="submit"><i class="fas fa-save"></i> ' . lang('Save') . '</button>
@@ -310,7 +310,6 @@
 						<div class="card-header">
 							<h4><i class="fab fa-pushed"></i> <?php echo lang('Pusher App Key'); ?></h4>
 						</div>
-						<?php $this->config->load('pusher'); ?>
 						<div class="card-body">
 							<div class="form-group">
 								<label for=""><i class="fas fa-id-card"></i> <?php echo lang('Pusher App Id'); ?></label>
@@ -420,7 +419,7 @@
 						<?php echo $save_button; ?>
 					</div>
 
-					<?php if ($this->is_broadcaster_exist) : ?>
+					<?php if ($is_broadcaster_exist) : ?>
 						<div class="card" id="messenger-broadcast">
 							<div class="card-header">
 								<h4><i class="fas fa-mail-bulk"></i> <?php echo lang('Messenger Broadcast'); ?></h4>
@@ -465,7 +464,7 @@
 										</div>
 									</div>
 									<div class="col-12">
-										<div class="row <?php if (!$this->is_broadcaster_exist) echo 'hidden'; ?>">
+										<div class="row <?php if (!$is_broadcaster_exist) echo 'hidden'; ?>">
 											<div class="col-12">
 												<div class="form-group">
 													<label for=""><i class="fa fa-sort-numeric-asc"></i> <?php echo lang('Subscriber Broadcast - number of message send per cron job'); ?></label>
@@ -722,7 +721,7 @@
 							</div>
 
 							<!-- Google Sheet integration -->
-							<?php if ( $this->basic->is_exist("add_ons",array("project_id"=>70)) && (session()->get('user_type') == 'Admin' || in_array(351, $this->module_access))){ ?>
+							<?php if ( $is_google_sheet_exist && (session()->get('user_type') == 'Admin' || in_array(351, $module_access))){ ?>
 								<div class="row">
 									<div class="col-12 col-md-4">
 										<ul class="nav nav-pills flex-column" id="myTab4" role="tablist">
@@ -1012,7 +1011,7 @@
 						<?php echo $save_button; ?>
 					</div>
 
-					<?php if ($this->basic->is_exist("add_ons", array("project_id" => 41))) : ?>
+					<?php if ($is_vidcaster_exist) : ?>
 						<div class="card" id="fb_live">
 							<div class="card-header">
 								<h4><i class="fas fa-tv"></i> <?php echo lang('Facebook Live Streaming'); ?></h4>
@@ -1073,8 +1072,6 @@
 						<div class="card-body">
 							<?php
 
-							$sql = "SHOW VARIABLES;";
-							$mysql_variables = $this->basic->execute_query($sql);
 							$variables_array_format = array();
 							foreach ($mysql_variables as $my_var) {
 								$variables_array_format[$my_var['Variable_name']] = $my_var['Value'];
@@ -1157,7 +1154,7 @@
 									</ul>
 								</div>
 
-								<?php if ($this->basic->is_exist("add_ons", array("project_id" => 41))) : ?>
+								<?php if ($is_vidcaster_exist) : ?>
 									<div class="col-12">
 										<br>
 										<ul class="list-group">
@@ -1214,7 +1211,7 @@
 
 										<li class="nav-item"><a href="#persistent-menu" class="nav-link"><i class="fas fa-bars"></i> <?php echo lang('Persistent Menu'); ?></a></li>
 
-										<?php if ($this->is_broadcaster_exist) : ?>
+										<?php if ($is_broadcaster_exist) : ?>
 											<li class="nav-item"><a href="#messenger-broadcast" class="nav-link"><i class="fas fa-mail-bulk"></i> <?php echo lang('Messenger Broadcast'); ?></a></li>
 										<?php endif; ?>
 
@@ -1229,7 +1226,7 @@
 										<li class="nav-item"><a href="#file-upload" class="nav-link"><i class="fas fa-cloud-upload-alt"></i> <?php echo lang('File Upload'); ?></a></li>
 										<li class="nav-item"><a href="#junk_data" class="nav-link"><i class="fas fa-trash-alt"></i> <?php echo lang('Delete Junk Data'); ?></a></li>
 
-										<?php if ($this->basic->is_exist("add_ons", array("project_id" => 41))) : ?>
+										<?php if ($is_vidcaster_exist) : ?>
 											<li class="nav-item"><a href="#fb_live" class="nav-link"><i class="fas fa-tv"></i> <?php echo lang('Facebook Live Streaming'); ?></a></li>
 										<?php endif; ?>
 

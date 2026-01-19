@@ -222,7 +222,7 @@
            </div>
            <div class="card-body">
              <h4><?php echo lang('User Input Flow & Custom Fields'); ?></h4>
-             <p><?php echo $this->lang->line("Create flow campaign & custom fields to store user's data"); ?></p>
+             <p><?php echo lang("Create flow campaign & custom fields to store user's data"); ?></p>
              
              <div class="dropdown">
                <a href="#" data-toggle="dropdown" class="no_hover" style="font-weight: 500;"><?php echo lang('Actions'); ?> <i class="fas fa-chevron-right"></i></a>

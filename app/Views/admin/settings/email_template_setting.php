@@ -1,6 +1,6 @@
 <?php 
 	
-if($this->basic->is_exist("add_ons",array("project_id"=>31)))
+if($is_affiliate_exist)
 	echo "<style>
  	#new-webview-form-submission-alert{
  		display: block;
@@ -13,7 +13,7 @@ else
 	 	}
 	 </style>";
 	
-if($this->basic->is_exist("add_ons",array("project_id"=>47)))
+if($is_ecommerce_exist)
 	echo "<style>
  	#double-opt-in-confirmation-email{
  		display: block;
@@ -26,7 +26,7 @@ else
 	 	}
 	 </style>";
 
-if($this->basic->is_exist("add_ons",array("project_id"=>49)))
+if($is_user_input_flow_exist)
 	echo "<style>
  	#new-input-flow-submission-alert{
  		display: block;
@@ -39,7 +39,7 @@ else
 	 	}
 	 </style>";
 
-if($this->basic->is_exist("add_ons",array("project_id"=>57)))
+if($is_email_optin_exist)
 	echo "<style>
  	#affiliate-signup-activation,#affiliate-withdrawal-request-approval,#affiliate-withdrawal-request-cancelation,#new-withdrawal-request{
  		display: block;
@@ -66,7 +66,7 @@ else
 		</div>
 	</div>
 
-	<?php view('admin/theme/message'); ?>
+	<?php echo view('admin/theme/message'); ?>
 
 	<?php $save_button = '<div class="card-footer bg-whitesmoke">
 	                      <button class="btn btn-primary btn-lg" id="save-btn" type="submit"><i class="fas fa-save"></i> '.lang('Save').'</button>
@@ -97,8 +97,8 @@ else
 
 								<div class="card-header">
 									<h4>
-										<i class="<?php echo $value['icon']; ?>"></i> <?php echo $this->lang->line($value['title']); ?>
-										<a data-html='true' data-toggle="popover" data-placement="bottom" title="<?php echo $this->lang->line($value['info']);?>" data-content="<b><u><?php echo lang('Variable List').' : </b></u><br>'.str_replace(',', '<br>', $value['tooltip']); ?>"><i class="fa fa-info-circle"></i></a>
+										<i class="<?php echo $value['icon']; ?>"></i> <?php echo lang($value['title']); ?>
+										<a data-html='true' data-toggle="popover" data-placement="bottom" title="<?php echo lang($value['info']);?>" data-content="<b><u><?php echo lang('Variable List').' : </b></u><br>'.str_replace(',', '<br>', $value['tooltip']); ?>"><i class="fa fa-info-circle"></i></a>
 									</h4>
 								</div>
 								<div class="card-body">
@@ -151,7 +151,7 @@ else
 
 											<li class="nav-item">
 												<a href="#<?php echo $temp_fildset; ?>" class="nav-link">
-													<i class="<?php echo $value['icon']; ?>"></i> <?php echo $this->lang->line($value['title']); ?>
+													<i class="<?php echo $value['icon']; ?>"></i> <?php echo lang($value['title']); ?>
 												</a>
 											</li>										
 						    			<?php 

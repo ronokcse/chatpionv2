@@ -252,7 +252,7 @@
 
                             <div class="form-group instagram_border_margined_padded clearfix" id="nofilter_word_found_div">
                                 <label><i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-                                    <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+                                    <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
                                 </label>
                                 <span class='float-right'>
                                 	<a title="<?php echo lang('You can tag user in your comment reply. Facebook will notify them about mention whenever you tag.') ?>" data-placement="top" data-toggle="tooltip"
@@ -557,7 +557,7 @@
 
                         <div class="form-group instagram_border_margined_padded clearfix" id="nofilter_word_found_div">
                             <label><i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-                            <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+                            <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
                             </label>
                             <span class='float-right'>
                                 <a title="<?php echo lang('You can tag user in your comment reply. Facebook will notify them about mention whenever you tag.') ?>" data-placement="top" data-toggle="tooltip"
@@ -851,7 +851,7 @@
 
                             <div class="form-group instagram_border_margined_padded clearfix" id="nofilter_word_found_div">
                                 <label><i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-                                    <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+                                    <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
                                 </label>
                                 <span class='float-right'>
                                 	<a title="<?php echo lang('You can tag user in your comment reply. Facebook will notify them about mention whenever you tag.') ?>" data-placement="top" data-toggle="tooltip"
@@ -1140,7 +1140,7 @@
 
                         <div class="form-group instagram_border_margined_padded clearfix" id="nofilter_word_found_div">
                             <label><i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-                            <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+                            <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
                             </label>
                             <span class='float-right'>
                                 <a title="<?php echo lang('You can tag user in your comment reply. Facebook will notify them about mention whenever you tag.') ?>" data-placement="top" data-toggle="tooltip"

@@ -134,6 +134,31 @@ class MyConfig extends BaseConfig
         ],
     ];
 
+    public function __construct()
+    {
+        parent::__construct();
+        $this->loadLegacyConfig();
+    }
+
+    protected function loadLegacyConfig()
+    {
+        $files = ['my_config.php', 'package_config.php', 'pusher.php', 'frontend_config.php'];
+        foreach ($files as $file) {
+            $path = APPPATH . 'Config/' . $file;
+            if (file_exists($path)) {
+                include $path;
+                if (isset($config) && is_array($config)) {
+                    foreach ($config as $key => $value) {
+                        if (property_exists($this, $key)) {
+                            $this->$key = $value;
+                        }
+                    }
+                    unset($config);
+                }
+            }
+        }
+    }
+
     /**
      * CI3 compatibility helper.
      * Allows legacy code to call `$this->config->item('key')`.

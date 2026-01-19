@@ -98,9 +98,9 @@
 </section>
 
 <?php
-	$Youdidntprovideallinformation = $this->lang->line("you didn't provide all information.");
+	$Youdidntprovideallinformation = lang("you didn't provide all information.");
 	$Pleaseprovidepostid = lang('please provide post id.');
-	$Youdidntselectanyoption = $this->lang->line("you didn\'t select any option.");
+	$Youdidntselectanyoption = lang("you didn\'t select any option.");
 	$AlreadyEnabled = lang('already enabled');
 	$ThispostIDisnotfoundindatabaseorthispostIDisnotassociatedwiththepageyouareworking = lang('This post ID is not found in database or this post ID is not associated with the page you are working.');
 	$EnableAutoReply = lang('enable auto reply');
@@ -420,7 +420,7 @@
                                     <i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
                                     <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus"
                                        title="<?php echo lang('message') ?>"
-                                       data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i
+                                       data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i
                                                 class='fa fa-info-circle'></i> </a>
                                 </label>
                                 <?php if ($comment_tag_machine_addon) { ?>

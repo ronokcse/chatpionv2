@@ -12,7 +12,7 @@
             </div>
             <div class="card-stats-item">
               <div class="card-stats-item-count"><?php echo $curency_icon.$payment_month; ?></div>
-              <div class="card-stats-item-label"><?php echo $this->lang->line(date("M")); ?></div>
+              <div class="card-stats-item-label"><?php echo lang(date("M")); ?></div>
             </div>
             <div class="card-stats-item">
               <div class="card-stats-item-count"><?php echo $curency_icon.$payment_year; ?></div>
@@ -101,7 +101,7 @@
                   <li class="media">
                     <img class="img-fluid mt-1 img-shadow" src="<?php echo base_url(); ?>assets/modules/flag-icon-css/flags/4x3/<?php echo strtolower($key);?>.svg" alt="image" width="40">
                     <div class="media-body ml-3">
-                      <div class="media-title"><?php echo isset($country_names[$key]) ? $this->lang->line($country_names[$key]) : "-"; ?></div>
+                      <div class="media-title"><?php echo isset($country_names[$key]) ? lang($country_names[$key]) : "-"; ?></div>
                       <div class="text-small text-muted"><?php echo $curency_icon.$value; ?> <i class="fas fa-caret-down text-danger"></i></div>
                     </div>
                   </li>
@@ -121,7 +121,7 @@
                   <li class="media">
                     <img class="img-fluid mt-1 img-shadow" src="<?php echo base_url(); ?>assets/modules/flag-icon-css/flags/4x3/<?php echo strtolower($key);?>.svg" alt="image" width="40">
                     <div class="media-body ml-3">
-                      <div class="media-title"><?php echo isset($country_names[$key]) ? $this->lang->line($country_names[$key]) : "-"; ?></div>
+                      <div class="media-title"><?php echo isset($country_names[$key]) ? lang($country_names[$key]) : "-"; ?></div>
                       <div class="text-small text-muted"><?php echo $curency_icon.$value; ?> <i class="fas fa-caret-down text-danger"></i></div>
                     </div>
                   </li>

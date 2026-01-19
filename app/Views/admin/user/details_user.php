@@ -8,7 +8,7 @@
     </div>
   </div>
 
-  <?php view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="row">
     <div class="col-md-4 col-sm-4 col-12">
@@ -58,7 +58,7 @@
             <h4><?php echo lang('Validity');?></h4>
           </div>
           <div class="card-body">
-            <?php echo $validity_amount; ?> <?php echo $this->lang->line($validity_type[$validity_type_info]); ?>
+            <?php echo $validity_amount; ?> <?php echo lang($validity_type[$validity_type_info]); ?>
           </div>
         </div>
       </div>

@@ -13,7 +13,7 @@
     </div>
   </div>
 
-  <?php view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="section-body">
 
@@ -92,7 +92,7 @@ $drop_menu .= '</div> </div>';
           },
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [

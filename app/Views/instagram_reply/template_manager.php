@@ -1,4 +1,4 @@
-<?php view('admin/theme/message'); ?>
+<?php echo view('admin/theme/message'); ?>
 <?php 
   view("include/upload_js");   
 
@@ -16,9 +16,9 @@
 
 <?php 
   
-  $Youdidntprovideallinformation = $this->lang->line("you didn't provide all information.");
+  $Youdidntprovideallinformation = lang("you didn't provide all information.");
   $Pleaseprovidepostid = lang('please provide post id.');
-  $Youdidntselectanyoption = $this->lang->line("you didn\'t select any option.");
+  $Youdidntselectanyoption = lang("you didn\'t select any option.");
   
   $AlreadyEnabled = lang('already enabled');
   $ThispostIDisnotfoundindatabaseorthispostIDisnotassociatedwiththepageyouareworking = lang('This post ID is not found in database or this post ID is not associated with the page you are working.');
@@ -321,7 +321,7 @@
 
                             <div class="form-group instagram_border_margined_padded" id="nofilter_word_found_div">
                                 <label><i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
-                                  <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+                                  <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang('message') ?>" data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
                                 </label>
                                 <span class='float-right'>
                                     <a title="<?php echo lang('You can tag user in your comment reply. Facebook will notify them about mention whenever you tag.') ?>" data-toggle="tooltip" data-placement="top" class='btn btn-default btn-sm lead_tag_name button-outline'><i class='fa fa-tags'></i> <?php echo lang('mention user') ?></a>
@@ -634,7 +634,7 @@
                                     <i class="fa fa-envelope"></i> <?php echo lang('comment reply if no matching found') ?>
                                     <a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus"
                                        title="<?php echo lang('message') ?>"
-                                       data-content="<?php echo $this->lang->line("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i
+                                       data-content="<?php echo lang("Write the message,  if no filter word found. If you don't want to send message them, just keep it blank ."); ?>  Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i
                                                 class='fa fa-info-circle'></i> </a>
                                 </label>
                                 <?php if ($comment_tag_machine_addon) { ?>

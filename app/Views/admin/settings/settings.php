@@ -19,7 +19,7 @@
               <div class="wizard-step-label text-capitalize">
                 <?php echo lang('General Settings'); ?>
               </div>
-              <p class="text-muted mt-2"><?php echo $this->lang->line("Report of auto comment on page's post."); ?></p>       
+              <p class="text-muted mt-2"><?php echo lang("Report of auto comment on page's post."); ?></p>       
             </div>
           </a>
         </div>

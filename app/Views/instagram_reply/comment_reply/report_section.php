@@ -21,7 +21,7 @@
             <div class="wizard-step-label">
               <?php echo lang('Auto Comment Report'); ?>
             </div>
-            <p class="text-muted mt-3"><?php echo $this->lang->line("Report of auto comment on instagram accounts's post."); ?></p>       
+            <p class="text-muted mt-3"><?php echo lang("Report of auto comment on instagram accounts's post."); ?></p>       
           </div>
         </a>
       </div>
@@ -37,7 +37,7 @@
             <div class="wizard-step-label">
               <?php echo lang('Auto Comment Reply Report'); ?>
             </div>
-            <p class="text-muted mt-3"><?php echo $this->lang->line("Report of auto comment reply on instagram accounts's post."); ?></p>       
+            <p class="text-muted mt-3"><?php echo lang("Report of auto comment reply on instagram accounts's post."); ?></p>       
           </div>
         </a>
       </div>
@@ -68,7 +68,7 @@
             <div class="wizard-step-label">
               <?php echo lang('Mention Reply Report'); ?>
             </div>
-            <p class="text-muted mt-3"><?php echo $this->lang->line("Report of Mention of instagram accounts's post."); ?></p>       
+            <p class="text-muted mt-3"><?php echo lang("Report of Mention of instagram accounts's post."); ?></p>       
           </div>
         </a>
       </div>

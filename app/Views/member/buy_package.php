@@ -85,7 +85,7 @@
                     echo '
                     <div class="pricing-item">
                       <div class="pricing-item-icon_x bg-light_x"><i class="fas fa-check"></i></div>
-                      <div class="pricing-item-label">&nbsp;'.$this->lang->line($row["module_name"]).$limit2.'</div>
+                      <div class="pricing-item-label">&nbsp;'.lang($row["module_name"]).$limit2.'</div>
                     </div>';
                 } ?>
                                 

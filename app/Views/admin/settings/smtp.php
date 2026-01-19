@@ -16,7 +16,7 @@
     </div>
   </div>
 
-  <?php view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="section-body">
     <div class="row">

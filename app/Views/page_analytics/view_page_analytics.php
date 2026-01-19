@@ -69,7 +69,7 @@
 		          <div class="card-header">
 		            <h4>
 		            	<?php echo lang('Page Impressions');?>
-		            	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Impressions') ?>" data-content="<?php echo $this->lang->line("The number of times any content from your Page or about your Page entered a person's screen. This includes posts, stories, check-ins, ads, social information from people who interact with your Page Also through paid distribution such as an ad.") ?>"><i class='fas fa-info-circle'></i> </a>
+		            	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Impressions') ?>" data-content="<?php echo lang("The number of times any content from your Page or about your Page entered a person's screen. This includes posts, stories, check-ins, ads, social information from people who interact with your Page Also through paid distribution such as an ad.") ?>"><i class='fas fa-info-circle'></i> </a>
 		            </h4>
 		          </div>
 		          <div class="card-body">
@@ -83,7 +83,7 @@
 			      <div class="card-header">
 			        <h4>
 			        	<?php echo lang('Page Impressions: Paid vs Unpaid');?>
-			        	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Impressions') ?>" data-content="<?php echo $this->lang->line("Paid: The number of times any content from your Page or about your Page entered a person's screen through paid distribution such as an ad. 
+			        	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Impressions') ?>" data-content="<?php echo lang("Paid: The number of times any content from your Page or about your Page entered a person's screen through paid distribution such as an ad. 
 			        	    Unpaid: The number of times any content from your Page or about your Page entered a person's screen through unpaid distribution. This includes posts, stories, check-ins, social information from people who interact with your Page and more.") ?>"><i class='fas fa-info-circle'></i> </a>
 			        </h4>
 			      </div>
@@ -100,7 +100,7 @@
 			      <div class="card-header">
 			        <h4>
 			        	<?php echo lang('Page Engagement');?>
-			        	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Engagement') ?>" data-content="<?php echo $this->lang->line("The number of times any content from your Page or about your Page entered a person's screen. This includes posts, stories, check-ins, ads, social information from people who interact with your Page Also through paid distribution such as an ad.") ?>"><i class='fas fa-info-circle'></i> </a>
+			        	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Engagement') ?>" data-content="<?php echo lang("The number of times any content from your Page or about your Page entered a person's screen. This includes posts, stories, check-ins, ads, social information from people who interact with your Page Also through paid distribution such as an ad.") ?>"><i class='fas fa-info-circle'></i> </a>
 			        </h4>
 			      </div>
 			      <div class="card-body">
@@ -116,7 +116,7 @@
 			      <div class="card-header">
 			        <h4>
 			        	<?php echo lang('Page Reactions');?>
-			        	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Reaction') ?>" data-content="<?php echo $this->lang->line("Daily total post 'like', 'love', 'wow', 'sorry', 'anger'  reactions of a page.") ?>"><i class='fas fa-info-circle'></i> </a>
+			        	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Reaction') ?>" data-content="<?php echo lang("Daily total post 'like', 'love', 'wow', 'sorry', 'anger'  reactions of a page.") ?>"><i class='fas fa-info-circle'></i> </a>
 			        </h4>
 			      </div>
 			      <div class="card-body">
@@ -132,7 +132,7 @@
 			      <div class="card-header">
 			        <h4>
 			        	<?php echo lang('Page CTA Clicks');?>
-			        	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page CTA Clicks') ?>" data-content="<?php echo $this->lang->line("The number of clicks on your Page's contact info and call-to-action button.") ?>"><i class='fas fa-info-circle'></i> </a>
+			        	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page CTA Clicks') ?>" data-content="<?php echo lang("The number of clicks on your Page's contact info and call-to-action button.") ?>"><i class='fas fa-info-circle'></i> </a>
 			        </h4>
 			      </div>
 			      <div class="card-body">
@@ -262,7 +262,7 @@
 					    <div class="card-header">
 					      <h4>
 					      	<?php echo lang('Page Video Views');?>
-					      	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Video Views') ?>" data-content="<?php echo $this->lang->line("The number of times your Page's videos played, During a single instance of a video playing, we'll exclude any time spent replaying the video.") ?>"><i class='fas fa-info-circle'></i> </a>
+					      	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Video Views') ?>" data-content="<?php echo lang("The number of times your Page's videos played, During a single instance of a video playing, we'll exclude any time spent replaying the video.") ?>"><i class='fas fa-info-circle'></i> </a>
 					      </h4>
 					    </div>
 					    <div class="card-body">
@@ -275,7 +275,7 @@
 					    <div class="card-header">
 					      <h4>
 					      	<?php echo lang('Page Video Views: Paid Vs Unpaid');?>
-					      	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Video Views: Paid Vs Unpaid') ?>" data-content="<?php echo $this->lang->line("The number of times your Page's promoted and nonpromoted videos played for at least 3 seconds, or for nearly their total length if they're shorter than 3 seconds. For each impression of a video, we'll count video views separately and exclude any time spent replaying the video") ?>"><i class='fas fa-info-circle'></i> </a>
+					      	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Video Views: Paid Vs Unpaid') ?>" data-content="<?php echo lang("The number of times your Page's promoted and nonpromoted videos played for at least 3 seconds, or for nearly their total length if they're shorter than 3 seconds. For each impression of a video, we'll count video views separately and exclude any time spent replaying the video") ?>"><i class='fas fa-info-circle'></i> </a>
 					      </h4>
 					    </div>
 					    <div class="card-body">
@@ -293,7 +293,7 @@
 					    <div class="card-header">
 					      <h4>
 					      	<?php echo lang('Page Post Impressions: Viral Vs Nonviral');?>
-					      	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Post Impressions: Viral Vs Nonviral') ?>" data-content="<?php echo $this->lang->line("Viral: The number of times your Page's posts entered a person's screen with social information attached. Social information displays when a person's friend interacted with you Page or post. This includes when someone's friend likes or follows your Page, engages with a post, shares a photo of your Page and checks into your Page. Nonviral : The number of times your Page's posts entered a person's screen. This does not include content created about your Page with social information attached. Social information displays when a person's friend interacted with you Page or post. This includes when someone's friend likes or follows your Page, engages with a post, shares a photo of your Page and checks into your Page.") ?>"><i class='fas fa-info-circle'></i> </a>
+					      	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Post Impressions: Viral Vs Nonviral') ?>" data-content="<?php echo lang("Viral: The number of times your Page's posts entered a person's screen with social information attached. Social information displays when a person's friend interacted with you Page or post. This includes when someone's friend likes or follows your Page, engages with a post, shares a photo of your Page and checks into your Page. Nonviral : The number of times your Page's posts entered a person's screen. This does not include content created about your Page with social information attached. Social information displays when a person's friend interacted with you Page or post. This includes when someone's friend likes or follows your Page, engages with a post, shares a photo of your Page and checks into your Page.") ?>"><i class='fas fa-info-circle'></i> </a>
 					      </h4>
 					    </div>
 					    <div class="card-body">
@@ -306,7 +306,7 @@
 					    <div class="card-header">
 					      <h4>
 					      	<?php echo lang('Page Post Impressions: Paid Vs Unpaid');?>
-					      	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Post Impressions: Paid Vs Unpaid') ?>" data-content="<?php echo $this->lang->line("Paid: The number of times your Page's posts entered a person's screen through paid distribution such as an ad. Unpaid : The number of times your Page's posts entered a person's screen through unpaid distribution.") ?>"><i class='fas fa-info-circle'></i> </a>
+					      	<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang('Page Post Impressions: Paid Vs Unpaid') ?>" data-content="<?php echo lang("Paid: The number of times your Page's posts entered a person's screen through paid distribution such as an ad. Unpaid : The number of times your Page's posts entered a person's screen through unpaid distribution.") ?>"><i class='fas fa-info-circle'></i> </a>
 					      </h4>
 					    </div>
 					    <div class="card-body">

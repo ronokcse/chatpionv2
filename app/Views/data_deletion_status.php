@@ -104,7 +104,7 @@
         <?php endif; ?>
         
         <?php if ($status == 'success'): ?>
-            <p><?php echo $this->lang->line("We have successfully processed your data deletion request and removed all your personal data from our system in accordance with Facebook's data deletion requirements."); ?></p>
+            <p><?php echo lang("We have successfully processed your data deletion request and removed all your personal data from our system in accordance with Facebook's data deletion requirements."); ?></p>
             
             <p><strong><?php echo lang('What was deleted'); ?>:</strong></p>
             <ul>
@@ -116,7 +116,7 @@
                 <li><?php echo lang('All other personal data stored in our system'); ?></li>
             </ul>
         <?php elseif ($status == 'processing'): ?>
-            <p><?php echo $this->lang->line("Your data deletion request has been received and is currently being processed. We are working to remove all your personal data from our system in accordance with Facebook's data deletion requirements."); ?></p>
+            <p><?php echo lang("Your data deletion request has been received and is currently being processed. We are working to remove all your personal data from our system in accordance with Facebook's data deletion requirements."); ?></p>
             
             <p><strong><?php echo lang('What will be deleted'); ?>:</strong></p>
             <ul>
@@ -130,7 +130,7 @@
         <?php elseif ($status == 'failed'): ?>
             <p><?php echo lang('We encountered an error while processing your data deletion request. Please try again or contact our support team for assistance.'); ?></p>
         <?php else: ?>
-            <p><?php echo $this->lang->line("Your data deletion request has been received and will be processed shortly. We will remove all your personal data from our system in accordance with Facebook's data deletion requirements."); ?></p>
+            <p><?php echo lang("Your data deletion request has been received and will be processed shortly. We will remove all your personal data from our system in accordance with Facebook's data deletion requirements."); ?></p>
         <?php endif; ?>
         
         <div class="footer">
