@@ -11348,21 +11348,17 @@ public function reminder_send_status_data()
 
   
 
-  $this->db->where($where_custom);
-
-  
+  $where = array('where' => $where_custom);
 
   $table="ecommerce_reminder_report";
 
-  $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
+  $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
 
     // echo $this->db->last_query();
 
 
 
-  $this->db->where($where_custom);
-
-  $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join='',$group_by='');
+  $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join='',$group_by='');
 
 
 
