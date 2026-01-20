@@ -1,15 +1,27 @@
-<?php require_once("Home.php"); // including home controller
+<?php
+
+namespace App\Controllers;
+
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Announcement extends Home
 {
 
     public $download_id;
-    public function __construct()
+    
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
+        
         if ($this->session->userdata('logged_in') != 1) 
         {
-            redirect('home/login_page', 'location');
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
     }
 
@@ -123,7 +135,10 @@ class Announcement extends Home
 
     public function add()
     {
-        if($this->session->userdata('user_type') != 'Admin') redirect('home/login_page', 'location');
+        if($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
         $data['body'] = 'admin/announcement/add';
         $data['page_title'] = $this->lang->line("Add Announcement");     
         $this->_viewcontroller($data);
@@ -160,14 +175,17 @@ class Announcement extends Home
             $this->session->set_flashdata('success_message',1);    
             else $this->session->set_flashdata('error_message',1);
 
-            redirect('announcement/full_list', 'location'); 
+            return redirect()->to(base_url('announcement/full_list')); 
         }         
     }
 
     public function edit($id=0)
     {
         if($id==0) exit();
-        if($this->session->userdata('user_type') != 'Admin') redirect('home/login_page', 'location');
+        if($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
         $data['body'] = 'admin/announcement/edit';
         $data['page_title'] = $this->lang->line("Edit Announcement");  
         $xdata=$this->basic->get_data("announcement",array('where'=>array('id'=>$id)));   
@@ -208,7 +226,7 @@ class Announcement extends Home
             $this->session->set_flashdata('success_message',1);    
             else $this->session->set_flashdata('error_message',1);
 
-            redirect('announcement/full_list', 'location'); 
+            return redirect()->to(base_url('announcement/full_list')); 
         }
     }
 
