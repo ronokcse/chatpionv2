@@ -82,7 +82,7 @@ $drop_menu = '<div class="btn-group dropleft float-right"><button type="button" 
           pageLength: 25,
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($language) ? $language : 'english').'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [            

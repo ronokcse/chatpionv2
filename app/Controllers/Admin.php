@@ -1131,9 +1131,24 @@ class Admin extends Home
         if($_POST)
         {
             $id = $this->input->post('id');
+            
+            // Get current user's email from database
+            $current_user = $this->basic->get_data('users', array('where' => array('id' => $id)), array('email'));
+            $current_email = isset($current_user[0]['email']) ? $current_user[0]['email'] : '';
+            $new_email = $this->input->post('email', true);
+            
             $this->form_validation->set_rules('name', '<b>'.$this->lang->line("Full Name").'</b>', 'trim');
-            $unique_email = "users.email.".$id; 
-            $this->form_validation->set_rules('email', '<b>'.$this->lang->line("Email").'</b>', "trim|is_unique[$unique_email]");      
+            
+            // Only apply is_unique validation if email is different from current email
+            if ($current_email !== '' && strtolower(trim($current_email)) === strtolower(trim($new_email))) {
+                // Email is same, skip is_unique validation
+                $this->form_validation->set_rules('email', '<b>'.$this->lang->line("Email").'</b>', 'trim|required|valid_email');
+            } else {
+                // Email is different, apply is_unique validation
+                $unique_email = "users.email.".$id; 
+                $this->form_validation->set_rules('email', '<b>'.$this->lang->line("Email").'</b>', "trim|required|valid_email|is_unique[$unique_email]");
+            }
+            
             $this->form_validation->set_rules('mobile', '<b>'.$this->lang->line("Mobile").'</b>', 'trim');            
             $this->form_validation->set_rules('address', '<b>'.$this->lang->line("Address").'</b>', 'trim');      
             $this->form_validation->set_rules('user_type', '<b>'.$this->lang->line("User Type").'</b>', 'trim|required');      
@@ -1209,6 +1224,7 @@ class Admin extends Home
 
        $data['body'] = "admin/user/login_log";
        $data['page_title'] = $this->lang->line('Login Log');
+       $data['language'] = $this->language; // Pass language to view
        $today = date("Y-m-d");
        $prev_day = date('Y-m-d', strtotime($today. ' - 30 days'))." 00:00:00";
        $data['info'] = $this->basic->get_data('user_login_info',array('where'=>array('login_time >='=>$prev_day)),$select='',$join='',$limit='',$start=NULL,$order_by='login_time DESC'); 
