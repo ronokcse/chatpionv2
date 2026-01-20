@@ -10,7 +10,13 @@
 
   <?php 
       $access_array = ["1"=>lang("Create"),"2"=>lang("Update"),"3"=>lang("Delete"),"4"=>lang("Special")];
-      $module_access = json_decode($module_access,true);
+      // CI4 fix: $module_access may already be an array depending on how it was prepared.
+      if (is_string($module_access)) {
+        $decoded = json_decode($module_access, true);
+        $module_access = is_array($decoded) ? $decoded : [];
+      } else if (!is_array($module_access)) {
+        $module_access = [];
+      }
   ?>
   <?php echo view('admin/theme/message'); ?>
 
