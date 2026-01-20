@@ -22,7 +22,7 @@
                 $text=lang('Re-generate API Key');
                 $get_key_text=lang('Your API Key');
             }
-            if($this->is_demo=='1') $api_key='xxxxxxxxxxxxxxxxxxxxxxxxxx';
+            if(isset($controller) && $controller->is_demo=='1') $api_key='xxxxxxxxxxxxxxxxxxxxxxxxxx';
             ?>
 
             <form class="form-horizontal" enctype="multipart/form-data" action="<?php echo site_url().'native_api/get_api_action';?>" method="GET">
@@ -34,7 +34,7 @@
                     <?php if($api_key=="") echo lang('Every cron url must contain the API key for authentication purpose. Generate your API key to see the cron job list.'); ?>
                   </div>
                   <div class="card-footer bg-whitesmoke d-flex justify-content-between">
-                    <button type="submit" name="button" class="btn btn-primary btn-lg btn <?php if($this->is_demo=='1') echo 'disabled';?>"><i class="fas fa-redo"></i> <?php echo $text; ?></button>
+                    <button type="submit" name="button" class="btn btn-primary btn-lg btn <?php if(isset($controller) && $controller->is_demo=='1') echo 'disabled';?>"><i class="fas fa-redo"></i> <?php echo $text; ?></button>
 
                     <a class="btn btn-info btn-lg" href="<?php echo base_url('api/doc'); ?>" target="_blank"><i class="fas fa-cog"></i> <?php echo lang('API Documentation'); ?></a>
                   </div>

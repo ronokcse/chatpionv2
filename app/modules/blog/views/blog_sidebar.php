@@ -3,13 +3,13 @@
 		<form action="<?php echo base_url('blog/posts_filter'); ?>" class="widget-search-form" method="GET">
 			<button type="submit"><i class="fa fa-search"></i></button>
 			<input type="hidden" name="type" value="search">
-			<input type="text" class="form-control" name="keywords" placeholder="<?php echo $this->lang->line('Search'); ?>">
+			<input type="text" class="form-control" name="keywords" placeholder="<?php echo lang('Search'); ?>">
 		</form>
 	</div>
 </div><!--/.widget-wrap-->
 <div class="widget-wrap">
 	<div class="widget-heading">
-		<h3><?php echo $this->lang->line('Category'); ?></h3>
+		<h3><?php echo lang('Category'); ?></h3>
 	</div><!--/.widget-heading-->
 	<div class="widget-content">
 		<ul class="categories">
@@ -21,7 +21,7 @@
 </div><!--/.widget-wrap-->
 <div class="widget-wrap">
 	<div class="widget-heading">
-		<h3><?php echo $this->lang->line('Tags'); ?></h3>
+		<h3><?php echo lang('Tags'); ?></h3>
 	</div><!--/.widget-heading-->
 	<div class="widget-content">
 		<ul class="tags">

@@ -19,13 +19,27 @@ Version: 2.0
 Description: Describes how the API for this application works
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Api\Controllers;
 
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
+/**
+ * @property mixed $router
+ * @property mixed $input
+ * @property mixed $fb_rx_login
+ */
 class Api extends Home
 {
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();   
+        parent::initController($request, $response, $logger);
+        // No additional initialization required for this addon.
     }
 
 
@@ -115,12 +129,21 @@ class Api extends Home
 
     public function doc() 
     {
-        $data['page_title'] = $this->lang->line('API Documentation');
-        $data['title'] = $this->lang->line('API Documentation');
+        $data['page_title']   = $this->lang->line('API Documentation');
+        $data['title']        = $this->lang->line('API Documentation');
         $data['product_name'] = $this->config->item('product_name');
-        $data['endpoint'] = base_url('/api');
+        $data['endpoint']     = base_url('/api');
 
-        $this->load->view('api/doc', $data);
+        // Make variables available to the legacy view.
+        extract($data);
+
+        // Directly include legacy CI3-style view from module path for CI4 compatibility.
+        $viewPath = APPPATH . 'modules/api/views/doc.php';
+        if (file_exists($viewPath)) {
+            include $viewPath;
+        } else {
+            echo 'API documentation view not found.';
+        }
     }
 
     public function create_system_user(){

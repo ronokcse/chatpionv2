@@ -11,30 +11,53 @@ Version: 1.0
 Description: Front end blog page creation for admin user only
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Blog\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Blog extends Home
 {
 	public $editor_allowed_tags;
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
-        $function_name=$this->uri->segment(2);
+        parent::initController($request, $response, $logger);
+
+        $function_name = $this->uri->segment(2);
         $lv1 = array('category','category_data','category_store','category_update','category_delete','tag','tag_data','tag_store','tag_update','tag_delete','posts','post_data','add_post','add_post_action','edit_post','edit_post_action','delete_post','upload_post_thumbnail','delete_post_thumbnail','comment_delete');
         $lv2 = array('comment_action');
-        if(file_exists(APPPATH.'core/licence_type.txt'))$this->license_check_action();        
-        if(in_array($function_name, $lv1)){
-            if ($this->session->userdata('logged_in') != 1 || $this->session->userdata('user_type') != 'Admin'){ 
-                redirect('home/login_page', 'location');exit();
-            }if($this->session->userdata('license_type') != 'double'){redirect('home/access_forbidden', 'location');exit;}
-        }if(in_array($function_name, $lv2)){
-            if ($this->session->userdata('logged_in') != 1){ 
-                redirect('home/login_page', 'location');exit();
+
+        if (file_exists(APPPATH . 'core/licence_type.txt')) {
+            $this->license_check_action();
+        }
+
+        if (in_array($function_name, $lv1)) {
+            if ($this->session->userdata('logged_in') != 1 || $this->session->userdata('user_type') != 'Admin') { 
+                redirect('home/login_page', 'location');
+                exit();
+            }
+            if ($this->session->userdata('license_type') != 'double') {
+                redirect('home/access_forbidden', 'location');
+                exit;
             }
         }
+
+        if (in_array($function_name, $lv2)) {
+            if ($this->session->userdata('logged_in') != 1) { 
+                redirect('home/login_page', 'location');
+                exit();
+            }
+        }
+
         // team user can not access
-        if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        if ($this->is_manager == 1) {
+            redirect('home/login_page', 'location');
+        }
     
         $this->editor_allowed_tags = '<h1><h2><h3><h4><h5><h6><a><b><strong><p><i><div><span><ul><li><ol><blockquote><code><table><tr><td><th><img><iframe>';
     }
@@ -1019,8 +1042,9 @@ class Blog extends Home
         // visitor count
         $this->load->helper('cookie');
         $visited = 'blog_post_details_'.$id;
-        $check_visitor = $this->input->cookie($visited, FALSE);
-        $ip = $this->input->ip_address();
+        // CI4 fix: use input wrapper cookie() and request IP address
+        $check_visitor = $this->input->cookie($visited);
+        $ip = $this->request->getIPAddress();
         // $expire = time() + 7200;
         $expire = 7200;
 
@@ -1031,7 +1055,8 @@ class Blog extends Home
                 "expire" =>  (int)$expire,
                 "secure" => false
             );
-            $this->input->set_cookie($cookie);
+            // CI4 fix: use global helper set_cookie()
+            set_cookie($cookie);
             $this->basic->update_data('blog_posts', array('id' => $id), [
                 'views'=>$data["post"][0]['views'] + 1,
             ]);

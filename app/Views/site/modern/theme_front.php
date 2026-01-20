@@ -119,7 +119,32 @@
             <div class="row flex-v-center">
                 <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
                     <div class="about-content sm-mb50 sm-center text-justify padding_top_80px">
-                        <?php view($body);  ?>
+                        <?php
+                            // Try to load module view first (app/modules/{module}/views/{body}.php),
+                            // fall back to standard app/Views/{body}.php
+                            $request = \Config\Services::request();
+                            $module = '';
+                            try {
+                                $module = $request->getUri()->getSegment(1) ?? '';
+                            } catch (\Throwable $e) {
+                                $module = '';
+                            }
+
+                            $loaded = false;
+                            if ($module) {
+                                $moduleViewFile = APPPATH . 'modules/' . $module . '/views/' . $body . '.php';
+                                if (is_file($moduleViewFile)) {
+                                    // Extract all variables from the current scope so they're available in the included view
+                                    extract(get_defined_vars(), EXTR_SKIP);
+                                    include $moduleViewFile;
+                                    $loaded = true;
+                                }
+                            }
+
+                            if (!$loaded) {
+                                echo view($body);
+                            }
+                        ?>
                     </div>
                 </div>
             </div>
