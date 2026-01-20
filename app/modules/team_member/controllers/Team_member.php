@@ -1,4 +1,12 @@
 <?php
+
+namespace App\Modules\Team_member\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
 /*
 Addon Name: Team Member Manager
 Unique Name: team_member
@@ -19,30 +27,36 @@ Version: 1.0
 Description: Manage team member who can perform task on-behalf of you
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
-
 class Team_member extends Home
 {
     public $addon_data=array();
     
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
         $function_name=$this->uri->segment(2);
       
-        if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
+        if ($this->session->userdata('logged_in')!= 1) {
+            header('Location: ' . base_url('home/login'));
+            exit();
+        }
 
         // team user can not access
-        if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        if($this->is_manager==1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
         $this->member_validity();        
 
         // getting addon information in array and storing to public variable
         // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
         //------------------------------------------------------------------------------------------
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        $addon_path=APPPATH."modules/team_member/controllers/Team_member.php"; // path of addon controller
         $addondata=$this->get_addon_data($addon_path); 
         $this->addon_data=$addondata; 
 
@@ -50,7 +64,7 @@ class Team_member extends Home
         {
             if($this->session->userdata('user_type') != 'Admin' && !in_array($addondata['module_id'],$this->module_access))
             {
-                  redirect('home/login_page', 'location');
+                  header('Location: ' . base_url('home/login_page'));
                   exit();
             }
         }  
@@ -125,8 +139,9 @@ class Team_member extends Home
           exit();
       }
 
-      if($_SERVER['REQUEST_METHOD'] === 'GET') 
-      redirect('home/access_forbidden','location');
+      if($_SERVER['REQUEST_METHOD'] === 'GET') {
+          return redirect()->to(base_url('home/access_forbidden'));
+      }
 
       if($_POST)
       {     
@@ -172,7 +187,7 @@ class Team_member extends Home
               if($this->basic->insert_data('team_roles',$data)) $this->session->set_flashdata('success_message',1);   
               else $this->session->set_flashdata('error_message',1);     
               
-              redirect('team_member/role_list','location');                 
+              return redirect()->to(base_url('team_member/role_list'));                 
               
           }
       }   
@@ -209,8 +224,9 @@ class Team_member extends Home
           exit();
       }
 
-      if($_SERVER['REQUEST_METHOD'] === 'GET') 
-      redirect('home/access_forbidden','location');
+      if($_SERVER['REQUEST_METHOD'] === 'GET') {
+          return redirect()->to(base_url('home/access_forbidden'));
+      }
 
       if($_POST)
       {     
@@ -259,7 +275,7 @@ class Team_member extends Home
               if($this->basic->update_data('team_roles',array("id"=>$role_id),$update_data)) $this->session->set_flashdata('success_message',1);   
               else $this->session->set_flashdata('error_message',1);     
               
-              redirect('team_member/role_list','location');                 
+              return redirect()->to(base_url('team_member/role_list'));                 
               
           }
       }   
@@ -393,8 +409,9 @@ class Team_member extends Home
         }
 
 
-        if($_SERVER['REQUEST_METHOD'] === 'GET') 
-        redirect('home/access_forbidden','location');
+        if($_SERVER['REQUEST_METHOD'] === 'GET') {
+            return redirect()->to(base_url('home/access_forbidden'));
+        }
 
         if($_POST)
         {
@@ -438,7 +455,7 @@ class Team_member extends Home
                 }
                 else $this->session->set_flashdata('error_message',1);     
                 
-                redirect('team_member/member_list','location');                 
+                return redirect()->to(base_url('team_member/member_list'));                 
                 
             }
         }   
@@ -472,15 +489,31 @@ class Team_member extends Home
             exit();
         }
 
-        if($_SERVER['REQUEST_METHOD'] === 'GET') 
-        redirect('home/access_forbidden','location');
+        if($_SERVER['REQUEST_METHOD'] === 'GET') {
+            return redirect()->to(base_url('home/access_forbidden'));
+        }
 
         if($_POST)
         {
             $id = $this->input->post('id');
+            
+            // Get current team member's email from database
+            $current_team_member = $this->basic->get_data('team_members', array('where' => array('id' => $id)), array('email'));
+            $current_email = isset($current_team_member[0]['email']) ? $current_team_member[0]['email'] : '';
+            $new_email = $this->input->post('email', true);
+            
             $this->form_validation->set_rules('name', '<b>'.$this->lang->line("Full Name").'</b>', 'trim');
-            $unique_email = "team_members.email.".$id; 
-            $this->form_validation->set_rules('email', '<b>'.$this->lang->line("Email").'</b>', "trim|required|valid_email|is_unique[$unique_email]");      
+            
+            // Only apply is_unique validation if email is different from current email
+            if ($current_email !== '' && strtolower(trim($current_email)) === strtolower(trim($new_email))) {
+                // Email is same, skip is_unique validation
+                $this->form_validation->set_rules('email', '<b>'.$this->lang->line("Email").'</b>', 'trim|required|valid_email');
+            } else {
+                // Email is different, apply is_unique validation
+                $unique_email = "team_members.email.".$id; 
+                $this->form_validation->set_rules('email', '<b>'.$this->lang->line("Email").'</b>', "trim|required|valid_email|is_unique[$unique_email]");
+            }
+            
             $this->form_validation->set_rules('mobile', '<b>'.$this->lang->line("Mobile").'</b>', 'trim');              
             $this->form_validation->set_rules('status', '<b>'.$this->lang->line("Status").'</b>', 'trim');
 
@@ -517,7 +550,7 @@ class Team_member extends Home
                 if($this->basic->update_data('team_members',array("id"=>$id),$data)) $this->session->set_flashdata('success_message',1);   
                 else $this->session->set_flashdata('error_message',1);     
                 
-                redirect('team_member/member_list','location');             
+                return redirect()->to(base_url('team_member/member_list'));             
                 
             }
         }   
@@ -602,6 +635,7 @@ class Team_member extends Home
         }
         
         if($id==0) exit();
+
      
         if($this->basic->delete_data("team_members",array("id"=>$id,'user_id'=>$this->user_id))){
           $this->_delete_usage_log($module_id=350,$request=1); 

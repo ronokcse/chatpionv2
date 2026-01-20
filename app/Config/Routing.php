@@ -122,10 +122,39 @@ class Routing extends BaseRouting
      *   [
      *       'blog' => 'Acme\Blog\Controllers',
      *   ]
+     * 
+     * Auto-populated from app/modules directory (CI3-style auto-loading)
      *
      * @var array<string, string>
      */
     public array $moduleRoutes = [];
+    
+    /**
+     * Constructor - Auto-detect modules from app/modules directory
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        
+        // Auto-detect modules from app/modules directory (CI3-style)
+        $modules_dir = APPPATH . 'modules/';
+        if (is_dir($modules_dir)) {
+            $modules = array_diff(scandir($modules_dir), ['.', '..']);
+            
+            foreach ($modules as $module) {
+                $module_path = $modules_dir . $module;
+                if (is_dir($module_path)) {
+                    $controller_name = ucfirst(strtolower($module));
+                    $controller_file = $module_path . '/controllers/' . $controller_name . '.php';
+                    
+                    if (file_exists($controller_file)) {
+                        $namespace = 'App\\Modules\\' . $controller_name . '\\Controllers';
+                        $this->moduleRoutes[strtolower($module)] = $namespace;
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * For Auto Routing (Improved).

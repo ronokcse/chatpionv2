@@ -3,16 +3,16 @@
     <h1><i class="fas fa-user-lock"></i> <?php echo $page_title; ?></h1>
     <div class="section-header-button">
      <a class="btn btn-primary"  href="<?php echo site_url('team_member/add_role');?>">
-        <i class="fas fa-plus-circle"></i> <?php echo $this->lang->line("New Role"); ?>
+        <i class="fas fa-plus-circle"></i> <?php echo lang("New Role"); ?>
      </a> 
     </div>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><?php echo $this->lang->line("Team Manager"); ?></div>
+      <div class="breadcrumb-item"><?php echo lang("Team Manager"); ?></div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="section-body">
 
@@ -25,10 +25,10 @@
                 <thead>
                   <tr>
                     <th>#</th>      
-                    <th><?php echo $this->lang->line("Role ID"); ?></th>      
-                    <th><?php echo $this->lang->line("Role Name"); ?></th>
-                    <th><?php echo $this->lang->line("Facebook Page Count"); ?></th>
-                    <th style="min-width: 150px"><?php echo $this->lang->line("Actions"); ?></th>
+                    <th><?php echo lang("Role ID"); ?></th>      
+                    <th><?php echo lang("Role Name"); ?></th>
+                    <th><?php echo lang("Facebook Page Count"); ?></th>
+                    <th style="min-width: 150px"><?php echo lang("Actions"); ?></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -46,7 +46,7 @@
 
 
 
-<?php $csrf_token=$this->session->userdata('csrf_token_session'); ?>
+<?php $csrf_token=session()->get('csrf_token_session'); ?>
 
 <script>       
     var base_url="<?php echo site_url(); ?>";
@@ -69,7 +69,7 @@
           },
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? 'english').'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [
@@ -98,9 +98,9 @@
               {       
                   var edit_url=base_url+'team_member/edit_role/'+row[1];
                   var delete_url=base_url+'team_member/delete_role/'+row[1];
-                  var more="<?php echo $this->lang->line('More Info');?>";
-                  var edit_str="<?php echo $this->lang->line('Edit');?>";
-                  var delete_str="<?php echo $this->lang->line('Delete');?>";
+                  var more="<?php echo lang('More Info');?>";
+                  var edit_str="<?php echo lang('Edit');?>";
+                  var delete_str="<?php echo lang('Delete');?>";
                   var str="";   
                   str=str+"&nbsp;<a class='btn btn-circle btn-outline-warning' href='"+edit_url+"'>"+'<i class="fas fa-edit"></i>'+"</a>";                 
                   str=str+"&nbsp;<a href='"+delete_url+"' csrf_token='"+csrf_token+"' class='are_you_sure_datatable btn btn-circle btn-outline-danger'>"+'<i class="fa fa-trash"></i>'+"</a>";

@@ -2,35 +2,35 @@
   <div class="section-header">
     <h1><i class="fas fa-plus-circle"></i> <?php echo $page_title; ?></h1>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><?php echo $this->lang->line("Team Manager"); ?></div>
-      <div class="breadcrumb-item active"><a href="<?php echo base_url('team_member/role_list'); ?>"><?php echo $this->lang->line("Team Roles"); ?></a></div>
+      <div class="breadcrumb-item"><?php echo lang("Team Manager"); ?></div>
+      <div class="breadcrumb-item active"><a href="<?php echo base_url('team_member/role_list'); ?>"><?php echo lang("Team Roles"); ?></a></div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
 
   <?php 
-      $access_array = ["1"=>$this->lang->line("Create"),"2"=>$this->lang->line("Update"),"3"=>$this->lang->line("Delete"),"4"=>$this->lang->line("Special")];
+      $access_array = ["1"=>lang("Create"),"2"=>lang("Update"),"3"=>lang("Delete"),"4"=>lang("Special")];
   ?>
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="row">
     <div class="col-12">
       <form class="form-horizontal" action="<?php echo site_url().'team_member/add_role_action';?>" method="POST">
-        <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $this->session->userdata('csrf_token_session'); ?>">
+        <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo session()->get('csrf_token_session'); ?>">
         <div class="card">
           <div class="card-body">
              
             <div class="row">
               <div class="col-12">
                 <div class="form-group">
-                  <label for="name"> <?php echo $this->lang->line("Role Name")?> *</label>
+                  <label for="name"> <?php echo lang("Role Name")?> *</label>
                   <input name="name" value="<?php echo set_value('name');?>"  class="form-control" type="text">
                   <span class="text-danger"><?php echo form_error('name'); ?></span>
                 </div>
               </div>
               <div class="col-12">
                 <div class="form-group">
-                  <label for="page_ids"> <?php echo $this->lang->line("Allowed Pages")?> *</label>
+                  <label for="page_ids"> <?php echo lang("Allowed Pages")?> *</label>
                   <?php echo form_dropdown('page_ids[]', $page_list, '1','multiple class="form-control select2" style="width:100% !important;"'); ?>                  
                   <span class="red"><?php echo form_error('page_ids'); ?></span>
                 </div>
@@ -48,22 +48,22 @@
 
                             echo "<tr>"; 
                                 echo "<th class='px-3' width='20px'>"; 
-                                  echo $this->lang->line("#");         
+                                  echo lang("#");         
                                 echo "</th>";
                                 echo "
                                 <th class='px-3'>
                                   <div class='form-check form-switch d-flex p-0'>
                                       <input  name='' id='all_modules' class='regular-checkbox' type='checkbox'/>
-                                      <label class='form-check-label' for='all_modules'></label>&nbsp;&nbsp;&nbsp; ".$this->lang->line("Modules")."
+                                      <label class='form-check-label' for='all_modules'></label>&nbsp;&nbsp;&nbsp; ".lang("Modules")."
                                   </div>
                                 </th>";                       
                                 echo "<th class='px-3'>"; 
-                                  echo $this->lang->line("Allowed Privileges");         
+                                  echo lang("Allowed Privileges");         
                                 echo "</th>";
                              echo "</tr>"; 
 
                             foreach($modules as $module=>$values){
-                                if($this->session->userdata("user_type")=="Member" && !in_array($values['id'], $this->module_access)) continue;
+                                if(session()->get("user_type")=="Member" && !in_array($values['id'], $module_access)) continue;
                                 if($values['id']==350) continue;
                                 $SL++;
                                 ?>
@@ -100,8 +100,8 @@
             </div>         
           </div>
           <div class="card-footer bg-whitesmoke">
-            <button name="submit" type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> <?php echo $this->lang->line("Save");?></button>
-            <button  type="button" class="btn btn-secondary btn-lg float-right" onclick='goBack("team_member/role_list",0)'><i class="fa fa-remove"></i> <?php echo $this->lang->line("Cancel");?></button>
+            <button name="submit" type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> <?php echo lang("Save");?></button>
+            <button  type="button" class="btn btn-secondary btn-lg float-right" onclick='goBack("team_member/role_list",0)'><i class="fa fa-remove"></i> <?php echo lang("Cancel");?></button>
           </div>
         </div>
       </form>

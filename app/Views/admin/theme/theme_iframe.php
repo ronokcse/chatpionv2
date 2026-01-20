@@ -17,7 +17,25 @@
 		  <i class="fas fa-spinner fa-spin blue text-center"></i>
 		</div>
 		<div id="theme_iframe_container"> 
-			<?php echo view($body); ?>
+			<?php 
+			// Check if view exists in module directory
+			$controller_name = isset($uri) && $uri ? $uri->segment(1) : '';
+			$module_view_path = '';
+			if (isset($controller_name) && !empty($controller_name)) {
+				$module_view_file = APPPATH . 'modules/' . $controller_name . '/views/' . $body . '.php';
+				if (file_exists($module_view_file)) {
+					$module_view_path = $module_view_file;
+				}
+			}
+			
+			if ($module_view_path) {
+				// Include module view directly
+				include($module_view_path);
+			} else {
+				// Use standard CI4 view
+				echo view($body);
+			}
+			?>
 		</div>
 	</body>
 </html>

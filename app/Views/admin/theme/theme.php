@@ -45,7 +45,22 @@
 
 			include(APPPATH.'Views/admin/theme/sidebar.php');
 			echo '<div class="main-content '.$main_content_class.'">';
-				echo view($body);
+				// Check if view exists in module directory
+				$module_view_path = '';
+				if (isset($controller_name) && !empty($controller_name)) {
+					$module_view_file = APPPATH . 'modules/' . $controller_name . '/views/' . $body . '.php';
+					if (file_exists($module_view_file)) {
+						$module_view_path = $module_view_file;
+					}
+				}
+				
+				if ($module_view_path) {
+					// Include module view directly
+					include($module_view_path);
+				} else {
+					// Use standard CI4 view
+					echo view($body);
+				}
 			echo '</div>';
 			include(APPPATH.'Views/include/pusher-js.php');
 			if(current_url() != base_url('livechat/load_livechat'))
