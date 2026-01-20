@@ -183,10 +183,47 @@ abstract class BaseController extends Controller
                             return $this->email->printDebugger($include);
                         }
 
+                        // CI3: set_mailtype($type) - CI4 uses setMailType()
+                        public function set_mailtype($type = 'text')
+                        {
+                            // CI3: 'html' or 'text'
+                            // CI4: Email::MAIL_TYPE_TEXT or Email::MAIL_TYPE_HTML
+                            if (strtolower($type) === 'html') {
+                                $this->email->setMailType('html');
+                            } else {
+                                $this->email->setMailType('text');
+                            }
+                            return $this;
+                        }
+
+                        // CI3: cc($cc)
+                        public function cc($cc)
+                        {
+                            $this->email->setCC($cc);
+                            return $this;
+                        }
+
+                        // CI3: reply_to($replyto, $name = '')
+                        public function reply_to($replyto, $name = '')
+                        {
+                            $this->email->setReplyTo($replyto, $name);
+                            return $this;
+                        }
+
                         // Allow access to underlying service if needed
                         public function __call($name, $arguments)
                         {
-                            return $this->email->$name(...$arguments);
+                            // Check if method exists on CI4 Email service
+                            if (method_exists($this->email, $name)) {
+                                $result = $this->email->$name(...$arguments);
+                                // If method returns the email instance, return $this for chaining
+                                if ($result === $this->email) {
+                                    return $this;
+                                }
+                                return $result;
+                            }
+                            // Return null if method doesn't exist (CI3 compatibility)
+                            return null;
                         }
                     };
 
@@ -374,6 +411,30 @@ abstract class BaseController extends Controller
                                 }
                                 return 'Callback method not found';
                             };
+                        } elseif (strpos($rule, 'is_unique[') !== false) {
+                            // CI4 fix: Convert CI3 is_unique[table.field.id] to CI4 format is_unique[table.field,field_name,{id}]
+                            // CI3 format: is_unique[users.email.123]
+                            // CI4 format: is_unique[users.email,email,{123}]
+                            preg_match('/is_unique\[([^\]]+)\]/', $rule, $matches);
+                            if (isset($matches[1])) {
+                                $params = explode('.', $matches[1]);
+                                if (count($params) >= 2) {
+                                    $table = $params[0];
+                                    $fieldName = $params[1];
+                                    $id = isset($params[2]) ? $params[2] : null;
+                                    
+                                    // CI4 format: is_unique[table.field,field_name,{id}]
+                                    if ($id !== null && $id !== '') {
+                                        $processedRules[] = "is_unique[{$table}.{$fieldName},{$fieldName},{{$id}}]";
+                                    } else {
+                                        $processedRules[] = "is_unique[{$table}.{$fieldName}]";
+                                    }
+                                } else {
+                                    $processedRules[] = $rule; // Keep as-is if format is unexpected
+                                }
+                            } else {
+                                $processedRules[] = $rule;
+                            }
                         } else {
                             $processedRules[] = $rule;
                         }
@@ -389,7 +450,10 @@ abstract class BaseController extends Controller
                 $this->validation->setRules($ci4Rules);
                 
                 // Run validation
-                return $this->validation->run($data, $group);
+                // CI4 fix: Pass null if group is empty, otherwise CI4 may try to use it as DB connection name
+                // CI4's validation->run() expects null or a valid validation group name from Config/Validation.php
+                $validationGroup = (!empty($group)) ? $group : null;
+                return $this->validation->run($data, $validationGroup);
             }
             
             // Pass through other methods to validation service
@@ -637,8 +701,82 @@ abstract class BaseController extends Controller
                 return null;
             }
             
+            // Transaction compatibility methods for CI3 -> CI4 migration
+            private $transStatus = true; // Track transaction status
+            private $inTransaction = false; // Track if we're in a transaction
+            
+            public function transStart($test_mode = false) {
+                $this->transStatus = true; // Reset status
+                $this->inTransaction = true;
+                return $this->db->transStart($test_mode);
+            }
+            
+            public function transComplete() {
+                // CI4 compatibility: Check if transComplete() exists, otherwise use transCommit()
+                if (method_exists($this->db, 'transComplete')) {
+                    $result = $this->db->transComplete();
+                } else {
+                    // CI4 uses transCommit() instead of transComplete()
+                    try {
+                        $result = $this->db->transCommit();
+                    } catch (\Exception $e) {
+                        // If commit fails, rollback and set status to false
+                        $this->db->transRollback();
+                        $this->transStatus = false;
+                        $this->inTransaction = false;
+                        return false;
+                    }
+                }
+                $this->transStatus = $result; // Update status based on result
+                $this->inTransaction = false;
+                return $result;
+            }
+            
+            public function trans_status() {
+                // CI3 compatibility: returns TRUE if transaction is successful, FALSE otherwise
+                // In CI4, we track this manually since trans_status() doesn't exist
+                // If we're still in a transaction, check for errors
+                if ($this->inTransaction) {
+                    // Check if there are any errors in the database connection
+                    try {
+                        $error = $this->db->error();
+                        if (isset($error['code']) && $error['code'] != 0) {
+                            $this->transStatus = false;
+                        }
+                    } catch (\Exception $e) {
+                        // If error checking fails, assume transaction is still OK
+                    }
+                }
+                return $this->transStatus;
+            }
+            
+            public function transBegin() {
+                $this->transStatus = true;
+                $this->inTransaction = true;
+                return $this->db->transBegin();
+            }
+            
+            public function transCommit() {
+                $result = $this->db->transCommit();
+                $this->transStatus = $result;
+                $this->inTransaction = false;
+                return $result;
+            }
+            
+            public function transRollback() {
+                $this->transStatus = false;
+                $this->inTransaction = false;
+                return $this->db->transRollback();
+            }
+            
             // Pass through other methods to database connection or builder
             public function __call($method, $args) {
+                // Check for transaction methods first (these are defined on this class)
+                $transactionMethods = ['transStart', 'transComplete', 'trans_status', 'transBegin', 'transCommit', 'transRollback'];
+                if (in_array($method, $transactionMethods) && method_exists($this, $method)) {
+                    return call_user_func_array([$this, $method], $args);
+                }
+                
                 if ($this->builder && method_exists($this->builder, $method)) {
                     $result = call_user_func_array([$this->builder, $method], $args);
                     // If method returns builder, return $this for chaining

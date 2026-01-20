@@ -67,7 +67,7 @@ class Home extends BaseController
         helper(['my_helper', 'addon_helper', 'bot_helper', 'security', 'cookie']);
 
         // Load services
-        $this->db = \Config\Database::connect();
+        // Note: $this->db is already initialized by BaseController with transaction compatibility methods
         // Use compatibility wrapper for session to support CI3 methods like set_flashdata()
         $sessionService = \Config\Services::session();
         $this->session = new class($sessionService) {

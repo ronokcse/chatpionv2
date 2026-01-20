@@ -1,13 +1,29 @@
-<?php require_once("Home.php"); // including home controller
+<?php 
+
+namespace App\Controllers;
+
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Payment extends Home
 {
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
-        if ($this->session->userdata('logged_in') != 1) redirect('home/login_page', 'location');
+        parent::initController($request, $response, $logger);
+
+        if ($this->session->userdata('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
+
+        // Load CI3-style libraries via compatibility loader (if mapped)
         $this->load->library('paypal_class');
         $this->load->library('stripe_class');
+
         $this->important_feature();
         $this->periodic_check();
     }
@@ -1988,7 +2004,8 @@ class Payment extends Home
             $this->form_validation->set_rules('validity_amount', '<b>'.$this->lang->line("Validity").'</b>', 'trim|required|integer');   
             $this->form_validation->set_rules('visible', '<b>'.$this->lang->line("Available to Purchase").'</b>', 'trim');
             $this->form_validation->set_rules('highlight', '<b>'.$this->lang->line("Highlighted Package").'</b>', 'trim');
-            $this->form_validation->set_rules('modules[]','<b>'.$this->lang->line("Modules").'</b>','trim|required');       
+            // CI4 compatibility: validate array field as 'modules' (no trim, because it's an array)
+            $this->form_validation->set_rules('modules','<b>'.$this->lang->line("Modules").'</b>','required');       
                 
             if ($this->form_validation->run() == FALSE)
             {
@@ -2059,11 +2076,12 @@ class Payment extends Home
                 );
                 
                 if($this->basic->insert_data('package',$data))                                      
-                $this->session->set_flashdata('success_message',1);   
+                    $this->session->set_flashdata('success_message',1);   
                 else    
-                $this->session->set_flashdata('error_message',1);     
+                    $this->session->set_flashdata('error_message',1);     
                 
-                redirect('payment/package_manager','location');                 
+                // CI4-safe redirect back to package manager list
+                return redirect()->to(base_url('payment/package_manager'));                 
                 
             }
         }   
@@ -2267,10 +2285,8 @@ class Payment extends Home
                 else    
                 $this->session->set_flashdata('error_message',1);   
 
-
-                // print_r($data); exit();
-                
-                redirect('payment/package_manager','location');                 
+                // Redirect back to package manager (CI4 compatible URL redirect)
+                return redirect()->to(base_url('payment/package_manager'));                 
                 
             }
         }   

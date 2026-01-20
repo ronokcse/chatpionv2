@@ -11,7 +11,7 @@ $config['institute_email'] = 'mostofa.ru22@gmail.com';
 $config['institute_mobile'] = '01729853645';
 
 $config['time_zone'] = 'Asia/Dhaka';
-$config['language'] = 'language';
+$config['language'] = 'english';
 
 $config['facebook_poster_image_upload_limit'] = '5';
 $config['facebook_poster_video_upload_limit'] = '15';

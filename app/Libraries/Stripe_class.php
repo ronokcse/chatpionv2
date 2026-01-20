@@ -19,9 +19,10 @@ class Stripe_class{
 		
 		/**** Get Stripe Setting informations ***/
 			
-		$q="select * from payment_config WHERE deleted='0'";
-		$query=$this->CI->db->query($q);
-		$results=$query->result_array();
+		// CI4 compatible: use query() + getResultArray() instead of result_array()
+		$q = "select * from payment_config WHERE deleted='0'";
+		$query = $this->CI->db->query($q);
+		$results = $query->getResultArray();
 		foreach($results as $info){	
 			$this->secret_key=$info['stripe_secret_key'];
 			$this->publishable_key=$info['stripe_publishable_key'];

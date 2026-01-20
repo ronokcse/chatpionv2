@@ -31,8 +31,9 @@ class Paypal_class{
 		$this->CI =& get_instance();
 		$this->CI->load->database();
 
-		$query = $this->CI->db->get('payment_config');
-		$config_data = $query->result_array();
+		// CI4 compatible: use query builder instead of CI3 db->get()
+		$query = $this->CI->db->table('payment_config')->get();
+		$config_data = $query->getResultArray();
 
 		$paypal_mode =isset($config_data[0]['paypal_mode'])?$config_data[0]['paypal_mode']:"live";
 		$this->mode=$paypal_mode;
@@ -40,7 +41,7 @@ class Paypal_class{
 		if($this->mode=='sandbox') $this->paypal_url="https://www.sandbox.paypal.com/cgi-bin/webscr";
 		else $this->paypal_url="https://www.paypal.com/cgi-bin/webscr";
 			
-		$databae_name= $this->CI->db->database;
+		$databae_name= $this->CI->db->getDatabase();
 	}
 	
 	function set_button(){

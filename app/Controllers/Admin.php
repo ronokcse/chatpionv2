@@ -1125,7 +1125,6 @@ class Admin extends Home
             echo "<h2 style='text-align:center;color:red;border:1px solid red; padding: 10px'>This feature is disabled in this demo.</h2>"; 
             exit();
         }
-
         if($_SERVER['REQUEST_METHOD'] === 'GET') 
         return redirect()->to(base_url('home/access_forbidden'));
 
@@ -1147,7 +1146,7 @@ class Admin extends Home
             }
                 
             if ($this->form_validation->run() == FALSE)
-            {
+            {   
                 $this->edit_user($id); 
             }
             else
@@ -1199,7 +1198,6 @@ class Admin extends Home
             }
         }   
     }
-  
 
     public function login_log()
     {        

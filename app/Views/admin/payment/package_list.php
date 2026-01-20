@@ -71,7 +71,8 @@
           },
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            // CI4 compatibility: use $language from view data instead of $this->language
+            url: "<?php echo base_url('assets/modules/datatables/language/'.(($language ?? 'english')).'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [

@@ -167,7 +167,7 @@
                     ?>            
                   </table> 
                </div>    
-               <span class="red" ><?php echo "<br/><br/>".form_error('modules[]'); ?></span>
+               <span class="red" ><?php echo "<br/><br/>".form_error('modules'); ?></span>
              </div>    
           </div>
           <div class="card-footer bg-whitesmoke">
