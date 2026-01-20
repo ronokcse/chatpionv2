@@ -14,22 +14,22 @@
       height: 18px;
   }
 </style>
-<input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $this->session->userdata('csrf_token_session'); ?>">
+<input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo session()->get('csrf_token_session'); ?>">
 <section class="section section_custom">
   <div class="section-header">
     <h1><i class="fas fa-users"></i> <?php echo $page_title; ?></h1>
     <div class="section-header-button">
      <a class="btn btn-primary"  href="<?php echo site_url('affiliate_system/add_affiliate');?>">
-        <i class="fas fa-plus-circle"></i> <?php echo $this->lang->line("New Affiliate"); ?>
+        <i class="fas fa-plus-circle"></i> <?php echo lang("New Affiliate"); ?>
      </a> 
     </div>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><?php echo $this->lang->line("Affiliate System"); ?></div>
+      <div class="breadcrumb-item"><?php echo lang("Affiliate System"); ?></div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="section-body">
 
@@ -43,15 +43,15 @@
                 <thead>
                   <tr>
                     <th>#</th>      
-                    <th><?php echo $this->lang->line("ID"); ?></th>      
-                    <th><?php echo $this->lang->line("Avatar"); ?></th>      
-                    <th class="text-left"><?php echo $this->lang->line("Name"); ?></th>      
-                    <th><?php echo $this->lang->line("Email"); ?></th>
-                    <th><?php echo $this->lang->line("Status"); ?></th>
-                    <th><?php echo $this->lang->line("Registered"); ?></th>
-                    <th><?php echo $this->lang->line("Last Login"); ?></th>
-                    <th><?php echo $this->lang->line("Last Login IP"); ?></th>
-                    <th><?php echo $this->lang->line("Actions"); ?></th>
+                    <th><?php echo lang("ID"); ?></th>      
+                    <th><?php echo lang("Avatar"); ?></th>      
+                    <th class="text-left"><?php echo lang("Name"); ?></th>      
+                    <th><?php echo lang("Email"); ?></th>
+                    <th><?php echo lang("Status"); ?></th>
+                    <th><?php echo lang("Registered"); ?></th>
+                    <th><?php echo lang("Last Login"); ?></th>
+                    <th><?php echo lang("Last Login IP"); ?></th>
+                    <th><?php echo lang("Actions"); ?></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -87,7 +87,7 @@
           },
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? 'english').'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [
@@ -129,9 +129,9 @@
         
         if (typeof(csrf_token)==='undefined') csrf_token = '';
 
-        var mes='<?php echo $this->lang->line("Do you really want to delete it?");?>';  
+        var mes='<?php echo lang("Do you really want to delete it?");?>';  
         swal({
-          title: "<?php echo $this->lang->line("Are you sure?");?>",
+          title: "<?php echo lang("Are you sure?");?>",
           text: mes,
           icon: "warning",
           buttons: true,
@@ -247,17 +247,17 @@
             $("#save_change_password_button").removeClass("btn-progress");
 
             if(response.status == "1")  
-              swal('<?php echo $this->lang->line("Success")?>',response.message, 'success')
+              swal('<?php echo lang("Success")?>',response.message, 'success')
              .then((value) => {
                  $("#change_password").modal('hide');
               });
 
-            else  swal('<?php echo $this->lang->line("Error")?>',response.message, 'error');
+            else  swal('<?php echo lang("Error")?>',response.message, 'error');
           },
           error:function(response){
             var span = document.createElement("span");
             span.innerHTML = response.responseText;
-            swal({ title:'<?php echo $this->lang->line("Error!"); ?>', content:span,icon:'error'});
+            swal({ title:'<?php echo lang("Error!"); ?>', content:span,icon:'error'});
           }
       });
 
@@ -275,7 +275,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fa fa-key"></i> <?php echo $this->lang->line("Change Affiliator Password");?> (<span id="putname"></span>)</h5>
+                <h5 class="modal-title"><i class="fa fa-key"></i> <?php echo lang("Change Affiliator Password");?> (<span id="putname"></span>)</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -285,23 +285,23 @@
                 <div id="wait"></div>
                 <input id="putid" value="" class="form-control" type="hidden">           
                 <div class="form-group">
-                  <label for="password"><?php echo $this->lang->line("New Password"); ?> *  </label>                  
+                  <label for="password"><?php echo lang("New Password"); ?> *  </label>                  
                   <input id="password" class="form-control password" type="password">             
-                  <div class="invalid-feedback"><?php echo $this->lang->line("You have to type new password twice"); ?></div>
+                  <div class="invalid-feedback"><?php echo lang("You have to type new password twice"); ?></div>
                 </div>
 
                 <div class="form-group">
-                    <label for="confirm_password"><?php echo $this->lang->line("Confirm New Password"); ?> * </label>                  
+                    <label for="confirm_password"><?php echo lang("Confirm New Password"); ?> * </label>                  
                     <input id="confirm_password"  class="form-control password" type="password">             
-                   <div class="invalid-feedback"><?php echo $this->lang->line("Passwords does not match"); ?></div>
+                   <div class="invalid-feedback"><?php echo lang("Passwords does not match"); ?></div>
                 </div>
               </form>            
             </div>
 
 
             <div class="modal-footer bg-whitesmoke br">
-              <button type="button" id="save_change_password_button" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> <?php echo $this->lang->line("Save"); ?></button>
-              <button type="button" class="btn btn-secondary btn-lg" data-dismiss="modal"><i class="fas fa-times"></i> <?php echo $this->lang->line("Close"); ?></button>
+              <button type="button" id="save_change_password_button" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> <?php echo lang("Save"); ?></button>
+              <button type="button" class="btn btn-secondary btn-lg" data-dismiss="modal"><i class="fas fa-times"></i> <?php echo lang("Close"); ?></button>
             </div>
 
         </div>

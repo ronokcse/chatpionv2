@@ -3,6 +3,22 @@
   .select2-container--disabled .select2-selection__rendered { }
   .select2-container--disabled .select2-selection--single { background: #eee !important; border: red !important; }
 </style>
+<?php
+// CI4 compatibility shim for old CI3-style view usage ($this->lang, $this->load, $this->language)
+if (!isset($this->lang)) {
+  $this->lang = new class {
+    public function line($key) { return lang($key); }
+  };
+}
+if (!isset($this->load)) {
+  $this->load = new class {
+    public function view($path) { echo view($path); }
+  };
+}
+if (!isset($this->language)) {
+  $this->language = $language ?? 'english';
+}
+?>
 <section class="section section_custom">
   <div class="section-header">
     <h1><i class="fas fa-hands-helping"></i> <?php echo $page_title; ?></h1>

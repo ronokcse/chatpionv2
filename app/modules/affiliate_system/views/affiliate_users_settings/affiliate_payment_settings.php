@@ -1,3 +1,16 @@
+<?php
+// CI4 compatibility shim for old CI3-style view usage ($this->lang, $this->load)
+if (!isset($this->lang)) {
+  $this->lang = new class {
+    public function line($key) { return lang($key); }
+  };
+}
+if (!isset($this->load)) {
+  $this->load = new class {
+    public function view($path) { echo view($path); }
+  };
+}
+?>
 
 <section class="section section_custom">
 	<div class="section-header">

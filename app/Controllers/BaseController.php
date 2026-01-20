@@ -44,6 +44,22 @@ abstract class BaseController extends Controller
      * Provides $this->load->library() method
      */
     protected $load;
+
+    /**
+     * CI3-style config compatibility.
+     * Provides $this->config->item('key') access to values stored in app/Config/*.php legacy config arrays.
+     */
+    protected $config;
+
+    /**
+     * Expose protected CI3-compat properties to helper objects (like $this->load) safely.
+     * Needed because PHP visibility prevents other objects from reading protected props.
+     */
+    public function _ci3_get(string $name)
+    {
+        // Access from inside BaseController so protected props are readable
+        return $this->$name ?? null;
+    }
     
     /**
      * Pagination compatibility object for CI3 -> CI4 migration
@@ -63,6 +79,57 @@ abstract class BaseController extends Controller
 
         // Caution: Do not edit this line.
         parent::initController($request, $response, $logger);
+
+        // CI3-style config compatibility wrapper
+        // Many legacy module views/controllers call $this->config->item('product_name') etc.
+        if (empty($this->config)) {
+            $this->config = new class {
+                private ?array $cache = null;
+
+                private function loadLegacyConfig(): array
+                {
+                    if ($this->cache !== null) {
+                        return $this->cache;
+                    }
+
+                    $merged = [];
+                    $files = [
+                        APPPATH . 'Config/my_config.php',
+                        APPPATH . 'Config/package_config.php',
+                        APPPATH . 'Config/pusher.php',
+                    ];
+
+                    foreach ($files as $file) {
+                        if (!is_file($file)) continue;
+                        $config = [];
+                        try {
+                            include $file;
+                        } catch (\Throwable $e) {
+                            $config = [];
+                        }
+                        if (is_array($config) && !empty($config)) {
+                            $merged = array_merge($merged, $config);
+                        }
+                    }
+
+                    $this->cache = $merged;
+                    return $merged;
+                }
+
+                // CI3: $this->config->item('key')
+                public function item(string $key)
+                {
+                    $cfg = $this->loadLegacyConfig();
+                    return $cfg[$key] ?? null;
+                }
+
+                // CI3: $this->config->load('file') - best-effort no-op (we already preloaded common ones)
+                public function load(string $file): bool
+                {
+                    return true;
+                }
+            };
+        }
 
         // Preload any models, libraries, etc, here.
         // $this->session = service('session');
@@ -94,6 +161,33 @@ abstract class BaseController extends Controller
             
             public function __construct($controller) {
                 $this->controller = $controller;
+            }
+
+            /**
+             * CI3 compatibility: allow module views included via $this->load->view()
+             * to access controller properties like $this->config, $this->session, $this->lang, etc.
+             * In our module-view include flow, `$this` refers to this loader instance.
+             */
+            public function __get($name)
+            {
+                if (!isset($this->controller)) {
+                    return null;
+                }
+                // Prefer CI3-compat accessor (handles protected properties like $config)
+                if (method_exists($this->controller, '_ci3_get')) {
+                    return $this->controller->_ci3_get($name);
+                }
+                // Fallback: public properties only
+                return $this->controller->$name ?? null;
+            }
+
+            public function __isset($name): bool
+            {
+                if (!isset($this->controller)) return false;
+                if (method_exists($this->controller, '_ci3_get')) {
+                    return $this->controller->_ci3_get($name) !== null;
+                }
+                return isset($this->controller->$name);
             }
             
             public function library($libraryName) {
@@ -287,7 +381,39 @@ abstract class BaseController extends Controller
             
             public function view($view, $data = [], $return = false) {
                 // CI3 -> CI4 compatibility: $this->load->view() echoes by default in CI3
-                // In CI4, view() returns the output, so we need to echo it unless $return is true
+                // In CI4, view() returns the output, so we need to echo it unless $return is true.
+                //
+                // CI4 fix: Support module views under app/modules/{module}/views/*
+                // Example: $this->load->view('affiliate/subscription_theme', $data)
+                // should load: APPPATH . 'modules/affiliate_system/views/affiliate/subscription_theme.php'
+                $request = \Config\Services::request();
+                $module = '';
+                try {
+                    $module = $request->getUri()->getSegment(1) ?? '';
+                } catch (\Throwable $e) {
+                    $module = '';
+                }
+
+                if ($module) {
+                    $moduleViewFile = APPPATH . 'modules/' . $module . '/views/' . $view . '.php';
+                    if (is_file($moduleViewFile)) {
+                        // Render module view with extracted variables
+                        ob_start();
+                        if (is_array($data) && !empty($data)) {
+                            extract($data, EXTR_SKIP);
+                        }
+                        include $moduleViewFile;
+                        $output = ob_get_clean();
+
+                        if ($return === false) {
+                            echo $output;
+                            return;
+                        }
+                        return $output;
+                    }
+                }
+
+                // Fallback to normal CI4 views under app/Views
                 $output = view($view, $data);
                 if ($return === false) {
                     echo $output;
@@ -403,7 +529,9 @@ abstract class BaseController extends Controller
                             $processedRules[] = function($value, $data, $error, $field) use ($callbackMethod, $errorMessage) {
                                 // Call the controller's callback method
                                 if (method_exists($this->controller, $callbackMethod)) {
-                                    $result = $this->controller->$callbackMethod();
+                                    // CI3 callback receives the field value as first argument.
+                                    // Our CI3-compat layer must pass it, otherwise PHP throws ArgumentCountError.
+                                    $result = $this->controller->$callbackMethod($value);
                                     if ($result === false) {
                                         return $errorMessage;
                                     }

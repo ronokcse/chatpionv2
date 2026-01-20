@@ -1,4 +1,20 @@
 <?php 
+// CI4 compatibility shim for old CI3-style view usage ($this->lang, $this->session, $this->load)
+if (!isset($this->lang)) {
+  $this->lang = new class {
+    public function line($key) { return lang($key); }
+  };
+}
+if (!isset($this->session)) {
+  $this->session = new class {
+    public function userdata($key) { return session()->get($key); }
+  };
+}
+if (!isset($this->load)) {
+  $this->load = new class {
+    public function view($path) { echo view($path); }
+  };
+}
   $general_signup_commission = isset($info['signup_commission']) ? $info['signup_commission']:0;
   $general_sign_up_amount = isset($info['sign_up_amount']) ? $info['sign_up_amount']:'';
   $general_payment_commission = isset($info['payment_commission']) ? $info['payment_commission']:0;

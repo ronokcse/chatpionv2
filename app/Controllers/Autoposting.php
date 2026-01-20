@@ -1,13 +1,22 @@
 <?php
-require_once("application/controllers/Home.php"); // loading home controller
+
+namespace App\Controllers;
+
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
 class Autoposting extends Home
 {
     public $is_broadcaster_exist_deprecated=false;
     public $is_wp_social_sharing_exist = false;
 
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
         $function_name=$this->uri->segment(2);
         if($function_name!="autoposting_campaign_create")

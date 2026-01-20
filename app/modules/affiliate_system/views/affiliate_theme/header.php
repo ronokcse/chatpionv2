@@ -7,8 +7,8 @@
   </form>
   <ul class="navbar-nav navbar-right">
     
-    <?php include(FCPATH.'application/modules/affiliate_system/views/affiliate_theme/notification.php'); ?>
-    <?php include(FCPATH.'application/modules/affiliate_system/views/affiliate_theme/usermenu.php'); ?>  
+    <?php include(APPPATH.'modules/affiliate_system/views/affiliate_theme/notification.php'); ?>
+    <?php include(APPPATH.'modules/affiliate_system/views/affiliate_theme/usermenu.php'); ?>  
     
   </ul>
 </nav>

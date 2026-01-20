@@ -4,8 +4,9 @@
 	  <meta charset="UTF-8">
 	  <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
 		<?php 
-		include(FCPATH.'application/views/include/css_include_back.php'); 
-		include(FCPATH.'application/views/include/js_include_back.php'); 
+		// CI4 fix: CI3 path `application/views/...` no longer exists
+		include(APPPATH.'Views/include/css_include_back.php'); 
+		include(APPPATH.'Views/include/js_include_back.php'); 
 		?>		
 		<script type="text/javascript">   
 		  // $(window).load(function() {

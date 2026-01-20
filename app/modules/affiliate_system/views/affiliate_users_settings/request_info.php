@@ -1,4 +1,14 @@
 <?php 
+// CI4 compatibility shim for old CI3-style view usage ($this->lang, $this->language)
+// In CI4 module views are included inside a View instance, so `$this` exists but CI3 properties are missing.
+if (!isset($this->lang)) {
+  $this->lang = new class {
+    public function line($key) { return lang($key); }
+  };
+}
+if (!isset($this->language)) {
+  $this->language = $language ?? 'english';
+}
 $name= isset($affiliate_info[0]["name"]) ? $affiliate_info[0]["name"] : ""; 
 $email= isset($affiliate_info[0]["email"]) ? $affiliate_info[0]["email"] : "";
 $username = isset($affiliate_info[0]["username"]) ? $affiliate_info[0]["username"] : "";

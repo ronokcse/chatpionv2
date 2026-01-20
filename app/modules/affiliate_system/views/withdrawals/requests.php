@@ -90,8 +90,15 @@
                             </div>
                         </div>
                         <div class="row">
-                            <?php if(!empty($withdrawal_requests)) : ?>
-                            <?php foreach ($withdrawal_requests as $value) { ?>
+                            <?php
+                              // CI4 safety: ensure withdrawal_requests is iterable
+                              if (!isset($withdrawal_requests_list) || !is_array($withdrawal_requests_list)) {
+                                  $withdrawal_requests = [];
+                              }
+                            ?>
+                            
+                            <?php if(!empty($withdrawal_requests_list)) : ?>
+                            <?php foreach ($withdrawal_requests_list as $value) { ?>
                                 <div class="col-12 col-md-4">
                                     <div class="card pointer" data-toggle="tooltip" data-title="<?php echo $value['payment_type']; ?>">
                                         <div class="card-body p-0">

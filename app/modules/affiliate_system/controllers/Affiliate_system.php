@@ -10,7 +10,12 @@ Version: 2.2
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Affiliate_system\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Affiliate_system extends Home
 {
@@ -19,26 +24,41 @@ class Affiliate_system extends Home
     protected $module_path;
     // public $is_rtl;
 
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
         // $is_rtl = $this->config->item("is_rtl");
         // if(!empty($is_rtl) && $is_rtl=='1') $this->is_rtl=TRUE;
         // else $this->is_rtl=FALSE;
 
         // team user can not access
-        if($this->is_manager==1)
-        redirect('home/access_forbidden', 'location');
+        if($this->is_manager==1) {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
 
         $function_name=$this->uri->segment(2);
 
-        $this->load->helper('cookie');
+        // CI4: load helper
+        helper('cookie');
 
         // if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
         // $this->member_validity();
 
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        // CI4 fix: Dynamic path building from namespace (replaces CI3's $this->router->fetch_class())
+        // Extract module name from namespace: App\Modules\Affiliate_system\Controllers -> Affiliate_system
+        $reflection = new \ReflectionClass($this);
+        $namespace = $reflection->getNamespaceName();
+        $namespace_parts = explode('\\', $namespace);
+        $module_name = isset($namespace_parts[2]) ? $namespace_parts[2] : 'affiliate_system'; // App\Modules\ModuleName\Controllers
+        $controller_name = $reflection->getShortName(); // Affiliate_system
+        
+        // Build dynamic path: modules/{module_name}/controllers/{Controller_name}.php
+        $addon_path = APPPATH . "modules/" . strtolower($module_name) . "/controllers/" . $controller_name . ".php";
         $this->addon_data=$this->get_addon_data($addon_path);
 
         // Sets module path
@@ -53,7 +73,10 @@ class Affiliate_system extends Home
 
     public function index()
     {
-        if (!$this->is_logged_in()) redirect('affiliate_system/affiliate_login_page');
+        // CI4 fix: use URL redirect (CI3 redirect() helper may be treated as route-name redirect in CI4)
+        if (!$this->is_logged_in()) {
+            return redirect()->to(base_url('affiliate_system/affiliate_login_page'));
+        }
         
         $this->earnings();
     }
@@ -273,7 +296,8 @@ class Affiliate_system extends Home
                 $this->basic->update_data("affiliate_users",['id'=>$affiliate_userid],["last_login_at"=>date("Y-m-d H:i:s"),'last_login_ip'=>$login_ip]);
 
                 $this->session->set_userdata($affiliate_session_data);
-                redirect('affiliate_system/index');
+                // CI4 fix: redirect to URL (avoid route-name redirect lookup)
+                return redirect()->to(base_url('affiliate_system/index'));
 
             }
         }
@@ -282,7 +306,8 @@ class Affiliate_system extends Home
     public function affiliate_logout()
     {
         $this->session->sess_destroy();
-        redirect('affiliate_system/affiliate_login_page', 'location');
+        // CI4 fix: redirect to URL
+        return redirect()->to(base_url('affiliate_system/affiliate_login_page'));
     }
 
     public function _aff_subscription_viewcontroller($data=array())
@@ -376,12 +401,33 @@ class Affiliate_system extends Home
         }
 
         $table = "affiliate_withdrawal_methods";
-        $this->db->where($where_custom);
-        $info = $this->basic->get_data($table,$where='','','',$limit,$start,$order_by,$group_by='');
-        $this->db->where($where_custom);
-        $total_rows_array = $this->basic->count_row($table,$where='',$count="id",$join='',$group_by='');
-        $total_result = $total_rows_array[0]['total_rows'];
 
+        // CI4 raw SQL (similar style as users_list_data)
+        $sql = "
+            SELECT *
+            FROM {$table}
+            WHERE {$where_custom}
+            ORDER BY {$sort} {$order}
+            LIMIT ?, ?
+        ";
+
+        // Bind parameters for pagination
+        $binds = [$start, $limit];
+
+        // Execute the query
+        $query = $this->db->query($sql, $binds);
+        $info  = $query->getResultArray();
+
+        // Total rows (without LIMIT)
+        $sql_total_rows = "
+            SELECT COUNT(id) AS total_rows
+            FROM {$table}
+            WHERE {$where_custom}
+        ";
+        $total_rows_query = $this->db->query($sql_total_rows);
+        $total_row        = $total_rows_query->getRow();
+        $total_result     = $total_row->total_rows ?? 0;
+        
         for ($i=0; $i < count($info) ; $i++) 
         { 
 
@@ -464,7 +510,8 @@ class Affiliate_system extends Home
 
         // Execute the query
         $query = $this->db->query($sql, $binds);
-        $info = $query->result_array();
+        // CI4 fix: result_array() is CI3; CI4 uses getResultArray()
+        $info = $query->getResultArray();
         $sql_total_rows = "
         SELECT COUNT(DISTINCT u.id) AS total_rows
         FROM users u
@@ -472,7 +519,9 @@ class Affiliate_system extends Home
         WHERE {$where_custom}
         ";
         $total_rows_query = $this->db->query($sql_total_rows);
-        $total_result = $total_rows_query->row()->total_rows;
+        // CI4 fix: row() is CI3; CI4 uses getRow()
+        $total_row = $total_rows_query->getRow();
+        $total_result = $total_row->total_rows ?? 0;
         for ($i=0; $i < count($info) ; $i++) 
         { 
             $info[$i]['affiliate_commission_given'] = $info[$i]['affiliate_commission_given'].' $';
@@ -516,12 +565,18 @@ class Affiliate_system extends Home
 
     public function get_method_info()
     {
+        $this->ajax_check();
+
         $table_id = $this->input->post('table_id',true);
         $affiliate_id = $this->session->userdata('affiliate_userid');
-
         if($table_id == '' || $table_id == 0) exit;
 
         $get_method_info = $this->basic->get_data("affiliate_withdrawal_methods",['where'=>['id'=>$table_id,'affiliate_id'=>$affiliate_id]]);
+
+        if (empty($get_method_info) || !isset($get_method_info[0])) {
+            echo "<div class='alert alert-danger text-center'>".$this->lang->line('Something went wrong, please try again.')."</div>";
+            exit();
+        }
 
         // $account_name = $get_method_info[0]['account_name'];
         $method_type = $get_method_info[0]['payment_type'];
@@ -794,7 +849,7 @@ class Affiliate_system extends Home
         // echo "<pre>"; print_r($withdrawal_request_lists); exit;
 
         $data['page_title'] = $this->lang->line("Withdrawal Requests");
-        $data['withdrawal_requests'] = $withdrawal_request_lists;
+        $data['withdrawal_requests_list'] = $withdrawal_request_lists;
         $data['page_links'] = $page_links;
         $data['per_page'] = ($per_page == count($total_withdrawal_requests)) ? 'all' : $per_page;
         $data['search_value'] = $search_value;
@@ -803,7 +858,7 @@ class Affiliate_system extends Home
         $data['pending_money'] = $finalData;
         $data['transfered_money'] = $finalData2;
         $data['body'] = "withdrawals/requests";
-
+        
         $this->_affiliate_viewcontroller($data);
     }
 
@@ -1727,7 +1782,8 @@ class Affiliate_system extends Home
             }
 
             $this->session->set_flashdata('success_message', 1);
-            redirect('affiliate_system/affiliate_payment_settings', 'location');
+            // CI4 fix: avoid route-name redirect; redirect to URL
+            return redirect()->to(base_url('affiliate_system/affiliate_payment_settings'));
         }
 
     }
@@ -2150,18 +2206,65 @@ class Affiliate_system extends Home
         if($_POST)
         {
             $id = $this->input->post("affiliate_id",true);
+
+            // CI4/CI3-compat fix: Only apply is_unique when username/email actually changed
+            $current_affiliate = $this->basic->get_data(
+                'affiliate_users',
+                array('where' => array('id' => $id)),
+                array('username', 'email')
+            );
+            $current_username = isset($current_affiliate[0]['username']) ? $current_affiliate[0]['username'] : '';
+            $current_email = isset($current_affiliate[0]['email']) ? $current_affiliate[0]['email'] : '';
+
+            $new_username = $this->input->post('username', true);
+            $new_email = $this->input->post('email', true);
+
             $this->form_validation->set_rules('name', '<b>'.$this->lang->line("Full Name").'</b>', 'trim');     
 
-            $unique_username = "affiliate_users.email.".$id;
-            $this->form_validation->set_rules('username', '<b>'.$this->lang->line("username").'</b>', "trim|required|is_unique[$unique_username]|callback_alpha_numeric_underscore",
-                array(
-                    'alpha_numeric_underscore' => $this->lang->line('Username is required and only characters, underscores, digits are allowed'),
-                    'is_unique'                => $this->lang->line('username already exists')
-                )
-            );
+            // Username validation (fix: unique was mistakenly checking email)
+            if ($current_username !== '' && strtolower(trim($current_username)) === strtolower(trim($new_username))) {
+                $this->form_validation->set_rules(
+                    'username',
+                    '<b>'.$this->lang->line("username").'</b>',
+                    "trim|required|callback_alpha_numeric_underscore"
+                );
+            } else {
+                $unique_username = "affiliate_users.username.".$id;
+                $this->form_validation->set_rules(
+                    'username',
+                    '<b>'.$this->lang->line("username").'</b>',
+                    "trim|required|is_unique[$unique_username]|callback_alpha_numeric_underscore",
+                    array(
+                        'alpha_numeric_underscore' => $this->lang->line('Username is required and only characters, underscores, digits are allowed'),
+                        'is_unique'                => $this->lang->line('username already exists')
+                    )
+                );
+            }
 
-            $unique_email = "affiliate_users.email.".$id; 
-            $this->form_validation->set_rules('email', '<b>'.$this->lang->line("Email").'</b>', "trim|required|valid_email|is_unique[$unique_email]");  
+            // Email validation (skip is_unique if unchanged)
+            if ($current_email !== '' && strtolower(trim($current_email)) === strtolower(trim($new_email))) {
+                $this->form_validation->set_rules(
+                    'email',
+                    '<b>'.$this->lang->line("Email").'</b>',
+                    "trim|required|valid_email"
+                );
+            } else {
+                $unique_email = "affiliate_users.email.".$id; 
+                $this->form_validation->set_rules(
+                    'email',
+                    '<b>'.$this->lang->line("Email").'</b>',
+                    "trim|required|valid_email|is_unique[$unique_email]"
+                );
+            }
+
+            // Keep the custom messages for username callback+unique (for the branch above that doesn't pass them)
+            // (Email uses default is_unique/valid_email messages from lang files.)
+
+            /*
+             * NOTE: Previous code used:
+             *   $unique_username = "affiliate_users.email.".$id;  (bug)
+             * and always forced is_unique even if unchanged (caused false validation failures).
+             */
             $this->form_validation->set_rules('mobile', '<b>'.$this->lang->line("Mobile").'</b>', 'trim');        
             $this->form_validation->set_rules('address', '<b>'.$this->lang->line("Address").'</b>', 'trim');      
             $this->form_validation->set_rules('status', '<b>'.$this->lang->line("Status").'</b>', 'trim');
@@ -2220,7 +2323,8 @@ class Affiliate_system extends Home
                 if($this->basic->update_data('affiliate_users',['id'=>$id],$data)) $this->session->set_flashdata('success_message',1);   
                 else $this->session->set_flashdata('error_message',1);     
                 
-                redirect('affiliate_system/affiliate_users','location');                 
+                // CI4 fix: avoid redirect()->route() resolution; just redirect to URL
+                return redirect()->to(base_url('affiliate_system/affiliate_users'));                 
                 
             }
         } 
@@ -2280,8 +2384,20 @@ class Affiliate_system extends Home
 
         foreach($affiliate_existence_table as $value)
         {
-          if($this->db->table_exists($value['table_name']))
-            $this->basic->delete_data($value['table_name'],array("{$value['column_name']}"=>$id));
+          // CI4 fix: Database connection uses tableExists() (camelCase), not table_exists()
+          $tableName = $value['table_name'];
+          $columnName = $value['column_name'];
+
+          $exists = true;
+          if (method_exists($this->db, 'tableExists')) {
+              $exists = $this->db->tableExists($tableName);
+          } elseif (method_exists($this->db, 'table_exists')) {
+              $exists = $this->db->table_exists($tableName);
+          }
+
+          if ($exists) {
+              $this->basic->delete_data($tableName, array($columnName => $id));
+          }
         }
 
         $this->db->trans_complete();                
