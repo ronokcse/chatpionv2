@@ -3,16 +3,16 @@
     <h1><i class="fas fa-layer-group"></i> <?php echo $page_title; ?></h1>
     <div class="section-header-button">
      <a class="btn btn-primary"  href="<?php echo site_url('simplesupport/add_category');?>">
-        <i class="fas fa-plus-circle"></i> <?php echo $this->lang->line("New Category"); ?>
+        <i class="fas fa-plus-circle"></i> <?php echo lang("New Category"); ?>
      </a> 
     </div>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><a href="<?php echo base_url('simplesupport/tickets'); ?>"><?php echo $this->lang->line("Support Desk"); ?></a></div>
+      <div class="breadcrumb-item"><a href="<?php echo base_url('simplesupport/tickets'); ?>"><?php echo lang("Support Desk"); ?></a></div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="section-body">
 
@@ -25,9 +25,9 @@
                 <thead>
                   <tr>
                     <th>#</th>      
-                    <th><?php echo $this->lang->line("ID"); ?></th>      
-                    <th><?php echo $this->lang->line("Category Name"); ?></th>                    
-                    <th style="min-width: 150px"><?php echo $this->lang->line("Actions"); ?></th>
+                    <th><?php echo lang("ID"); ?></th>      
+                    <th><?php echo lang("Category Name"); ?></th>                    
+                    <th style="min-width: 150px"><?php echo lang("Actions"); ?></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -37,7 +37,7 @@
                     {
                        $sl++;
                        $id=$value['id'];
-                       $action = "<a href='".base_url()."simplesupport/edit_category/".$value['id']."' class='btn btn-circle btn-outline-warning' title='".$this->lang->line("Edit")."' '><i class='fa  fa-edit'></i></a>&nbsp;<a href='".base_url()."simplesupport/delete_category/".$value['id']."' class='btn btn-circle btn-outline-danger are_you_sure_datatable non_ajax' title='".$this->lang->line("Delete")."'><i class='fa fa-trash'></i></a>";
+                       $action = "<a href='".base_url()."simplesupport/edit_category/".$value['id']."' class='btn btn-circle btn-outline-warning' title='".lang("Edit")."' '><i class='fa  fa-edit'></i></a>&nbsp;<a href='".base_url()."simplesupport/delete_category/".$value['id']."' class='btn btn-circle btn-outline-danger are_you_sure_datatable non_ajax' title='".lang("Delete")."'><i class='fa fa-trash'></i></a>";
                        echo "<tr>";
                          echo "<td>".$sl."</td>";
                          echo "<td>".$id."</td>";
@@ -73,7 +73,7 @@
           pageLength: 10,
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? (isset($controller) && isset($controller->language) ? $controller->language : 'english')).'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [            

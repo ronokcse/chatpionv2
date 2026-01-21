@@ -171,20 +171,21 @@ $sidebar_user_type = session()->get('user_type');
     </ul>
 
     <?php
-    if(session()->get('license_type') == 'double')
-      if(config('MyConfig')->enable_support == '1')
-        {
-          $support_menu = lang('Support Desk');
-          $support_icon = "fa fa-headset";
-          $support_url = base_url('simplesupport/tickets');
-          
-          echo '
-          <div class="mt-4 mb-4 p-3 hide-sidebar-mini">
-            <a href="'.$support_url.'" class="btn btn-primary btn-lg btn-block btn-icon-split">
-              <i class="'.$support_icon.'"></i> '.$support_menu.'
-            </a>
-          </div>';
-        }
+    // Support Desk menu - show if license_type is 'double' and enable_support is '1'
+    $license_type = session()->get('license_type') ?? 'single';
+    if($license_type == 'double' && (config('MyConfig')->enable_support ?? '0') == '1')
+    {
+        $support_menu = lang('Support Desk');
+        $support_icon = "fa fa-headset";
+        $support_url = base_url('simplesupport/tickets');
+        
+        echo '
+        <div class="mt-4 mb-4 p-3 hide-sidebar-mini">
+          <a href="'.$support_url.'" class="btn btn-primary btn-lg btn-block btn-icon-split">
+            <i class="'.$support_icon.'"></i> '.$support_menu.'
+          </a>
+        </div>';
+    }
     ?>
 
     

@@ -1,22 +1,22 @@
 <section class="section">
   <div class="section-header">
     <h1><i class="fas fa-ticket-alt"></i>
-      <?php $userurl = ($this->session->userdata("real_user_type")=="Admin") ? base_url("admin/edit_user/".$ticket_info[0]["user_id"]) : base_url("member/edit_profile");?>
-      <?php echo $this->lang->line("Ticket");?> #<?php echo $ticket_info[0]['id']; ?>
+      <?php $userurl = (session()->get("real_user_type")=="Admin") ? base_url("admin/edit_user/".$ticket_info[0]["user_id"]) : base_url("member/edit_profile");?>
+      <?php echo lang("Ticket");?> #<?php echo $ticket_info[0]['id']; ?>
       : <a href="<?php echo $userurl; ?>"><?php echo $user_info[0]['name']; ?></a>
       <span id="ticket_status">
-      <?php if($ticket_info[0]["ticket_status"]=="1") echo "[".$this->lang->line("Open")."]";?>
-      <?php if($ticket_info[0]["ticket_status"]=="2") echo "[".$this->lang->line("Closed")."]";?>
-      <?php if($ticket_info[0]["ticket_status"]=="3") echo "[".$this->lang->line("Resolved")."]";?>
+      <?php if($ticket_info[0]["ticket_status"]=="1") echo "[".lang("Open")."]";?>
+      <?php if($ticket_info[0]["ticket_status"]=="2") echo "[".lang("Closed")."]";?>
+      <?php if($ticket_info[0]["ticket_status"]=="3") echo "[".lang("Resolved")."]";?>
       </span>
     </h1>  
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><a href="<?php echo base_url('simplesupport/tickets');?>"><?php echo $this->lang->line("Support Desk"); ?></a></div>     
-      <div class="breadcrumb-item"><?php echo $this->lang->line("Ticket"); ?> #<?php echo $ticket_info[0]["id"];  ?></div>
+      <div class="breadcrumb-item"><a href="<?php echo base_url('simplesupport/tickets');?>"><?php echo lang("Support Desk"); ?></a></div>     
+      <div class="breadcrumb-item"><?php echo lang("Ticket"); ?> #<?php echo $ticket_info[0]["id"];  ?></div>
     </div>
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="section-body">
     <div class="row">
@@ -34,13 +34,13 @@
                 $action="";
 
                 if($ticket_info[0]['ticket_status'] != '3')
-                $action .= '<a  table_id="'.$id.'" href="" class="btn btn-outline-primary ticket_action"  data-type="resolve"><i class="fas fa-paper-plane"></i> '.$this->lang->line("Resolve").'</a>';
+                $action .= '<a  table_id="'.$id.'" href="" class="btn btn-outline-primary ticket_action"  data-type="resolve"><i class="fas fa-paper-plane"></i> '.lang("Resolve").'</a>';
 
                 if($ticket_info[0]['ticket_status'] != '2')
-                $action .= '<a  table_id="'.$id.'" href="" class="btn btn-outline-primary ticket_action"  data-type="close"><i class="fas fa-ban"></i> '.$this->lang->line("Close").'</a>';          
+                $action .= '<a  table_id="'.$id.'" href="" class="btn btn-outline-primary ticket_action"  data-type="close"><i class="fas fa-ban"></i> '.lang("Close").'</a>';          
 
-                if($ticket_info[0]['display'] == '1' && $this->session->userdata("real_user_type")=="Admin")
-                $action .= '<a  table_id="'.$id.'" href="" class="btn btn-outline-primary ticket_action"  data-type="hide"><i class="fas fa-eye-slash"></i> '.$this->lang->line("Hide").'</a>';
+                if($ticket_info[0]['display'] == '1' && session()->get("real_user_type")=="Admin")
+                $action .= '<a  table_id="'.$id.'" href="" class="btn btn-outline-primary ticket_action"  data-type="hide"><i class="fas fa-eye-slash"></i> '.lang("Hide").'</a>';
 
                 echo $action;
                 ?>
@@ -52,7 +52,7 @@
           </div>
           <div class="card-body">
             <ul class="list-unstyled list-unstyled-border list-unstyled-noborder">
-                <?php if(count($ticket_replied)==0) echo "<br>".$this->lang->line("No reply found.");?>
+                <?php if(count($ticket_replied)==0) echo "<br>".lang("No reply found.");?>
                 <?php foreach($ticket_replied as $single_reply)
                 { ?>
                   <li class="media">
@@ -80,10 +80,10 @@
           </div>
           <div class="card-footer bg-whitesmoke">
               <form class="from-show"  action="<?php echo base_url('simplesupport/reply_action/'); ?>" method="POST" enctype="multipart/form-data" novalidate>
-                  <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $this->session->userdata('csrf_token_session'); ?>">
+                  <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo session()->get('csrf_token_session'); ?>">
                   <input type="hidden" name="id" value="<?php echo $ticket_info[0]['id']; ?>">
                   <div class="form-group">
-                      <label><?php echo $this->lang->line('Reply Ticket'); ?></label>
+                      <label><?php echo lang('Reply Ticket'); ?></label>
                       <div id="ckeditor">
                           <textarea required class="form-control" name="ticket_reply_text" id="ticket_reply_text"></textarea>
                       </div>
@@ -91,8 +91,8 @@
           </div>
           <div class="card-footer">
               <?php $red_link="simplesupport/tickets";?>
-              <button type="submit" class="btn btn-primary btn-lg reply"><i class="fa fa-send"></i> <?php echo $this->lang->line('Reply'); ?> </button> 
-              <a onclick="goBack('<?php echo $red_link ?>',1)" class="btn btn-light btn-lg float-right cancel from-show"><i class="fas fa-times"></i> <?php echo $this->lang->line("Cancel"); ?> </a>                        
+              <button type="submit" class="btn btn-primary btn-lg reply"><i class="fa fa-send"></i> <?php echo lang('Reply'); ?> </button> 
+              <a onclick="goBack('<?php echo $red_link ?>',1)" class="btn btn-light btn-lg float-right cancel from-show"><i class="fas fa-times"></i> <?php echo lang("Cancel"); ?> </a>                        
               </form>
           </div>
         </div>
@@ -141,8 +141,8 @@
               success:function(response)
               {
                 $(this).removeClass('btn-progress');
-                if(response.status == "1") iziToast.success({title: '<?php echo $this->lang->line("Success"); ?>',message: response.message,position: 'bottomRight'});
-                else iziToast.error({title: '<?php echo $this->lang->line("Error"); ?>',message: response.message,position: 'bottomRight'});
+                if(response.status == "1") iziToast.success({title: '<?php echo lang("Success"); ?>',message: response.message,position: 'bottomRight'});
+                else iziToast.error({title: '<?php echo lang("Error"); ?>',message: response.message,position: 'bottomRight'});
 
                 setTimeout(function() {          
                   location.reload();

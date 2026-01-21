@@ -2,12 +2,12 @@
   <div class="section-header">
     <h1><i class="fas fa-plus-circle"></i> <?php echo $page_title; ?></h1>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><a href="<?php echo base_url('simplesupport/tickets'); ?>"><?php echo $this->lang->line("Support Desk"); ?></a></div>
+      <div class="breadcrumb-item"><a href="<?php echo base_url('simplesupport/tickets'); ?>"><?php echo lang("Support Desk"); ?></a></div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="row">
     <div class="col-12">
@@ -17,7 +17,7 @@
           <div class="card-body">
             <input type="hidden" name="id" value="<?php echo $xdata['id'];?>">
             <div class="form-group">
-              <label for="category_name"> <?php echo $this->lang->line("Category Name")?> *</label>
+              <label for="category_name"> <?php echo lang("Category Name")?> *</label>
               <input name="category_name" value="<?php echo $xdata['category_name'];?>"  class="form-control" type="text">
               <span class="red"><?php echo form_error('category_name'); ?></span>
             </div>            
@@ -25,8 +25,8 @@
           </div>
 
           <div class="card-footer bg-whitesmoke">
-            <button name="submit" type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> <?php echo $this->lang->line("Save");?></button>
-            <button  type="button" class="btn btn-secondary btn-lg float-right" onclick='goBack("simplesupport/support_category_manager",0)'><i class="fa fa-remove"></i> <?php echo $this->lang->line("Cancel");?></button>
+            <button name="submit" type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> <?php echo lang("Save");?></button>
+            <button  type="button" class="btn btn-secondary btn-lg float-right" onclick='goBack("simplesupport/support_category_manager",0)'><i class="fa fa-remove"></i> <?php echo lang("Cancel");?></button>
           </div>
         </div>
       </form>  

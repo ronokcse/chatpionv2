@@ -12,38 +12,53 @@ Version: 1.0
 Description: Helpdesk service for extended users
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Simplesupport\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Simplesupport extends Home
 {
     public $addon_data=array();
+    
     /**
-     * initialize addon 
+     * CI4 fix: Use initController instead of __construct
      */
-    public function __construct()
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
         // getting addon information in array and storing to public variable
         // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
         //------------------------------------------------------------------------------------------
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path=APPPATH."modules/".strtolower($controller_name)."/controllers/".ucfirst($controller_name).".php"; // path of addon controller
         $this->addon_data=$this->get_addon_data($addon_path); 
 
-        $this->user_id=$this->session->userdata('user_id'); // user_id of logged in user, we may need it
-        $this->load->helper('text');
+        $this->user_id=$this->session->get('user_id'); // user_id of logged in user, we may need it
         $function_name=$this->uri->segment(2);
         if($function_name!="open_ticket") 
         {          
-            if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
-        }if($this->session->userdata('license_type') != 'double') redirect('home/access_forbidden', 'location');
-
+            if ($this->session->get('logged_in')!= 1) {
+                header('Location: ' . base_url('home/login_page'));
+                exit();
+            }
+        }
+        if($this->session->get('license_type') != 'double') {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
     }
 
 
     public function tickets()
     {
-        if($this->session->userdata('license_type') != 'double') redirect('home/access_forbidden', 'location');
+        if($this->session->get('license_type') != 'double') {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
         $data['body'] = 'tickets';
         $data['page_title'] = $this->lang->line("Tickets");    
         $this->_viewcontroller($data);
@@ -71,10 +86,10 @@ class Simplesupport extends Home
         $where_simple = array();
         $where_custom = "";         
 
-        if($this->session->userdata('real_user_type') == 'Member') $where_simple["fb_simple_support_desk.user_id"] = $this->user_id;   
+        if($this->session->get('real_user_type') == 'Member') $where_simple["fb_simple_support_desk.user_id"] = $this->user_id;   
         else $where_simple["fb_simple_support_desk.user_id >"] = 0;
 
-        if($this->session->userdata("real_user_type")=="Admin")
+        if($this->session->get("real_user_type")=="Admin")
         {
             if($ticket_status=="hidden")
             {
@@ -115,7 +130,7 @@ class Simplesupport extends Home
             else $logo=base_url().'member/'.$logo;
 
             $ticket_owner_name = isset($user_assoc[$info[$i]['user_id']]['name'])?$user_assoc[$info[$i]['user_id']]['name']:"";
-            if($this->session->userdata("real_user_type")=="Admin") $ticket_owner_name = "<a href='".base_url('admin/edit_user/'.$info[$i]['user_id'])."'>".$ticket_owner_name."</a>";
+            if($this->session->get("real_user_type")=="Admin") $ticket_owner_name = "<a href='".base_url('admin/edit_user/'.$info[$i]['user_id'])."'>".$ticket_owner_name."</a>";
 
             $action = ""; 
 
@@ -128,7 +143,7 @@ class Simplesupport extends Home
             if($info[$i]['ticket_status'] != '2')
             $action .= '<a  table_id="'.$id.'" href="" class="dropdown-item has-icon ticket_action"  data-type="close"><i class="fas fa-ban"></i> '.$this->lang->line("Close").'</a>';          
 
-            if($info[$i]['display'] == '1' && $this->session->userdata("real_user_type")=="Admin")
+            if($info[$i]['display'] == '1' && $this->session->get("real_user_type")=="Admin")
             $action .= '<a  table_id="'.$id.'" href="" class="dropdown-item has-icon ticket_action"  data-type="hide"><i class="fas fa-eye-slash"></i> '.$this->lang->line("Hide").'</a>';
 
             $action .= '<div class="dropdown-divider"></div>';
@@ -189,14 +204,17 @@ class Simplesupport extends Home
     public function open_ticket()
     {
        
-        if($this->session->userdata("user_type")=="Member" && $this->session->userdata("real_user_type")!="Admin"){
+        if($this->session->get("user_type")=="Member" && $this->session->get("real_user_type")!="Admin"){
 
             $data['body'] = 'open_ticket';
             $data['page_title'] = $this->lang->line('Open Ticket');
             $data["support_category"]=$this->basic->get_data("fb_support_category");
             $this->_viewcontroller($data);
         }
-        else redirect('home/access_forbidden','location');
+        else {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
     }
 
 
@@ -211,7 +229,7 @@ class Simplesupport extends Home
             {
                 $$key=$this->input->post($key,true);
             }
-        }if($this->session->userdata('license_type') != 'double') exit;
+        }if($this->session->get('license_type') != 'double') exit;
 
         $data['ticket_title'] = strip_tags($ticket_title);
         $data['ticket_text'] = $ticket_text;
@@ -220,10 +238,10 @@ class Simplesupport extends Home
         $data['ticket_open_time']= date("Y-m-d H:i:s");
         if($this->basic->insert_data('fb_simple_support_desk',$data))
         {
-    		$ticket_id = $this->db->insert_id();
-    		$user_email = $this->session->userdata("user_login_email");
+    		$ticket_id = $this->db->insertID();
+    		$user_email = $this->session->get("user_login_email");
     		$ticket_url = base_url().'simplesupport/reply/'.$ticket_id;
-    		$subject = $this->config->item('product_name')." | "."support ticket";
+    		$subject = ($this->config->product_name ?? config('MyConfig')->product_name)." | "."support ticket";
     		$message = "<p>Hi Admin. <br><br> 
     		<p>
     		The customer open a new ticket. <br>
@@ -231,31 +249,31 @@ class Simplesupport extends Home
     		<br><br>If you want to reply this ticket, (go to ticket ID <a href='{$ticket_url}'>{$ticket_id})</a>. <br>
     		</p> 
 
-    		<br> <br> Thanks<br><a href='".base_url()."'>".$this->session->userdata("username")."</a>";
+    		<br> <br> Thanks<br><a href='".base_url()."'>".$this->session->get("username")."</a>";
     		$from = $user_email;
-    	    $to = $this->config->item('institute_email');
+    	    $to = ($this->config->institute_email ?? config('MyConfig')->institute_email);
     		$subject = $subject;
     		$mask = $subject;
     		$html = 1;
     		$this->_mail_sender($from, $to, $subject, $message, $mask, $html);
     		
-    		if($this->session->userdata("real_user_type")=="Member")
+    		if($this->session->get("real_user_type")=="Member")
     		{
-    			$message = "<p>Hi ".$this->session->userdata('username').". <br><br> 
+    			$message = "<p>Hi ".$this->session->get('username').". <br><br> 
     			<p>
     			Thanks for contacting us. We have received your request (ticket ID <a href='{$ticket_url}'>{$ticket_id})</a>. <br>
     			A support representative will be reviewing your request and will send you a personal response.(usually within 24 hours). </p>
 
-    			<br> <br> Thanks<br><a href='".base_url()."'>".$this->config->item("company")."</a> Team";
-    			$from = $this->config->item('institute_email');
+    			<br> <br> Thanks<br><a href='".base_url()."'>".($this->config->institute_address1 ?? config('MyConfig')->institute_address1 ?? config('MyConfig')->product_name)."</a> Team";
+    			$from = ($this->config->institute_email ?? config('MyConfig')->institute_email);
     			$to   = $user_email;
     			$subject = $subject;
     			$mask = $subject;
     			$html = 1;
     			$this->_mail_sender($from, $to, $subject, $message, $mask, $html);
     		}
-    		$this->session->set_flashdata('success_message', 1);
-    		redirect('simplesupport/tickets', 'location');
+    		$this->session->setFlashdata('success_message', 1);
+    		return redirect()->to(base_url('simplesupport/tickets'));
         }
        
 
@@ -274,7 +292,7 @@ class Simplesupport extends Home
       } 
 	    $id = $this->input->post('id');
 
-        if($this->session->userdata("real_user_type")=="Admin")
+        if($this->session->get("real_user_type")=="Admin")
         $this->basic->delete_data('fb_simple_support_desk',array('id'=>$id));
 	    else $this->basic->delete_data('fb_simple_support_desk',array('id'=>$id,"user_id"=>$this->user_id));
 	
@@ -309,13 +327,13 @@ class Simplesupport extends Home
             $update_data=array("ticket_status"=>"2","display"=>"1","last_action_at"=>date("Y-m-d H:i:s"));
             $message = "Ticket has been closed successfully";
         }
-        if($action=="hide" && $this->session->userdata("real_user_type")=="Admin") 
+        if($action=="hide" && $this->session->get("real_user_type")=="Admin") 
         {
             $update_data=array("display"=>"0","last_action_at"=>date("Y-m-d H:i:s"));
             $message = "Ticket has been hidden successfully";
         }
 
-        if($this->session->userdata("real_user_type")=="Admin")
+        if($this->session->get("real_user_type")=="Admin")
         $this->basic->update_data('fb_simple_support_desk',array('id'=>$id),$update_data);
         else $this->basic->update_data('fb_simple_support_desk',array('id'=>$id,"user_id"=>$this->user_id),$update_data);
         
@@ -326,12 +344,12 @@ class Simplesupport extends Home
     public function reply($id=0)
     {   
         if($id==0) exit();
-        if($this->session->userdata('license_type') != 'double') exit;
+        if($this->session->get('license_type') != 'double') exit;
         $data['body'] = 'ticket_reply';
         $join = array(
             'fb_support_category' => 'fb_simple_support_desk.support_category=fb_support_category.id,left'
         );
-        if($this->session->userdata("real_user_type")=="Admin")
+        if($this->session->get("real_user_type")=="Admin")
         $where=array('where' => array('fb_simple_support_desk.id' => $id));
         else $where=array('where' => array('fb_simple_support_desk.id' => $id,"fb_simple_support_desk.user_id"=>$this->user_id));
 
@@ -367,12 +385,20 @@ class Simplesupport extends Home
     {
        if($_POST)
        {           
+           // CSRF check (kept from CI3)
            $this->csrf_token_check();
-           $post=$_POST;
-           foreach ($post as $key => $value) 
-           {
-               $$key=$this->input->post($key,true);
-           }
+
+           // CI4 fix: Do not use variable variables, read explicit POST fields
+           $id = (int) ($this->request->getPost('id') ?? 0);
+           $ticket_reply_text = $this->request->getPost('ticket_reply_text') ?? '';
+       } else {
+           $id = 0;
+           $ticket_reply_text = '';
+       }
+
+       if ($id === 0 || $ticket_reply_text === '') {
+           // Invalid request, just go back to ticket list
+           return redirect()->to(base_url('simplesupport/tickets'));
        }
        
        $data['ticket_reply_text']  = $ticket_reply_text;
@@ -385,7 +411,7 @@ class Simplesupport extends Home
        
        if($this->basic->insert_data('fb_support_desk_reply',$data))
        {
-       		if($this->session->userdata("real_user_type")=="Member")
+       		if($this->session->get("real_user_type")=="Member")
        		{
        			$id= $id; 
        			$url = site_url()."simplesupport/reply/".$id;
@@ -402,16 +428,16 @@ class Simplesupport extends Home
        			            <p>"."Go to this url".":".$url_final."</p>";
 
 
-       			$from = $this->session->userdata("user_login_email");
-       			$to = $this->config->item('institute_email');
-       			$subject = $this->config->item('product_name')." | "."support ticket";
+       			$from = $this->session->get("user_login_email");
+       			$to = ($this->config->institute_email ?? config('MyConfig')->institute_email);
+       			$subject = ($this->config->product_name ?? config('MyConfig')->product_name)." | "."support ticket";
        			$mask = $subject;
        			$html = 1;
        			$this->_mail_sender($from, $to, $subject, $message, $mask, $html);
        			$update_ticket = array("last_replied_at"=>date("Y-m-d H:i:s"),"last_replied_by"=>$this->user_id,"ticket_status"=>"1","display"=>"1");
        			$this->basic->update_data('fb_simple_support_desk',array("id"=>$id),$update_ticket);
-       			$this->session->set_flashdata('success_message', 1);
-       			redirect('simplesupport/reply/'.$id.'', 'location'); 
+       			$this->session->setFlashdata('success_message', 1);
+       			return redirect()->to(base_url('simplesupport/reply/'.$id)); 
        		}
        		else
        		{
@@ -435,19 +461,19 @@ class Simplesupport extends Home
 				$userid=$data_support_desk[0]['user_id'];
 				$where=array('where' => array('users.id' => $userid ));
 				$table = "users";
-                $from = $this->config->item('institute_email'); 
+                $from = ($this->config->institute_email ?? config('MyConfig')->institute_email); 
 				$select =array("users.email");
 				$tomail = $this->basic->get_data($table,$where,$select);
 				if(isset($tomail[0]['email']))
 				$to = $tomail[0]['email']; 
-				$subject = $this->config->item('product_name')." | "."Support ticket";
+				$subject = ($this->config->product_name ?? config('MyConfig')->product_name)." | "."Support ticket";
 				$mask = $subject;
 				$html = 1;
 				$this->_mail_sender($from, $to, $subject, $message, $mask, $html);
 				$update_ticket = array("last_replied_at"=>date("Y-m-d H:i:s"),"last_replied_by"=>$this->user_id);
 				$this->basic->update_data('fb_simple_support_desk',array("id"=>$id),$update_ticket);
-				$this->session->set_flashdata('success_message', 1);
-				redirect('simplesupport/reply/'.$id.'', 'location');              
+				$this->session->setFlashdata('success_message', 1);
+				return redirect()->to(base_url('simplesupport/reply/'.$id));              
        		}
        }
 
@@ -456,7 +482,10 @@ class Simplesupport extends Home
 
     public function support_category_manager()
     {
-     if ($this->session->userdata('real_user_type') != 'Admin') redirect('home/login_page', 'location');
+     if ($this->session->get('real_user_type') != 'Admin') {
+         header('Location: ' . base_url('home/login_page'));
+         exit();
+     }
      $data['body'] = 'support_category';
      $data['page_title'] = $this->lang->line('Support Category');
      $data['category_data'] = $this->basic->get_data("fb_support_category");
@@ -466,7 +495,10 @@ class Simplesupport extends Home
 
     public function add_category()
     {       
-        if ($this->session->userdata('real_user_type') != 'Admin') redirect('home/login_page', 'location');
+        if ($this->session->get('real_user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
         $data['body'] = 'add_category';
         $data['page_title'] = $this->lang->line('Add Category');
         $this->_viewcontroller($data);
@@ -474,15 +506,20 @@ class Simplesupport extends Home
     
     public function add_category_action()
     {
-       if ($this->session->userdata('real_user_type') != 'Admin') redirect('home/login_page', 'location');
+       if ($this->session->get('real_user_type') != 'Admin') {
+           header('Location: ' . base_url('home/login_page'));
+           exit();
+       }
        if($this->is_demo == '1')
        {
            echo "<h2 style='text-align:center;color:red;border:1px solid red; padding: 10px'>This feature is disabled in this demo.</h2>"; 
            exit();
        }
 
-       if($_SERVER['REQUEST_METHOD'] === 'GET') 
-       redirect('home/access_forbidden','location');
+       if($_SERVER['REQUEST_METHOD'] === 'GET') {
+           header('Location: ' . base_url('home/access_forbidden'));
+           exit();
+       }
 
        if($_POST)
        {
@@ -502,10 +539,10 @@ class Simplesupport extends Home
                    'deleted'=>'0'
                );
                
-               if($this->basic->insert_data('fb_support_category',$data)) $this->session->set_flashdata('success_message',1);   
-               else $this->session->set_flashdata('error_message',1);     
+               if($this->basic->insert_data('fb_support_category',$data)) $this->session->setFlashdata('success_message',1);   
+               else $this->session->setFlashdata('error_message',1);     
                
-               redirect('simplesupport/support_category_manager','location');                 
+               return redirect()->to(base_url('simplesupport/support_category_manager'));                 
                
            }
        }  
@@ -514,7 +551,10 @@ class Simplesupport extends Home
 
     public function edit_category($id=0)
     {       
-        if ($this->session->userdata('real_user_type') != 'Admin') redirect('home/login_page', 'location');
+        if ($this->session->get('real_user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
    
         $data['body']='edit_category';     
         $data['page_title']=$this->lang->line('Edit Category');     
@@ -527,15 +567,20 @@ class Simplesupport extends Home
 
     public function edit_category_action() 
     {
-        if ($this->session->userdata('real_user_type') != 'Admin') redirect('home/login_page', 'location');
+        if ($this->session->get('real_user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
         if($this->is_demo == '1')
         {
             echo "<h2 style='text-align:center;color:red;border:1px solid red; padding: 10px'>This feature is disabled in this demo.</h2>"; 
             exit();
         }
 
-        if($_SERVER['REQUEST_METHOD'] === 'GET') 
-        redirect('home/access_forbidden','location');
+        if($_SERVER['REQUEST_METHOD'] === 'GET') {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
 
         if($_POST)
         {
@@ -555,10 +600,10 @@ class Simplesupport extends Home
                     'category_name'=>$category_name
                 );
                 
-                if($this->basic->update_data('fb_support_category',array("id"=>$id),$data)) $this->session->set_flashdata('success_message',1);   
-                else $this->session->set_flashdata('error_message',1);     
+                if($this->basic->update_data('fb_support_category',array("id"=>$id),$data)) $this->session->setFlashdata('success_message',1);   
+                else $this->session->setFlashdata('error_message',1);     
                 
-                redirect('simplesupport/support_category_manager','location');                 
+                return redirect()->to(base_url('simplesupport/support_category_manager'));                 
                 
             }
         }   
@@ -573,7 +618,7 @@ class Simplesupport extends Home
             echo json_encode(array("status"=>"0","message"=>"This feature is disabled in this demo.")); 
             exit();
         }
-        if ($this->session->userdata('real_user_type') != 'Admin') exit(); 
+        if ($this->session->get('real_user_type') != 'Admin') exit(); 
         if($this->basic->update_data('fb_support_category',array('id'=>$id),array("deleted"=>"1")))
         echo json_encode(array("status"=>"1","message"=>$this->lang->line("Category has been deleted successfully"))); 
         else echo json_encode(array("status"=>"0","message"=>$this->lang->line("Something went wrong, please try again")));

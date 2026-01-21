@@ -2,12 +2,12 @@
   <div class="section-header">
     <h1><i class="fas fa-ticket-alt"></i> <?php echo $page_title; ?></h1>  
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><?php echo $this->lang->line("Support Desk"); ?></div>
+      <div class="breadcrumb-item"><?php echo lang("Support Desk"); ?></div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
   <?php 
   // if($this->session->flashdata('mark_seen_success')!='')
   // echo "<div class='alert alert-primary text-center'><i class='fas fa-check-circle'></i> ".$this->session->flashdata('mark_seen_success')."</div>"; 
@@ -20,31 +20,31 @@
         <div class="input-group mb-3" id="searchbox">
           <div class="input-group-prepend">
               <select class="select2 form-control" id="ticket_status">
-                <option value="1"><?php echo $this->lang->line("Open"); ?></option>
-                <option value="3"><?php echo $this->lang->line("Resolved"); ?></option>
-                <option value="2"><?php echo $this->lang->line("Closed"); ?></option>
-                <?php if($this->session->userdata("real_user_type")=="Admin") { ?>
-                <option value="hidden"><?php echo $this->lang->line("Hidden"); ?></option>
+                <option value="1"><?php echo lang("Open"); ?></option>
+                <option value="3"><?php echo lang("Resolved"); ?></option>
+                <option value="2"><?php echo lang("Closed"); ?></option>
+                <?php if(session()->get("real_user_type")=="Admin") { ?>
+                <option value="hidden"><?php echo lang("Hidden"); ?></option>
                 <?php } ?>
-                <option value=""><?php echo $this->lang->line("Everything"); ?></option>
+                <option value=""><?php echo lang("Everything"); ?></option>
               </select>
             </div>
-          <input type="text" class="form-control" id="search" autofocus placeholder="<?php echo $this->lang->line('Search...'); ?>" aria-label="" aria-describedby="basic-addon2">
+          <input type="text" class="form-control" id="search" autofocus placeholder="<?php echo lang('Search...'); ?>" aria-label="" aria-describedby="basic-addon2">
           <div class="input-group-append">
-            <button class="btn btn-primary" id="search_submit" type="button"><i class="fas fa-search"></i> <?php echo $this->lang->line('Search'); ?></button>
+            <button class="btn btn-primary" id="search_submit" type="button"><i class="fas fa-search"></i> <?php echo lang('Search'); ?></button>
           </div>
         </div>
       </div>
       <div class="col-12 col-md-5">
-        <?php if($this->session->userdata("user_type")=="Admin") 
+        <?php if(session()->get("user_type")=="Admin") 
         { ?>
-          <a class="btn btn-outline-primary btn-lg float-right" href="<?php echo base_url('simplesupport/support_category_manager'); ?>"><i class="fas fa-layer-group"></i> <?php echo $this->lang->line("Manage Category"); ?></a>
+          <a class="btn btn-outline-primary btn-lg float-right" href="<?php echo base_url('simplesupport/support_category_manager'); ?>"><i class="fas fa-layer-group"></i> <?php echo lang("Manage Category"); ?></a>
         <?php 
         } 
-        if($this->session->userdata("user_type")=="Member" && $this->session->userdata("real_user_type")!="Admin")
+        if(session()->get("user_type")=="Member" && session()->get("real_user_type")!="Admin")
         { ?>
            <a class="btn btn-outline-primary btn-lg float-right"  href="<?php echo site_url('simplesupport/open_ticket');?>">
-              <i class="fas fa-plus-circle"></i> <?php echo $this->lang->line("New Ticket"); ?>
+              <i class="fas fa-plus-circle"></i> <?php echo lang("New Ticket"); ?>
            </a> 
         <?php 
         } ?>
@@ -67,13 +67,13 @@
       <div class="card-body">
         <div class="empty-state">
           <img class="img-fluid" style="height: 300px" src="<?php echo base_url('assets/img/drawkit/drawkit-nature-man-colour.svg'); ?>" alt="image">
-          <h2 class="mt-0"><?php echo $this->lang->line("We could not find any data.") ?></h2>
+          <h2 class="mt-0"><?php echo lang("We could not find any data.") ?></h2>
         </div>
       </div>
     </div>
  
 
-    <button class="btn btn-outline-primary float-right" style="display: none;" id="load_more" data-limit="10" data-start="0"><i class="fas fa-book-reader"></i> <?php echo $this->lang->line("Load More"); ?></button>
+    <button class="btn btn-outline-primary float-right" style="display: none;" id="load_more" data-limit="10" data-start="0"><i class="fas fa-book-reader"></i> <?php echo lang("Load More"); ?></button>
       
   </div>
 </section>
@@ -139,7 +139,7 @@
                   $("#load_more").hide();
                   if(popmessage) 
                   {
-                    swal("<?php echo $this->lang->line('No data found') ?>", "", "warning");
+                    swal("<?php echo lang('No data found') ?>", "", "warning");
                     $("#nodata").hide();
                   }
                   else $("#nodata").show();
@@ -165,10 +165,10 @@
                 $(this).removeClass('btn-progress');
                 if(response.status == "1")  
                 {
-                  iziToast.success({title: '<?php echo $this->lang->line("Success"); ?>',message: response.message,position: 'bottomRight'});
+                  iziToast.success({title: '<?php echo lang("Success"); ?>',message: response.message,position: 'bottomRight'});
                   $(this).parent().parent().parent().parent().parent().parent().parent().hide();
                 }
-                else iziToast.error({title: '<?php echo $this->lang->line("Error"); ?>',message: response.message,position: 'bottomRight'});
+                else iziToast.error({title: '<?php echo lang("Error"); ?>',message: response.message,position: 'bottomRight'});
               }
           });
         });
@@ -177,9 +177,9 @@
         $(document.body).on('click', '.delete_ticket', function(e) {
             e.preventDefault();
             var id = $(this).attr("table_id");
-            var mes='<?php echo $this->lang->line("Do you really want to delete it?");?>';  
+            var mes='<?php echo lang("Do you really want to delete it?");?>';  
             swal({
-              title: "<?php echo $this->lang->line("Are you sure?");?>",
+              title: "<?php echo lang("Are you sure?");?>",
               text: mes,
               icon: "warning",
               buttons: true,
@@ -201,10 +201,10 @@
                       $(this).removeClass('btn-progress');
                       if(response.status == "1")  
                       {
-                          iziToast.success({title: '<?php echo $this->lang->line("Success"); ?>',message: response.message,position: 'bottomRight'});
+                          iziToast.success({title: '<?php echo lang("Success"); ?>',message: response.message,position: 'bottomRight'});
                           $(this).parent().parent().parent().parent().parent().parent().parent().hide();
                       }
-                      else iziToast.error({title: '<?php echo $this->lang->line("Error"); ?>',message: response.message,position: 'bottomRight'});
+                      else iziToast.error({title: '<?php echo lang("Error"); ?>',message: response.message,position: 'bottomRight'});
                       }                      
                   });
                 } 

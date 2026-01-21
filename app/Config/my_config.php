@@ -33,7 +33,7 @@ $config['force_https'] = '0';
 $config['enable_signup_form'] = '1';
 $config['instagram_reply_enable_disable'] = '1';
 $config['enable_signup_activation'] = '0';
-$config['enable_support'] = '0';
+$config['enable_support'] = '1';
 
 $config['master_password'] = '';
 
