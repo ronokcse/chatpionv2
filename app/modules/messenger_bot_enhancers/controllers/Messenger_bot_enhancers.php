@@ -293,19 +293,15 @@ class Messenger_bot_enhancers extends Home
             if($from_date!="Invalid date" && $to_date!="Invalid date")
             $where_custom .= " AND created_at >= '{$from_date}' AND created_at <='{$to_date}'";
         }
-        $this->db->where($where_custom);
-
-        if($page_id!="") $this->db->where(array("page_id"=>$page_id)); 
-        if($status!="") $this->db->where(array("posting_status"=>$status));  
-        $this->db->where(array("broadcast_type !="=>"OTN"));      
-        
         $table="messenger_bot_broadcast_serial";
-        $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
+        // CI4 fix: pass filters directly (don't rely on prior db->where state)
+        $where = ['where' => $where_custom];
+        if($page_id!="") $where['where']['page_id'] = $page_id;
+        if($status!="") $where['where']['posting_status'] = $status;
+        $where['where']['broadcast_type !='] = "OTN";
         
-        $this->db->where($where_custom);
-        if($page_id!="") $this->db->where(array("page_id"=>$page_id)); 
-        if($status!="") $this->db->where(array("posting_status"=>$status)); 
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+        $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
         $total_result=$total_rows_array[0]['total_rows'];
 
@@ -689,13 +685,11 @@ In this case, we suggest you to check the error message in report, and if you th
             $where_custom .=" AND (".$imp.") ";
         }
      
-        $this->db->where($where_custom);
-        
         $table="messenger_bot_broadcast_serial_send";
-        $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-
-        $this->db->where($where_custom);
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+        // CI4 fix: pass filters directly (don't rely on prior db->where state)
+        $where = ['where' => $where_custom];
+        $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
         $total_result=$total_rows_array[0]['total_rows'];
 

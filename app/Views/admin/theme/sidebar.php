@@ -1,5 +1,6 @@
 <?php
 $sidebar_user_type = session()->get('user_type');
+
 ?>
 <div class="main-sidebar">
   <aside id="sidebar-wrapper">

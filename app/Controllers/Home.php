@@ -1168,6 +1168,12 @@ class Home extends BaseController
 
     public function _viewcontroller($data = array())
     {
+        // Set license_type session (same as CI3 project)
+        // Check both CI3 path (application/core) and CI4 path (app/core)
+        if (file_exists(ROOTPATH . 'application/core/licence_type.txt') || file_exists(ROOTPATH . 'app/core/licence_type.txt')) {
+            $this->license_check_action();
+        }
+
         if (!isset($data['body'])) {
             $data['body'] = $this->config->default_page_url ?? 'page/blank';
         }
@@ -4244,7 +4250,16 @@ class Home extends BaseController
 
     public function license_check_action()
     {
-        $encoded = file_get_contents(ROOTPATH . 'app/core/licence_type.txt');
+        // Check CI3 path first (application/core), then CI4 path (app/core)
+        $typePath = ROOTPATH . 'application/core/licence_type.txt';
+        if (!file_exists($typePath)) {
+            $typePath = ROOTPATH . 'app/core/licence_type.txt';
+        }
+        if (!file_exists($typePath)) {
+            return; // File not found
+        }
+
+        $encoded = file_get_contents($typePath);
         $encrypt_method = "AES-256-CBC";
         $secret_key = 't8Mk8fsJMnFw69FGG5';
         $secret_iv = '9fljzKxZmMmoT358yZ';
@@ -4252,8 +4267,13 @@ class Home extends BaseController
         $iv = substr(hash('sha256', $secret_iv), 0, 16);
         $decoded = openssl_decrypt(base64_decode($encoded), $encrypt_method, $key, 0, $iv);
 
+        if ($decoded === false || empty($decoded)) {
+            return; // Invalid encrypted data
+        }
+
         $decoded = explode('_', $decoded);
         $decoded = array_pop($decoded);
+        // ✅ SESSION SET HOCHE EIKHANE (Line 4277)
         $this->session->set('license_type', $decoded);
     }
 

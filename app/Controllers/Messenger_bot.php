@@ -1955,8 +1955,8 @@ class Messenger_bot extends Home
 
             $where['where'] = array('messenger_bot.fb_page_id' => $page_id, 'postback_id' => $payload_id, 'facebook_rx_fb_page_info.bot_enabled' => '1', 'media_type' => $social_media_type);
 
-            $where_custom = "(keyword_type='post-back' or keyword_type='reply')";
-            $this->db->where($where_custom);
+            // CI4 fix: don't rely on db->where() state; use where_in for keyword_type
+            $where['where_in'] = array('keyword_type' => array('post-back', 'reply'));
 
 
             $join = array('facebook_rx_fb_page_info' => "facebook_rx_fb_page_info.id=messenger_bot.page_id,left");
@@ -2154,8 +2154,8 @@ class Messenger_bot extends Home
 
             $where['where'] = array('messenger_bot.fb_page_id' => $page_id, 'postback_id' => $payload_id, 'facebook_rx_fb_page_info.bot_enabled' => '1', 'media_type' => $social_media_type);
 
-            $where_custom = "(keyword_type='post-back' or keyword_type='reply')";
-            $this->db->where($where_custom);
+            // CI4 fix: don't rely on db->where() state; use where_in for keyword_type
+            $where['where_in'] = array('keyword_type' => array('post-back', 'reply'));
 
             $join = array('facebook_rx_fb_page_info' => "facebook_rx_fb_page_info.id=messenger_bot.page_id,left");
 
@@ -11771,13 +11771,14 @@ class Messenger_bot extends Home
             if ($search_template_access == "public") $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public'))";
             else if ($search_template_access == "private") $where_custom = "(template_access='private' AND user_id='" . $this->user_id . "')";
             else $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public') OR (template_access='private' AND user_id='" . $this->user_id . "'))";
-            $this->db->where($where_custom);
+            // CI4 fix: apply where_custom via Basic() instead of db->where()
+            if ($search_template_name != '') $where_custom .= " AND template_name LIKE '%" . addslashes($search_template_name) . "%'";
+            $where = array('where' => $where_custom);
         } else {
             $where_simple["user_id"] = $this->user_id;
             if ($search_template_access) $where_simple['template_access'] = $search_template_access;
+            $where = array('where' => $where_simple);
         }
-
-        $where = array('where' => $where_simple);
 
         $table = "messenger_bot_saved_templates";
         $info = $this->basic->get_data($table, $where, $select = '', $join = '', $limit, $start, $order_by);
@@ -11815,18 +11816,7 @@ class Messenger_bot extends Home
         }
 
 
-        if (session()->get("user_type") == "Member" && $this->is_manager != 1) {
-            $package_info = session()->get('package_info');
-            $search_package_id = isset($package_info['id']) ? $package_info['id'] : '0';
-
-            if ($search_template_access == "public") $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public'))";
-            else if ($search_template_access == "private") $where_custom = "(template_access='private' AND user_id='" . $this->user_id . "')";
-            else $where_custom = "((FIND_IN_SET('" . $search_package_id . "',allowed_package_ids) <> 0 AND template_access='public') OR (template_access='private' AND user_id='" . $this->user_id . "'))";
-            $this->db->where($where_custom);
-        } else {
-            $where_simple["user_id"] = $this->user_id;
-            if ($search_template_access) $where_simple['template_access'] = $search_template_access;
-        }
+        // Count using the same $where we used for data query
         $total_rows_array = $this->basic->get_data($table, $where);
         $total_result = count($total_rows_array);
 
@@ -12263,11 +12253,11 @@ class Messenger_bot extends Home
             'otn_optin_subscriber' => 'otn_postback.id=otn_optin_subscriber.otn_id,left'
         );
         $select = array('otn_postback.*', 'page_name', 'count(otn_optin_subscriber.id) as total_optin_subscriber', 'count(case when is_sent = "1" THEN otn_optin_subscriber.id END) as total_sent', 'count(case when is_sent = "0" THEN otn_optin_subscriber.id END) as total_not_sent');
-        $this->db->where($where_custom);
-        $info = $this->basic->get_data($table, $where = '', $select, $join, $limit, $start, $order_by, $group_by = 'otn_postback.id');
+        // CI4 fix: pass raw where_custom into Basic (don't rely on prior db->where state)
+        $where = ['where' => $where_custom];
+        $info = $this->basic->get_data($table, $where, $select, $join, $limit, $start, $order_by, $group_by = 'otn_postback.id');
 
-        $this->db->where($where_custom);
-        $total_rows_array = $this->basic->count_row($table, $where = '', $count = $table . ".id", $join, $group_by = 'otn_postback.id');
+        $total_rows_array = $this->basic->count_row($table, $where, $count = $table . ".id", $join, $group_by = 'otn_postback.id');
         $total_result = $total_rows_array[0]['total_rows'];
 
         $i = 0;

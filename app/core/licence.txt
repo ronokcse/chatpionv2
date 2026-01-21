@@ -1,0 +1,1 @@
+{"is_active":"8d3cce85c8403cf6ea2d290003f18b58","purchase_code":"1100223400-chatpion","item_name":"XeroChat","buy_at":"N\/A","licence_type":"Extended License","domain":"chatpion.test","checking_date":"2026-01-21"}

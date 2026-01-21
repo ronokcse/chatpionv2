@@ -227,7 +227,7 @@ $drop_menu ='<a href="javascript:;" id="payment_date_range" class="btn btn-prima
           }
         },
         language: {
-          url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+          url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? (isset($controller) && isset($controller->language) ? $controller->language : 'english')).'.json'); ?>"
         },
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         columns: [

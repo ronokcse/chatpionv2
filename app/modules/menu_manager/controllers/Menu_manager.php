@@ -66,33 +66,55 @@ class Menu_manager extends Home
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'desc';
         $order_by=$sort." ".$order;
 
-        $where_custom = '';
-        $where_custom="user_id = ".$this->user_id;
-
-        if ($search_value != '') 
-        {
-            foreach ($search_columns as $key => $value) {
-                $temp[] = $value." LIKE "."'%$search_value%'";
-            }
-            $imp = implode(" OR ", $temp);
-            $where_custom .=" AND (".$imp.") ";
-        }
-
-        if($page_date_range !="")
-        {
-            $exp = explode('|', $page_date_range);
-            $from_date = isset($exp[0])?$exp[0]:"";
-            $to_date = isset($exp[1])?$exp[1]:"";
-            if($from_date!="Invalid date" && $to_date!="Invalid date")
-            $where_custom .= " AND created_at >= '{$from_date}' AND created_at <='{$to_date}'";
-        }
-
+        // CI4 fix: use Query Builder so filters always apply (data + count)
         $table = "custom_page_builder";
-        $this->db->where($where_custom);
-        $info = $this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-        $this->db->where($where_custom);
-        $total_rows_array = $this->basic->count_row($table,$where='',$count="id",$join="",$group_by='');
-        $total_result=$total_rows_array[0]['total_rows'];
+
+        $builder = $this->db->table($table);
+        $builder->where('user_id', (int) $this->user_id);
+
+        if ($page_date_range != "") {
+            $exp = explode('|', $page_date_range);
+            $from_date = $exp[0] ?? "";
+            $to_date = $exp[1] ?? "";
+            if ($from_date != "Invalid date" && $to_date != "Invalid date" && $from_date != "" && $to_date != "") {
+                $builder->where('created_at >=', $from_date);
+                $builder->where('created_at <=', $to_date);
+            }
+        }
+
+        if ($search_value != '') {
+            $builder->groupStart();
+            foreach ($search_columns as $col) {
+                $builder->orLike($col, $search_value);
+            }
+            $builder->groupEnd();
+        }
+
+        $info = $builder
+            ->orderBy($sort, $order)
+            ->limit($limit, $start)
+            ->get()
+            ->getResultArray();
+
+        $countBuilder = $this->db->table($table);
+        $countBuilder->where('user_id', (int) $this->user_id);
+        if ($page_date_range != "") {
+            $exp = explode('|', $page_date_range);
+            $from_date = $exp[0] ?? "";
+            $to_date = $exp[1] ?? "";
+            if ($from_date != "Invalid date" && $to_date != "Invalid date" && $from_date != "" && $to_date != "") {
+                $countBuilder->where('created_at >=', $from_date);
+                $countBuilder->where('created_at <=', $to_date);
+            }
+        }
+        if ($search_value != '') {
+            $countBuilder->groupStart();
+            foreach ($search_columns as $col) {
+                $countBuilder->orLike($col, $search_value);
+            }
+            $countBuilder->groupEnd();
+        }
+        $total_result = $countBuilder->countAllResults();
 
         for($i = 0; $i < count($info); $i++)
         {

@@ -31,8 +31,14 @@ class Payment extends Home
  
     public function accounts()
     {     
-        if($this->session->userdata('user_type') != 'Admin') redirect('home/login_page', 'location');
-        if($this->session->userdata('license_type') != 'double') redirect('home/access_forbidden', 'location');
+        if($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
+        if($this->session->userdata('license_type') != 'double') {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
         $data['body'] = "admin/payment/accounts";
         $data['page_title'] = $this->lang->line('Payment Accounts');
         $get_data = $this->basic->get_data("payment_config");
@@ -56,10 +62,19 @@ class Payment extends Home
             echo "<h2 style='text-align:center;color:red;border:1px solid red; padding: 10px'>This feature is disabled in this demo.</h2>"; 
             exit();
         }
-        if($this->session->userdata('user_type') != 'Admin') redirect('home/login_page', 'location');
-        if($this->session->userdata('license_type') != 'double') redirect('home/access_forbidden', 'location');
+        if($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
+        if($this->session->userdata('license_type') != 'double') {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') redirect('home/access_forbidden', 'location');
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
         if ($_POST) 
         {
             // validation
@@ -227,20 +242,27 @@ class Payment extends Home
                 else $this->basic->insert_data("payment_config",$update_data);      
                                          
                 $this->session->set_flashdata('success_message', 1);
-                redirect('payment/accounts', 'location');
+                return redirect()->to(base_url('payment/accounts'));
             }
         }
     }
 
     public function earning_summary()
     {
-        if($this->session->userdata('user_type') != 'Admin') redirect('home/login_page', 'location');
+        if($this->session->userdata('user_type') != 'Admin') {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
-        if($this->session->userdata('license_type') != 'double') redirect('home/access_forbidden', 'location');
+        if($this->session->userdata('license_type') != 'double') {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
 
         $user_data = $this->basic->get_data('users',$where='',$select=array('count(id) as total_user'));
 
@@ -250,7 +272,7 @@ class Payment extends Home
         $date = date("Y-m-d");
 
         $payment_result = $this->db->query("SELECT * FROM transaction_history WHERE  DATE_FORMAT(payment_date,'%Y')='{$year}' OR DATE_FORMAT(payment_date,'%Y')='{$lastyear}' ORDER BY payment_date DESC");
-        $payment_data = $payment_result->result_array();
+        $payment_data = $payment_result->getResultArray();
 
         $payment_today=$payment_month=$payment_year=$payment_life=0;
         $array_month = array();
@@ -340,18 +362,22 @@ class Payment extends Home
     public function transaction_log() // works for both admin and member
     {
 
-        if($this->session->userdata('license_type') != 'double') redirect('home/access_forbidden', 'location');
+        if($this->session->userdata('license_type') != 'double') {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
 
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/access_forbidden', 'location');
+        header('Location: ' . base_url('home/access_forbidden'));
+        exit();
 
         $action = isset($_GET['action']) ? $_GET['action'] : ""; // if redirect after purchase
         if($action!="")
         {
             if($action=="cancel") $this->session->set_userdata('payment_cancel',1);
             else if($action=="success") $this->session->set_userdata('payment_success',1);
-            redirect('payment/transaction_log','refresh');
+            return redirect()->to(base_url('payment/transaction_log'));
         }
 
         $data['body']='admin/payment/transaction_log';
@@ -367,7 +393,10 @@ class Payment extends Home
     public function transaction_log_data()
     { 
         $this->ajax_check();
-        if($this->session->userdata('license_type') != 'double') redirect('home/access_forbidden', 'location');
+        if($this->session->userdata('license_type') != 'double') {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
 
         $payment_date_range = $this->input->post("payment_date_range");
         $search_value = $_POST['search']['value'];
@@ -405,10 +434,10 @@ class Payment extends Home
         }
           
         $table="transaction_history";
-        $this->db->where($where_custom);
-        $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-        $this->db->where($where_custom);
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join='',$group_by='');
+        // CI4 fix: pass raw where_custom into Basic (don't rely on prior db->where state)
+        $where = ['where' => $where_custom];
+        $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
+        $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join='',$group_by='');
         $total_result=$total_rows_array[0]['total_rows'];
 
         $i=0;
@@ -447,19 +476,24 @@ class Payment extends Home
     public function member_payment_history() // kept because not sure if it is called from somewhere
     {
         if ($this->session->userdata('license_type') == 'double' && $this->session->userdata('user_type') == 'Member') 
-        redirect('payment/transaction_log', 'location');
-        else redirect('home/access_forbidden', 'location');
+        return redirect()->to(base_url('payment/transaction_log'));
+        else {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
 
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
     }
 
     public function buy_package()
     {
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/access_forbidden', 'location');
+        header('Location: ' . base_url('home/access_forbidden'));
+        exit();
 
         if($this->session->userdata('license_type') == 'double' && $this->session->userdata('user_type') == 'Member')
         {
@@ -488,7 +522,10 @@ class Payment extends Home
            $data['last_payment_method'] = $user_info[0]['last_payment_method'];
            $this->_viewcontroller($data);
         }
-        else redirect('home/access_forbidden', 'location');
+        else {
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
+        }
     }
 
     public function manual_payment_upload_file() 
@@ -821,12 +858,11 @@ class Payment extends Home
             'package' => 'transaction_history_manual.package_id=package.id,left'
         ];
 
-        $this->db->where($where_custom);
-        $info = $this->basic->get_data($table, $where='', $select, $join, $limit, $start, $order_by, $group_by='');
+        $where = ['where' => $where_custom];
+        $info = $this->basic->get_data($table, $where, $select, $join, $limit, $start, $order_by, $group_by='');
         // echo "<pre>"; print_r($info); exit;
         
-        $this->db->where($where_custom);
-        $total_rows_array = $this->basic->count_row($table, $where='', $count=$table.".id", $join, $group_by='');
+        $total_rows_array = $this->basic->count_row($table, $where, $count=$table.".id", $join, $group_by='');
         $total_result = $total_rows_array[0]['total_rows'];
 
         $i = 0;
@@ -1916,11 +1952,13 @@ class Payment extends Home
     public function package_manager()
     {
         if($this->session->userdata('logged_in') == 1 && $this->session->userdata('user_type') != 'Admin') 
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
         
         $data['body']='admin/payment/package_list';
         $data['page_title']=$this->lang->line("Package Manager");
@@ -1988,14 +2026,17 @@ class Payment extends Home
         }
 
         if($this->session->userdata('logged_in') == 1 && $this->session->userdata('user_type') != 'Admin') 
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         if($_SERVER['REQUEST_METHOD'] === 'GET') 
-        redirect('home/access_forbidden','location');
+        header('Location: ' . base_url('home/access_forbidden'));
+        exit();
 
         if($_POST)
         {
@@ -2091,14 +2132,17 @@ class Payment extends Home
     public function details_package($id=0)
     {        
         if($this->session->userdata('logged_in') == 1 && $this->session->userdata('user_type') != 'Admin') 
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         if($id==0)
-        redirect('home/access_forbidden','location');
+        header('Location: ' . base_url('home/access_forbidden'));
+        exit();
 
         $data['body']='admin/payment/details_package';        
         $data['page_title']=$this->lang->line("Package Details");        
@@ -2137,14 +2181,17 @@ class Payment extends Home
     public function edit_package($id=0)
     {       
         if($this->session->userdata('logged_in') == 1 && $this->session->userdata('user_type') != 'Admin') 
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         if($id==0) 
-        redirect('home/access_forbidden','location');
+        header('Location: ' . base_url('home/access_forbidden'));
+        exit();
 
         $data['body']='admin/payment/edit_package';     
         $data['page_title']=$this->lang->line('Edit Package');     
@@ -2189,14 +2236,17 @@ class Payment extends Home
         }
 
         if($this->session->userdata('logged_in') == 1 && $this->session->userdata('user_type') != 'Admin') 
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         if($_SERVER['REQUEST_METHOD'] === 'GET') 
-        redirect('home/access_forbidden','location');
+        header('Location: ' . base_url('home/access_forbidden'));
+        exit();
 
         if($_POST)
         {
@@ -2315,11 +2365,13 @@ class Payment extends Home
     public function usage_history()
     {        
         if($this->session->userdata('user_type') != 'Member') 
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         // team user can not access
         if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        header('Location: ' . base_url('home/login_page'));
+        exit();
 
         $current_month = date("n");
         $current_year = date("Y");
@@ -2332,7 +2384,7 @@ class Payment extends Home
         $this->db->select('sum(usage_count) as usage_count,module_id');
         $this->db->where('user_id', $this->user_id);
         $this->db->group_by('module_id');
-        $not_monthy_info = $this->db->get('usage_log')->result_array();
+        $not_monthy_info = $this->db->get('usage_log')->getResultArray();
         $not_monthy_module_info=array(); 
         foreach ($not_monthy_info as $key => $value) 
         {

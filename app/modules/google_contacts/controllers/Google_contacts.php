@@ -353,28 +353,43 @@ class Google_contacts extends Home
         $order = isset($_POST['order'][0]['dir']) ? $_POST['order'][0]['dir'] : 'desc';
         $order_by = $sort . " " . $order;
     
-        $where_custom = "user_id = " . $this->user_id;
-        
-        if ($search_value != '') {
-            $temp = array();
-            foreach ($search_columns as $column) {
-                $temp[] = $column . " LIKE '%" . $this->db->escape_like_str($search_value) . "%'";
-            }
-            $where_custom .= " AND (" . implode(" OR ", $temp) . ")";
-        }
-        
-        // Add the sheet_account_id condition if it is provided
+        // CI4 fix: use Query Builder so filters always apply (data + count)
+        $table = "google_contacts";
+
+        $builder = $this->db->table($table);
+        $builder->where('user_id', (int) $this->user_id);
+
         if ($contacts_account_id != '') {
-            $where_custom .= " AND google_contacts_account_id = " . $this->db->escape($contacts_account_id);
+            $builder->where('google_contacts_account_id', (int) $contacts_account_id);
         }
 
-        $table = "google_contacts";
-        $this->db->where($where_custom);
-        $info = $this->basic->get_data($table, $where = "", $select = "", $join = "", $limit, $start, $order_by);
-        
-        $this->db->where($where_custom);
-        $total_rows_array = $this->basic->count_row($table, $where = "", $count = $table . ".id", $join = "");
-        $total_result = $total_rows_array[0]['total_rows'];
+        if ($search_value != '') {
+            $builder->groupStart();
+            foreach ($search_columns as $column) {
+                $builder->orLike($column, $search_value);
+            }
+            $builder->groupEnd();
+        }
+
+        $info = $builder
+            ->orderBy($sort, $order)
+            ->limit($limit, $start)
+            ->get()
+            ->getResultArray();
+
+        $countBuilder = $this->db->table($table);
+        $countBuilder->where('user_id', (int) $this->user_id);
+        if ($contacts_account_id != '') {
+            $countBuilder->where('google_contacts_account_id', (int) $contacts_account_id);
+        }
+        if ($search_value != '') {
+            $countBuilder->groupStart();
+            foreach ($search_columns as $column) {
+                $countBuilder->orLike($column, $search_value);
+            }
+            $countBuilder->groupEnd();
+        }
+        $total_result = $countBuilder->countAllResults();
     
         $data = array(
             "draw" => intval($this->input->post('draw')) + 1,

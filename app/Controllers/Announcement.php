@@ -379,8 +379,8 @@ class Announcement extends Home
             $where_custom = "(user_id=".$user_id." AND is_seen='0') OR (user_id=0 AND NOT FIND_IN_SET('".$user_id."', seen_by))";
         }
       
-        $this->db->where($where_custom);
-        $notification_info = $this->basic->get_data("announcement",$where='');
+        // CI4 fix: don't rely on prior db->where(); pass filter directly
+        $notification_info = $this->basic->get_data("announcement", ['where' => $where_custom]);
         
         $total=0;
         foreach ($notification_info as $notification) {
