@@ -27,7 +27,7 @@
 	          $("#load_more").hide();
 	          if(popmessage) 
 	          {
-	            iziToast.info({title: '',message: "<?php echo $this->lang->line('No more comment found.') ?>",position: 'bottomRight'});
+	            iziToast.info({title: '',message: "<?php echo lang('No more comment found.') ?>",position: 'bottomRight'});
 	            $("#nodata").hide();
 	          }
 	          else $("#nodata").show();            
@@ -40,7 +40,7 @@
 		  var new_comment = $(this).prevAll('.comment_reply').val();
 		  var parent_product_comment_id = $(this).attr('parent-id');		  
 		  if(new_comment==""){
-		    swal("<?php echo $this->lang->line('Error'); ?>", "<?php echo $this->lang->line('Please write a comment.'); ?>", 'error');
+		    swal("<?php echo lang('Error'); ?>", "<?php echo lang('Please write a comment.'); ?>", 'error');
 		    return false;
 		  }
 		  $(this).addClass('btn-progress');
@@ -57,10 +57,10 @@
 		        var span = document.createElement("span");
 		        span.innerHTML = response.message;
 		        if(response.login_popup)
-		          swal({ title:'<?php echo $this->lang->line("Error"); ?>', content:span,icon:'error'}).then((value) => {             
+		          swal({ title:'<?php echo lang("Error"); ?>', content:span,icon:'error'}).then((value) => {             
 		           $("#login_form").trigger('click');
 		          });
-		        else swal({ title:'<?php echo $this->lang->line("Error"); ?>', content:span,icon:'error'});
+		        else swal({ title:'<?php echo lang("Error"); ?>', content:span,icon:'error'});
 		      }
 		      else
 		      {
@@ -83,8 +83,8 @@
 		  e.preventDefault();
 
 		  swal({
-		    title: '<?php echo $this->lang->line("Hide comment?"); ?>',
-		    text: '<?php echo $this->lang->line("Do you really really want to hide this comment?"); ?>',
+		    title: '<?php echo lang("Hide comment?"); ?>',
+		    text: '<?php echo lang("Do you really really want to hide this comment?"); ?>',
 		    icon: 'warning',
 		    buttons: true,
 		    dangerMode: true,
@@ -104,7 +104,7 @@
 		        success:function(response){
 		          $(this).removeClass('btn-progress');
 
-		          if(response.status=='0') swal({ title:'<?php echo $this->lang->line("Error"); ?>', content:span,icon:'error'});
+		          if(response.status=='0') swal({ title:'<?php echo lang("Error"); ?>', content:span,icon:'error'});
 		          else $(this).parent().parent().hide();
 		        }
 		      });
@@ -121,7 +121,7 @@
 		  var insert_id = $("#ReviewModal #insert_id").val();
 		  if(reason=='' || rating=='' || cart_id=='')
 		  {
-		  	swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Please fill in the required fields"); ?> *','error');
+		  	swal('<?php echo lang("Error"); ?>', '<?php echo lang("Please fill in the required fields"); ?> *','error');
 		  	return false;
 		  }
 		  $(this).addClass('btn-progress');
@@ -138,14 +138,14 @@
    				var span = document.createElement("span");
    		        span.innerHTML = response.message;
    		        if(response.login_popup)
-   		          swal({ title:'<?php echo $this->lang->line("Error"); ?>', content:span,icon:'error'}).then((value) => {             
+   		          swal({ title:'<?php echo lang("Error"); ?>', content:span,icon:'error'}).then((value) => {             
    		           $("#login_form").trigger('click');
    		          });
-   		        else swal({ title:'<?php echo $this->lang->line("Error"); ?>', content:span,icon:'error'});
+   		        else swal({ title:'<?php echo lang("Error"); ?>', content:span,icon:'error'});
 		      }
 		      else
 		      {
-		        swal('<?php echo $this->lang->line("Review Submitted"); ?>', response.message, 'success').then((value) => {location.reload();});
+		        swal('<?php echo lang("Review Submitted"); ?>', response.message, 'success').then((value) => {location.reload();});
 		      }
 		    }
 		  });
@@ -155,8 +155,8 @@
 		  e.preventDefault();
 
 		  swal({
-		    title: '<?php echo $this->lang->line("Hide review?"); ?>',
-		    text: '<?php echo $this->lang->line("Do you really really want to hide this review?"); ?>',
+		    title: '<?php echo lang("Hide review?"); ?>',
+		    text: '<?php echo lang("Do you really really want to hide this review?"); ?>',
 		    icon: 'warning',
 		    buttons: true,
 		    dangerMode: true,
@@ -175,8 +175,8 @@
 		        data:{product_id:current_product_id,store_id:current_store_id,subscriber_id:subscriber_id,id:id},
 		        success:function(response){
 		          $(this).removeClass('btn-progress');
-		          if(response.status=='0') swal('<?php echo $this->lang->line("Error"); ?>',response.message,'error');
-		          else swal('<?php echo $this->lang->line("Hidden Successfully"); ?>', response.message, 'success').then((value) => {location.reload();});
+		          if(response.status=='0') swal('<?php echo lang("Error"); ?>',response.message,'error');
+		          else swal('<?php echo lang("Hidden Successfully"); ?>', response.message, 'success').then((value) => {location.reload();});
 		        }
 		      });
 		    }
@@ -187,7 +187,7 @@
 		  var review_reply = $(this).prevAll('.review_reply').val();
 		  var parent_product_review_id = $(this).attr('parent-id');		  
 		  if(review_reply==""){
-		    swal("<?php echo $this->lang->line('Error'); ?>", "<?php echo $this->lang->line('Please write a reply.'); ?>", 'error');
+		    swal("<?php echo lang('Error'); ?>", "<?php echo lang('Please write a reply.'); ?>", 'error');
 		    return false;
 		  }
 		  $(this).addClass('btn-progress');
@@ -199,8 +199,8 @@
 		    data:{product_id:current_product_id,store_id:current_store_id,review_reply:review_reply,subscriber_id:subscriber_id,parent_product_review_id:parent_product_review_id},
 		    success:function(response){
 		      $(this).removeClass('btn-progress');
-		      if(response.status=='0') swal('<?php echo $this->lang->line("Error"); ?>',response.message,'error');
-		      else swal('<?php echo $this->lang->line("Hidden Successfully"); ?>', response.message, 'success').then((value) => {location.reload();});
+		      if(response.status=='0') swal('<?php echo lang("Error"); ?>',response.message,'error');
+		      else swal('<?php echo lang("Hidden Successfully"); ?>', response.message, 'success').then((value) => {location.reload();});
 		    }
 		  });
 		});

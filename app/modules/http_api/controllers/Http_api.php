@@ -19,39 +19,85 @@ Version: 1.1
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Http_api\Controllers;
 
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+use Exception;
+
+/**
+ * @property mixed $input
+ * @property mixed $uri
+ */
 class Http_api extends Home
 {
   public $addon_data=array();
-  public function __construct()
+  
+  /**
+   * CI4 fix: Use initController instead of __construct
+   */
+  public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
   {
-      parent::__construct();
+      parent::initController($request, $response, $logger);
+      
       // getting addon information in array and storing to public variable
       // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
       //------------------------------------------------------------------------------------------
-      $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+      // CI4 fix: Get class name using reflection instead of router
+      $className = (new \ReflectionClass($this))->getShortName();
+      $addon_path=APPPATH."modules/".strtolower($className)."/controllers/".ucfirst($className).".php"; // path of addon controller
       $addondata=$this->get_addon_data($addon_path);
       $this->addon_data=$addondata;      
       
       $function_name=$this->uri->segment(2);    
       // all addon must be login protected
       //------------------------------------------------------------------------------------------
-      if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
+      if ($this->session->userdata('logged_in')!= 1) {
+          header('Location: ' . base_url('home/login_page'));
+          exit();
+      }
       $this->member_validity();       
       // if you want the addon to be accessed by admin and member who has permission to this addon
       //-------------------------------------------------------------------------------------------
       if(isset($addondata['module_id']) && is_array($addondata['module_id']) && !empty($addondata['module_id']))
       {
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($addondata['module_id'],$this->module_access))==0)
+        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($addondata['module_id'],$this->module_access ?? []))==0)
           {
-                redirect('home/login_page', 'location');
+                header('Location: ' . base_url('home/login_page'));
                 exit();
           }
       }
       $this->user_id=$this->session->userdata('user_id'); // user_id of logged in user, we may need it
-      $this->load->helper('http_api/http_api');
+      
+      // CI4 fix: Ensure database connection is initialized
+      if (!isset($this->db) || $this->db === null) {
+          $this->db = \Config\Database::connect();
+      }
+      
+      // CI4 fix: module helper is not auto-loadable via helper(), include directly
+      $httpApiHelper = APPPATH . 'modules/http_api/helpers/http_api_helper.php';
+      if (file_exists($httpApiHelper)) {
+          require_once $httpApiHelper;
+      }
 
+  }
+
+  /**
+   * CI4 fix: Helper method to mimic CI3's get_post() behavior
+   * Checks both GET and POST, preferring POST if both exist
+   */
+  private function get_post($key, $xss_clean = false) {
+      $request = \Config\Services::request();
+      $value = $request->getPost($key);
+      if ($value === null) {
+          $value = $request->getGet($key);
+      }
+      if ($value !== null && $xss_clean && !is_array($value)) {
+          $value = esc($value);
+      }
+      return $value;
   }
 
   private function check_ajax_csrf(){
@@ -75,14 +121,16 @@ class Http_api extends Home
       $api_method_list[""] = $this->lang->line("Select Method");
       $data["api_method_list"] = $api_method_list;
 
-      $data["url_edit_id"] = $this->input->get_post('id',true) ?? "";
-      $data["url_channel"] = $this->input->get_post('channel',true) ?? "fb";
+      $data["url_edit_id"] = $this->get_post('id',true) ?? "";
+      $data["url_channel"] = $this->get_post('channel',true) ?? "fb";
 
       if (!empty($data["url_edit_id"])) {
-        $this->db->select('api_type');
-        $this->db->where(['id' => $data["url_edit_id"], 'user_id' => $this->user_id]);
-        $query = $this->db->get('settings_http_apis');
-        $xdata = $query->row();    
+        // CI4 fix: Use table() builder
+        $builder = $this->db->table('settings_http_apis');
+        $builder->select('api_type');
+        $builder->where(['id' => $data["url_edit_id"], 'user_id' => $this->user_id]);
+        $query = $builder->get();
+        $xdata = $query->getRow();    
         if(empty($xdata)) dd('Bad Request');  
         $data["url_channel"] = $xdata->api_type ?? 'fb';
       }
@@ -93,17 +141,17 @@ class Http_api extends Home
       $data["option_level"] = 20;
       $data["cookie_level"] = 10;
       $data["map_level"] = 50;
-      $data["option_list"] = get_curl_constants(); // custom function
+      $data["option_list"] = \get_curl_constants(); // custom function (module helper)
       return $this->_viewcontroller($data);
   }
 
   public function list_api_data()
   {       
       $this->ajax_check();
-      $search_value = $this->input->get_post('search_value',true);
-      $search_status = $this->input->get_post('search_status',true);
-      $search_is_mapped = $this->input->get_post('search_is_mapped',true);
-      $search_api_type = $this->input->get_post('search_api_type',true);
+      $search_value = $this->get_post('search_value',true);
+      $search_status = $this->get_post('search_status',true);
+      $search_is_mapped = $this->get_post('search_is_mapped',true);
+      $search_api_type = $this->get_post('search_api_type',true);
       $display_columns = array("#","CHECKBOX",'api_name','api_endpoint_url','api_type', 'status', 'is_mapped', 'actions','created_at','last_called_at');
       $search_columns = array('api_name');
 
@@ -116,47 +164,46 @@ class Http_api extends Home
       $order_by=$sort." ".$order;
 
       $table = "settings_http_apis";
-      $select = array($table . ".*");
-      $this->db->select($select);
-      $this->db->from($table);
-      $this->db->where($table . '.user_id', $this->user_id);
+      // CI4 fix: Use table() builder instead of from()
+      $builder = $this->db->table($table);
+      $builder->where($table . '.user_id', $this->user_id);
       if ($search_value != '') {
-          $this->db->group_start();
+          $builder->groupStart();
           foreach ($search_columns as $value) {
-              $this->db->or_like($value, $search_value);
+              $builder->orLike($value, $search_value);
           }
-          $this->db->group_end();
+          $builder->groupEnd();
       }
       if ($search_status != '') {
-          $this->db->where($table . '.status', $search_status);
+          $builder->where($table . '.status', $search_status);
       }
       if ($search_is_mapped != '') {
-          $this->db->where($table . '.is_mapped', $search_is_mapped);
+          $builder->where($table . '.is_mapped', $search_is_mapped);
       }
-      $this->db->where($table . '.api_type', $search_api_type);
-      $this->db->order_by($order_by);
-      $this->db->limit($limit, $start);
-      $query = $this->db->get();
-      $info_obj = $query->result(); 
+      $builder->where($table . '.api_type', $search_api_type);
+      $builder->orderBy($order_by);
+      $builder->limit($limit, $start);
+      $query = $builder->get();
+      $info_obj = $query->getResult(); 
 
-      $this->db->select($table . '.id');
-      $this->db->from($table);
-      $this->db->where($table . '.user_id', $this->user_id);
+      // CI4 fix: Use table() builder for count query
+      $countBuilder = $this->db->table($table);
+      $countBuilder->where($table . '.user_id', $this->user_id);
       if ($search_value != '') {
-          $this->db->group_start();
+          $countBuilder->groupStart();
           foreach ($search_columns as $value) {
-              $this->db->or_like($value, $search_value);
+              $countBuilder->orLike($value, $search_value);
           }
-          $this->db->group_end();
+          $countBuilder->groupEnd();
       }
       if ($search_status != '') {
-          $this->db->where($table . '.status', $search_status);
+          $countBuilder->where($table . '.status', $search_status);
       }
       if ($search_is_mapped != '') {
-          $this->db->where($table . '.is_mapped', $search_is_mapped);
+          $countBuilder->where($table . '.is_mapped', $search_is_mapped);
       }
-      $this->db->where($table . '.api_type', $search_api_type);
-      $total_result = $this->db->count_all_results();
+      $countBuilder->where($table . '.api_type', $search_api_type);
+      $total_result = $countBuilder->countAllResults();
 
       $info = [];
       foreach ($info_obj as $key => $value)
@@ -213,33 +260,33 @@ class Http_api extends Home
           }
       }
 
-      $id = $this->input->get_post('id', true) ?? "";
-      $api_name = $this->input->get_post('api_name', true) ?? "";
-      $api_method = $this->input->get_post('api_method', true) ?? "";
-      $api_type = $this->input->get_post('api_type', true) ?? "";
-      $test_subscriber_unique_id = $this->input->get_post('test_subscriber_unique_id', true) ?? "";
-      $api_endpoint_url = $this->input->get_post('api_endpoint_url', true) ?? "";
-      $api_body_data_type = $this->input->get_post('api_body_data_type', true) ?? "";
-      $api_body_row_json_value = $this->input->get_post('api_body_row_json_value', true) ?? "";
+      $id = $this->get_post('id', true) ?? "";
+      $api_name = $this->get_post('api_name', true) ?? "";
+      $api_method = $this->get_post('api_method', true) ?? "";
+      $api_type = $this->get_post('api_type', true) ?? "";
+      $test_subscriber_unique_id = $this->get_post('test_subscriber_unique_id', true) ?? "";
+      $api_endpoint_url = $this->get_post('api_endpoint_url', true) ?? "";
+      $api_body_data_type = $this->get_post('api_body_data_type', true) ?? "";
+      $api_body_row_json_value = $this->get_post('api_body_row_json_value', true) ?? "";
 
-      $api_header_row_key = $this->input->get_post('api_header_row_key', true) ?? [];
-      $api_header_row_type = $this->input->get_post('api_header_row_type', true) ?? [];
-      $api_header_row_static_value = $this->input->get_post('api_header_row_static_value', true) ?? [];
-      $api_header_row_dynamic_value = $this->input->get_post('api_header_row_dynamic_value', true) ?? [];
+      $api_header_row_key = $this->get_post('api_header_row_key', true) ?? [];
+      $api_header_row_type = $this->get_post('api_header_row_type', true) ?? [];
+      $api_header_row_static_value = $this->get_post('api_header_row_static_value', true) ?? [];
+      $api_header_row_dynamic_value = $this->get_post('api_header_row_dynamic_value', true) ?? [];
 
-      $api_body_row_key = $this->input->get_post('api_body_row_key', true) ?? [];
-      $api_body_row_type = $this->input->get_post('api_body_row_type', true) ?? [];
-      $api_body_row_static_value = $this->input->get_post('api_body_row_static_value', true) ?? [];
-      $api_body_row_dynamic_value = $this->input->get_post('api_body_row_dynamic_value', true) ?? [];
-      $api_body_row_file_value = $this->input->get_post('api_body_row_file_value', true) ?? [];
+      $api_body_row_key = $this->get_post('api_body_row_key', true) ?? [];
+      $api_body_row_type = $this->get_post('api_body_row_type', true) ?? [];
+      $api_body_row_static_value = $this->get_post('api_body_row_static_value', true) ?? [];
+      $api_body_row_dynamic_value = $this->get_post('api_body_row_dynamic_value', true) ?? [];
+      $api_body_row_file_value = $this->get_post('api_body_row_file_value', true) ?? [];
 
-      $api_option_row_key = $this->input->get_post('api_option_row_key', true) ?? [];
-      $api_option_row_static_value = $this->input->get_post('api_option_row_static_value', true) ?? [];
+      $api_option_row_key = $this->get_post('api_option_row_key', true) ?? [];
+      $api_option_row_static_value = $this->get_post('api_option_row_static_value', true) ?? [];
 
-      $api_cookie_row_key = $this->input->get_post('api_cookie_row_key', true) ?? [];
-      $api_cookie_row_type = $this->input->get_post('api_cookie_row_type', true) ?? [];
-      $api_cookie_row_static_value = $this->input->get_post('api_cookie_row_static_value', true) ?? [];
-      $api_cookie_row_dynamic_value = $this->input->get_post('api_cookie_row_dynamic_value', true) ?? [];
+      $api_cookie_row_key = $this->get_post('api_cookie_row_key', true) ?? [];
+      $api_cookie_row_type = $this->get_post('api_cookie_row_type', true) ?? [];
+      $api_cookie_row_static_value = $this->get_post('api_cookie_row_static_value', true) ?? [];
+      $api_cookie_row_dynamic_value = $this->get_post('api_cookie_row_dynamic_value', true) ?? [];
 
       $data = [];
       $header_data = $body_data = $option_data = $cookie_data = [];
@@ -320,13 +367,15 @@ class Http_api extends Home
       unset($update_data['created_at']);
 
       if(empty($id)){
-          $this->db->insert('settings_http_apis', $insert_data);
-          $id = $this->db->insert_id();        
+          // CI4 fix: Use table() builder
+          $this->db->table('settings_http_apis')->insert($insert_data);
+          $id = $this->db->insertID();        
           $this->_insert_usage_log(352,1);
       }
 
       // simulating updated data to get test response before real data update
-      $data_before_call = $this->db->where(array('id' => $id, 'user_id' => $this->user_id))->get('settings_http_apis')->row();
+      // CI4 fix: Use table() builder
+      $data_before_call = $this->db->table('settings_http_apis')->where(array('id' => $id, 'user_id' => $this->user_id))->get()->getRow();
       foreach($update_data as $key=>$value){
           $data_before_call->{$key} = $value;
       }
@@ -335,10 +384,12 @@ class Http_api extends Home
       $update_data['last_call_data'] = json_encode($last_call_data);
       $update_data['last_called_at'] = $curtime;
       $update_data['last_error_message'] = $last_call_data['error'] ?? '';
-      $this->db->where(array('id' => $id, 'user_id' => $this->user_id))->update('settings_http_apis', $update_data);
+      // CI4 fix: Use table() builder
+      $this->db->table('settings_http_apis')->where(array('id' => $id, 'user_id' => $this->user_id))->update($update_data);
 
       // using final updated data
-      $data = $this->db->where(array('id' => $id, 'user_id' => $this->user_id))->get('settings_http_apis')->row();
+      // CI4 fix: Use table() builder
+      $data = $this->db->table('settings_http_apis')->where(array('id' => $id, 'user_id' => $this->user_id))->get()->getRow();
       if(empty($data->mapping_data)) $data->mapping_data = json_encode([]);
       // $last_call_data = $data->is_mapped=='1' ? $data->last_call_data_mapped : $data->last_call_data;
       $last_call_data = $data->last_call_data;
@@ -353,9 +404,9 @@ class Http_api extends Home
   {    
       $this->check_ajax_csrf();
       check_module_action_access($module_id=352,$actions=[1,2],$response_type='json3');
-      $id = $this->input->get_post('id', true) ?? 0;
-      $api_map_row_dynamic_value = $this->input->get_post('api_map_row_dynamic_value', true) ?? [];
-      $api_map_row_value = $this->input->get_post('api_map_row_value', true) ?? [];
+      $id = $this->get_post('id', true) ?? 0;
+      $api_map_row_dynamic_value = $this->get_post('api_map_row_dynamic_value', true) ?? [];
+      $api_map_row_value = $this->get_post('api_map_row_value', true) ?? [];
 
       $mapping_data = [];
       foreach($api_map_row_dynamic_value as $key=>$value){
@@ -369,7 +420,8 @@ class Http_api extends Home
 
       }
 
-      $data = $this->db->where(array('id' => $id, 'user_id' => $this->user_id))->get('settings_http_apis')->row();
+      // CI4 fix: Use table() builder
+      $data = $this->db->table('settings_http_apis')->where(array('id' => $id, 'user_id' => $this->user_id))->get()->getRow();
       $last_call_data_mapped = $data->last_call_data ?? null;
 
       $insert_data = [
@@ -378,14 +430,16 @@ class Http_api extends Home
           "last_call_data_mapped"=>$last_call_data_mapped
       ];
 
-      $this->db->where(array('id' => $id, 'user_id' => $this->user_id))->update('settings_http_apis', $insert_data);
+      // CI4 fix: Use table() builder
+      $this->db->table('settings_http_apis')->where(array('id' => $id, 'user_id' => $this->user_id))->update($insert_data);
       echo json_encode(['error' => false,'message' => $this->lang->line('HTTP API data has been mapped and saved successfully.')]);
   }
 
   public function edit_api() {     
      $this->check_ajax_csrf();
-     $id= $this->input->get_post('id', true);
-     $data = $this->db->where(array('id' => $id, 'user_id' => $this->user_id))->get('settings_http_apis')->row();
+     $id= $this->get_post('id', true);
+     // CI4 fix: Use table() builder
+     $data = $this->db->table('settings_http_apis')->where(array('id' => $id, 'user_id' => $this->user_id))->get()->getRow();
      if(empty($data)) {
         echo json_encode(["error"=>true,"message"=>$this->lang->line("HTTP API not found.")]);
         exit();
@@ -453,7 +507,8 @@ class Http_api extends Home
       $data_dropdown .= '</select>';
 
       $formatter_dropdown = '<select multiple name="" id="" class="form-control api_map_row_formatter_value">';
-      $formatter_list = $this->db->where('settings_http_api_id', $id)->get('settings_http_api_formatters')->result();
+      // CI4 fix: Use table() builder
+      $formatter_list = $this->db->table('settings_http_api_formatters')->where('settings_http_api_id', $id)->get()->getResult();
       foreach ($formatter_list as $k=>$v){
           if($v->formatter_type!='static-value') $display = $v->formatter_name.' ('.$v->formatter_type.')';
           else {
@@ -468,17 +523,18 @@ class Http_api extends Home
   }
 
   public function list_api_report_all(){
-      $api_type = $this->input->get_post('channel', true) ?? '';
+      $api_type = $this->get_post('channel', true) ?? '';
       $data = array('body'=>'http-api/report','page_title'=>$this->lang->line("HTTP API Report"));
       $api_list = $this->get_api_list($this->user_id,$api_type);
       $api_list[''] = $this->lang->line('All HTTP API');
       $data['api_list'] = $api_list;
 
-      $data["url_edit_id"] = $this->input->get_post('id', true) ?? "";
-      $data["url_channel"] = $this->input->get_post('channel', true) ?? "";
+      $data["url_edit_id"] = $this->get_post('id', true) ?? "";
+      $data["url_channel"] = $this->get_post('channel', true) ?? "";
 
       if(!empty($data["url_edit_id"])) {
-        $xdata = $this->db->select('api_type')->where(array('id' => $data["url_edit_id"], 'user_id' => $this->user_id))->get('settings_http_apis')->row();
+        // CI4 fix: Use table() builder
+        $xdata = $this->db->table('settings_http_apis')->select('api_type')->where(array('id' => $data["url_edit_id"], 'user_id' => $this->user_id))->get()->getRow();
           if(empty($xdata)) dd("Bad Request.");
           $data["url_channel"] = $xdata->api_type ?? '';
       }
@@ -488,10 +544,10 @@ class Http_api extends Home
 
   public function list_api_report_all_data(){
       $this->ajax_check();
-      $search_value = $this->input->get_post('search_value',true);
-      $search_settings_http_api_id = $this->input->get_post('search_settings_http_api_id',true);
-      $search_status = $this->input->get_post('search_status',true);
-      $search_api_type = $this->input->get_post('search_api_type',true);
+      $search_value = $this->get_post('search_value',true);
+      $search_settings_http_api_id = $this->get_post('search_settings_http_api_id',true);
+      $search_status = $this->get_post('search_status',true);
+      $search_api_type = $this->get_post('search_api_type',true);
       $display_columns = array("#",'id','api_name', 'subscriber_unique_id', 'success','created_at','api_response','api_data');
       $search_columns = array('subscriber_unique_id');
 
@@ -507,48 +563,52 @@ class Http_api extends Home
       $table2 = "settings_http_apis";
       $select = array("settings_http_api_calls.*", "api_name", "user_id");
  
-      $this->db->select($select)->from($table)->where('user_id', $this->user_id)->join($table2, "$table.settings_http_api_id = $table2.id", 'left');      
+      // CI4 fix: Use table() builder
+      $builder = $this->db->table($table);
+      $builder->select($select)->where('user_id', $this->user_id)->join($table2, "$table.settings_http_api_id = $table2.id", 'left');      
       if (!empty($allowed_whatsapp_bot_ids)) {
-        $this->db->where_in("$table.whatsapp_bot_id", $allowed_whatsapp_bot_ids);
+        $builder->whereIn("$table.whatsapp_bot_id", $allowed_whatsapp_bot_ids);
       }  
       if ($search_value != '') {
-        $this->db->group_start();
+        $builder->groupStart();
         foreach ($search_columns as $value) {
-          $this->db->or_like($value, $search_value);
+          $builder->orLike($value, $search_value);
         }
-        $this->db->group_end();
+        $builder->groupEnd();
       }      
       if ($search_status != '') {
-        $this->db->where('success', $search_status);
+        $builder->where('success', $search_status);
       }      
       if ($search_settings_http_api_id != '') {
-        $this->db->where('settings_http_api_id', $search_settings_http_api_id);
+        $builder->where('settings_http_api_id', $search_settings_http_api_id);
       }
       
-      $this->db->where("$table2.api_type", $search_api_type);
-      $info_obj = $this->db->order_by($order_by)->limit($limit, $start)->get()->result();
+      $builder->where("$table2.api_type", $search_api_type);
+      $info_obj = $builder->orderBy($order_by)->limit($limit, $start)->get()->getResult();
       
 
-      $this->db->select("$table.id")->from($table)->where('user_id', $this->user_id);      
+      // CI4 fix: Use table() builder for count
+      $countBuilder = $this->db->table($table);
+      $countBuilder->select("$table.id")->where('user_id', $this->user_id);      
       if (!empty($allowed_whatsapp_bot_ids)) {
-          $this->db->where_in("$table.whatsapp_bot_id", $allowed_whatsapp_bot_ids);
+          $countBuilder->whereIn("$table.whatsapp_bot_id", $allowed_whatsapp_bot_ids);
       }      
-      $this->db->join($table2, "$table.settings_http_api_id = $table2.id", 'left');      
+      $countBuilder->join($table2, "$table.settings_http_api_id = $table2.id", 'left');      
       if ($search_value != '') {
-          $this->db->group_start();
+          $countBuilder->groupStart();
           foreach ($search_columns as $value) {
-            $this->db->or_like($value, $search_value);
+            $countBuilder->orLike($value, $search_value);
           }
-          $this->db->group_end();
+          $countBuilder->groupEnd();
       }      
       if ($search_status != '') {
-          $this->db->where('success', $search_status);
+          $countBuilder->where('success', $search_status);
       }      
       if ($search_settings_http_api_id != '') {
-          $this->db->where('settings_http_api_id', $search_settings_http_api_id);
+          $countBuilder->where('settings_http_api_id', $search_settings_http_api_id);
       }      
-      $this->db->where("$table2.api_type", $search_api_type);
-      $total_result = $this->db->count_all_results();
+      $countBuilder->where("$table2.api_type", $search_api_type);
+      $total_result = $countBuilder->countAllResults();
       
       $info = [];
       foreach ($info_obj as $key => $value)
@@ -574,8 +634,8 @@ class Http_api extends Home
   public function list_formatter_data()
   {
       $this->ajax_check();
-      $search_value = $this->input->get_post('search_value',true);
-      $settings_http_api_id = $this->input->get_post('settings_http_api_id',true);
+      $search_value = $this->get_post('search_value',true);
+      $settings_http_api_id = $this->get_post('settings_http_api_id',true);
       $display_columns = array("#","CHECKBOX",'formatter_name','formatter_type','params', 'actions');
       $search_columns = array('formatter_name','formatter_type');
 
@@ -588,26 +648,30 @@ class Http_api extends Home
       $order_by=$sort." ".$order;
 
       $table = "settings_http_api_formatters";
-      $this->db->where('settings_http_api_id', $settings_http_api_id);
+      // CI4 fix: Use table() builder
+      $builder = $this->db->table($table);
+      $builder->where('settings_http_api_id', $settings_http_api_id);
       if ($search_value != '') {
-            $this->db->group_start();
+            $builder->groupStart();
             foreach ($search_columns as $value) {
-                $this->db->or_like($value, $search_value);
+                $builder->orLike($value, $search_value);
             }
-            $this->db->group_end();
+            $builder->groupEnd();
       }
-      $info_obj = $this->db->order_by($order_by)->limit($limit, $start)->get($table)->result(); 
+      $info_obj = $builder->orderBy($order_by)->limit($limit, $start)->get()->getResult(); 
 
-      $this->db->where('settings_http_api_id', $settings_http_api_id);
+      // CI4 fix: Use table() builder for count
+      $countBuilder = $this->db->table($table);
+      $countBuilder->where('settings_http_api_id', $settings_http_api_id);
       if ($search_value != '') {
-        $this->db->group_start();
+        $countBuilder->groupStart();
         foreach ($search_columns as $value) {
-            $this->db->or_like($value, $search_value);
+            $countBuilder->orLike($value, $search_value);
         }
-        $this->db->group_end();
+        $countBuilder->groupEnd();
       }
 
-      $total_result = $this->db->count_all_results($table); 
+      $total_result = $countBuilder->countAllResults(); 
 
       $formatter_options = $this->get_formatter_dropdown(true);
       $info = [];
@@ -644,10 +708,10 @@ class Http_api extends Home
   public function save_formatter(){
       $this->check_ajax_csrf();
       check_module_action_access($module_id=352,$actions=1,$response_type='json3');
-      $settings_http_api_id = $this->input->get_post('settings_http_api_id',true);
-      $formatter_name = $this->input->get_post('formatter_name',true);
-      $formatter_type = $this->input->get_post('formatter_type',true);
-      $formatter_params = $this->input->get_post('formatter_params',true);
+      $settings_http_api_id = $this->get_post('settings_http_api_id',true);
+      $formatter_name = $this->get_post('formatter_name',true);
+      $formatter_type = $this->get_post('formatter_type',true);
+      $formatter_params = $this->get_post('formatter_params',true);
 
       $formatter_options = $this->get_formatter_dropdown(true);
       $params_raw = $formatter_options[$formatter_type]['params'] ?? [];
@@ -664,8 +728,9 @@ class Http_api extends Home
           'formatter_type' => $formatter_type,
           'params' => json_encode($params_array),
       ];
-      $this->db->insert("settings_http_api_formatters", $data);
-      $data['id'] = $this->db->insert_id();
+      // CI4 fix: Use table() builder
+      $this->db->table("settings_http_api_formatters")->insert($data);
+      $data['id'] = $this->db->insertID();
       echo json_encode(['error' => false,'message' => $this->lang->line('Formatter has been saved successfully.'),'data'=>$data]);
 
   }
@@ -675,13 +740,13 @@ class Http_api extends Home
     $this->check_ajax_csrf(); // Custom CSRF check
     check_module_action_access($module_id = 352, $actions = 2, $response_type = 'json3'); // Custom access check
 
-    $id = $this->input->get_post('id', true);
-    $status = $this->input->get_post('status', true);
+    $id = $this->get_post('id', true);
+    $status = $this->get_post('status', true);
 
     // Update status in database
     $where = array('id' => $id, 'user_id' => $this->user_id);
-    $this->db->where($where);
-    $query = $this->db->update('settings_http_apis', array('status' => $status));
+    // CI4 fix: Use table() builder
+    $this->db->table('settings_http_apis')->where($where)->update(array('status' => $status));
     echo json_encode(['error' => false,'message' => $this->lang->line('API status has been updated successfully')]);
   }
 
@@ -690,16 +755,15 @@ class Http_api extends Home
     $this->check_ajax_csrf(); // Custom CSRF check
     check_module_action_access($module_id = 352, $actions = 3, $response_type = 'json3'); // Custom access check
 
-    $id = $this->input->get_post('id', true);
+    $id = $this->get_post('id', true);
 
     $table = 'settings_http_apis';
     $where = array('user_id' => $this->user_id, 'id' => $id);
 
     // Check if the record exists
-    $this->db->select('id');
-    $this->db->where($where);
-    $query = $this->db->get($table);
-    $exist = $query->row(); // Retrieve the result as an object
+    // CI4 fix: Use table() builder
+    $query = $this->db->table($table)->select('id')->where($where)->get();
+    $exist = $query->getRow(); // Retrieve the result as an object
 
     if (!isset($exist->id)) {
         echo json_encode(array('error' => true,'message'=>$this->lang->line("HTTP API not found.")));
@@ -710,24 +774,25 @@ class Http_api extends Home
     unset($where['user_id']);
 
     try {
-        $this->db->trans_begin(); // Begin transaction
+        // CI4 fix: Use transStart() instead of trans_begin()
+        $this->db->transStart();
 
         // Delete the record
-        $this->db->where($where);
-        $this->db->delete($table);
+        // CI4 fix: Use table() builder
+        $this->db->table($table)->where($where)->delete();
 
         // Log the deletion
         $this->_delete_usage_log(352, 1);
 
-        if ($this->db->trans_status() === FALSE) {
-            $this->db->trans_rollback();
+        if ($this->db->transStatus() === FALSE) {
+            $this->db->transRollback();
             echo json_encode(array('error' => true, 'message' => $this->lang->line("Failed to delete HTTP API.")));
         } else {
-            $this->db->trans_commit();
+            $this->db->transComplete();
             echo json_encode(array('error' => false, 'message' => $this->lang->line("HTTP API has been deleetd successfully.")));
         }
     } catch (Exception $e) {
-        $this->db->trans_rollback(); // Rollback transaction in case of error
+        $this->db->transRollback(); // Rollback transaction in case of error
         $error = $e->getMessage();
         echo json_encode(array('error' => true, 'message' => $error));
     }
@@ -736,10 +801,11 @@ class Http_api extends Home
   public function delete_formatter(){
       $this->check_ajax_csrf();
       check_module_action_access($module_id=352,$actions=3,$response_type='json3');
-      $id = $this->input->get_post('id',true);
+      $id = $this->get_post('id',true);
       $table = 'settings_http_api_formatters';
       $where = ['id'=>$id];
-      if($this->db->where($where)->delete($table)) {
+      // CI4 fix: Use table() builder
+      if($this->db->table($table)->where($where)->delete()) {
           echo json_encode(['error'=>false,'message'=>$this->lang->line("Formatter has been deleted successfully.")]);
       }
       else echo json_encode(['error'=>true,'message'=>$this->lang->line("Something went wrong.")]);
@@ -846,13 +912,15 @@ class Http_api extends Home
     if ($user_id == 0) {
         $user_id = $this->user_id;
     }  
-    $this->db->select(['id', 'api_name'])->from('settings_http_apis')->where(array('user_id' => $user_id, 'is_mapped' => '1'));  
+    // CI4 fix: Use table() builder
+    $builder = $this->db->table('settings_http_apis');
+    $builder->select(['id', 'api_name'])->where(array('user_id' => $user_id, 'is_mapped' => '1'));  
     if (!empty($api_type)) {
-        $this->db->where('api_type', $api_type);
+        $builder->where('api_type', $api_type);
     }  
-    $this->db->order_by('api_name', 'asc');
-    $query = $this->db->get();
-    $get = $query->result();  
+    $builder->orderBy('api_name', 'asc');
+    $query = $builder->get();
+    $get = $query->getResult();  
     $result = [];
     foreach ($get as $val) {
         $result[$val->id] = $val->api_name;
@@ -867,10 +935,10 @@ class Http_api extends Home
   }
 
   public function get_dynamic_value_list(){
-      $user_id = $this->input->get_post('user_id', true);
+      $user_id = $this->get_post('user_id', true);
       if(empty($user_id)) $user_id = $this->user_id;
-      $api_type = $this->input->get_post('api_type', true);
-      $return_type = $this->input->get_post('return_type', true);
+      $api_type = $this->get_post('api_type', true);
+      $return_type = $this->get_post('return_type', true);
       if(empty($return_type)) $return_type = "dropdown";
 
       $result = [];
@@ -917,11 +985,13 @@ class Http_api extends Home
       }
       $media_type = $api_type;      
 
-      $this->db->where('user_id', $this->user_id);
+      // CI4 fix: Use table() builder
+      $builder = $this->db->table($table);
+      $builder->where('user_id', $this->user_id);
       if (isset($media_type)) {
-        $this->db->where('media_type', $media_type);
+        $builder->where('media_type', $media_type);
       }
-      $get = $this->db->order_by('name', 'asc')->get($table)->result();
+      $get = $builder->orderBy('name', 'asc')->get()->getResult();
 
       foreach ($get as $key=>$val){
          if($return_type=='list') $result["#".$val->name."#"] = $val->name;
@@ -947,7 +1017,7 @@ class Http_api extends Home
 
   public function index()
   {
-    redirect(base_url('http_api/build_api?channel=fb'));
+    return redirect()->to(base_url('http_api/build_api?channel=fb'));
   }
 
   public function activate()
@@ -959,8 +1029,10 @@ class Http_api extends Home
           exit();
       }
 
-      $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
-      $purchase_code=$this->input->get_post('purchase_code',true);
+      // CI4 fix: Get class name using reflection instead of router
+      $className = (new \ReflectionClass($this))->getShortName();
+      $addon_controller_name=ucfirst($className); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+      $purchase_code=$this->get_post('purchase_code',true);
       $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
       
       //this addon system support 2-level sidebar entry, to make sidebar entry you must provide 2D array like below
@@ -1034,7 +1106,9 @@ class Http_api extends Home
   {        
       $this->ajax_check();
 
-      $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+      // CI4 fix: Get class name using reflection instead of router
+      $className = (new \ReflectionClass($this))->getShortName();
+      $addon_controller_name=ucfirst($className); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
       // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
       $this->unregister_addon($addon_controller_name);      
   }
@@ -1043,7 +1117,9 @@ class Http_api extends Home
   {        
       $this->ajax_check();
 
-      $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+      // CI4 fix: Get class name using reflection instead of router
+      $className = (new \ReflectionClass($this))->getShortName();
+      $addon_controller_name=ucfirst($className); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
 
       // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
       $sql=array

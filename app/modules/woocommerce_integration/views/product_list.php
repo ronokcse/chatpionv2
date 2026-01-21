@@ -1,6 +1,6 @@
 <section class="section section_custom pt-1">
     
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php include(APPPATH . 'Views/admin/theme/message.php'); ?>
 
   <div class="section-body">
     <div class="row">
@@ -14,15 +14,15 @@
                   <div class="input-group-prepend d-none">
                   <input type="hidden" class="form-control" id="search_store_id" autofocus name="search_store_id" value="'.$config_id.'">
                   </div>
-                  <input type="text" class="form-control" id="search_value" autofocus name="search_value" placeholder="'.$this->lang->line("Search...").'" style="max-width:400px;">
+                  <input type="text" class="form-control" id="search_value" autofocus name="search_value" placeholder="'.lang("Search...").'" style="max-width:400px;">
                   <div class="input-group-append">
-                    <button class="btn btn-primary" type="button" id="search_action"><i class="fas fa-search"></i> <span class="d-none d-sm-inline">'.$this->lang->line("Search").'</span></button>
+                    <button class="btn btn-primary" type="button" id="search_action"><i class="fas fa-search"></i> <span class="d-none d-sm-inline">'.lang("Search").'</span></button>
                   </div>
                 </div>'; ?>                                          
               </div>          
 
               <div class="col-12">             
-                <a href="" id="export_to_ecommerce" class="btn btn-lg btn-primary float-right"><i class="fas fa-plus-circle"></i> <?php echo $this->lang->line("Export to Ecommerce"); ?></a>                                 
+                <a href="" id="export_to_ecommerce" class="btn btn-lg btn-primary float-right"><i class="fas fa-plus-circle"></i> <?php echo lang("Export to Ecommerce"); ?></a>                                 
               </div>
             </div>
 
@@ -35,11 +35,11 @@
                       <th style="vertical-align:middle;width:20px">
                           <input class="regular-checkbox" id="datatableSelectAllRows" type="checkbox"/><label for="datatableSelectAllRows"></label>        
                       </th>
-                      <th><?php echo $this->lang->line("Thumb")?></th>                   
-                      <th><?php echo $this->lang->line("Product")?></th>                   
-                      <th><?php echo $this->lang->line("Price")?></th>                  
-                      <th><?php echo $this->lang->line("Actions")?></th>                     
-                      <th><?php echo $this->lang->line("Updated at")?></th>                   
+                      <th><?php echo lang("Thumb")?></th>                   
+                      <th><?php echo lang("Product")?></th>                   
+                      <th><?php echo lang("Price")?></th>                  
+                      <th><?php echo lang("Actions")?></th>                     
+                      <th><?php echo lang("Updated at")?></th>                   
                   	</tr>
                   </thead>
                 </table>
@@ -79,7 +79,7 @@
 	  },
 	  language: 
 	  {
-	    url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+	    url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
 	  },
 	  dom: '<"top"f>rt<"bottom"lip><"clear">',
 	  columnDefs: [	   
@@ -131,12 +131,12 @@
           var selected = ids.length;
           if(selected==0) 
           {
-            swal('<?php echo $this->lang->line("Warning") ?>', '<?php echo $this->lang->line("You have not selected any product to export."); ?>', 'warning');
+            swal('<?php echo lang("Warning") ?>', '<?php echo lang("You have not selected any product to export."); ?>', 'warning');
             return;
           }
           if(selected>50) 
           {
-            swal('<?php echo $this->lang->line("Warning") ?>', '<?php echo $this->lang->line("You can export maximum 50 products at a time"); ?>', 'warning');
+            swal('<?php echo lang("Warning") ?>', '<?php echo lang("You can export maximum 50 products at a time"); ?>', 'warning');
             return;
           }
           $("#export_modal").modal();
@@ -154,7 +154,7 @@
           var store_id = $("#store_id").val();
           if(store_id=="")
           {
-            swal('<?php echo $this->lang->line("Warning") ?>', '<?php echo $this->lang->line("Please select ecommerce store."); ?>', 'warning');
+            swal('<?php echo lang("Warning") ?>', '<?php echo lang("Please select ecommerce store."); ?>', 'warning');
             return;
           }
 
@@ -172,12 +172,12 @@
 
               if(response.status == 1)
               {
-                swal('<?php echo $this->lang->line("Success"); ?>', response.message, 'success').then((value) => {location.reload();});
+                swal('<?php echo lang("Success"); ?>', response.message, 'success').then((value) => {location.reload();});
                 
               }
               else
               {
-                swal('<?php echo $this->lang->line("Error"); ?>', response.message, 'error');
+                swal('<?php echo lang("Error"); ?>', response.message, 'error');
               }
             }
           });
@@ -193,22 +193,22 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-file-export"></i> <?php echo $this->lang->line("Export to Ecommerce");?></h5>
+        <h5 class="modal-title"><i class="fas fa-file-export"></i> <?php echo lang("Export to Ecommerce");?></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true"><i class="fas fa-times"></i></span>
         </button>
       </div>
       <div class="modal-body">
         <?php 
-        if(empty($store_data)) echo "<div class='alert alert-danger text-center'>".$this->lang->line("No ecommerce store found.")."</div>";
+        if(empty($store_data)) echo "<div class='alert alert-danger text-center'>".lang("No ecommerce store found.")."</div>";
         else
         {
-          $store_list[''] = $this->lang->line("Select Ecommerce Store");
+          $store_list[''] = lang("Select Ecommerce Store");
           foreach ($store_data as $key => $value) {
             $store_list[$value['id']] = $value['store_name'];
           }
           echo form_dropdown('store_id', $store_list, '',"class='form-control select2' id='store_id' style='width:100%'");
-          echo "<br><br><a href='' id='export_now' class='btn btn-primary btn-lg' style='width:200px;'><i class='fas fa-file-export'></i> ".$this->lang->line("Export")."</a>";
+          echo "<br><br><a href='' id='export_now' class='btn btn-primary btn-lg' style='width:200px;'><i class='fas fa-file-export'></i> ".lang("Export")."</a>";
         }
         ?>        
       </div>

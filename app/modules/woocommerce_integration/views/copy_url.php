@@ -5,17 +5,17 @@ foreach ($categories as $key => $value) {
   $category_list[$value['id']] = $value["name"];
 }
 
-$store_code = array(0=>array("title"=>$this->lang->line("Store Page"),"url"=>base_url("woocommerce_integration/store/".$store_data['id'])));
+$store_code = array(0=>array("title"=>lang("Store Page"),"url"=>base_url("woocommerce_integration/store/".$store_data['id'])));
 $category_copy = array();
 $product_copy = array();
 foreach ($category_list as $key => $value)
 {
-   $store_code[] = array("title"=>$this->lang->line("Store Page")." - ".$this->lang->line("Category")." : ".$value,"url"=>base_url("woocommerce_integration/store/".$store_data['id']."?category=".$key));
+   $store_code[] = array("title"=>lang("Store Page")." - ".lang("Category")." : ".$value,"url"=>base_url("woocommerce_integration/store/".$store_data['id']."?category=".$key));
 }
 $product_list_assoc = array();                         
 foreach ($product_list as $key => $value) 
 {
-  $product_copy[] = array("title"=>$this->lang->line("Product Page")." : ".$value["product_name"],"url"=>base_url("woocommerce_integration/product/".$value['id']));  
+  $product_copy[] = array("title"=>lang("Product Page")." : ".$value["product_name"],"url"=>base_url("woocommerce_integration/product/".$value['id']));  
 }
 ?>
 
@@ -25,10 +25,10 @@ foreach ($product_list as $key => $value)
     <div class="modal-body">
       <ul class="nav nav-tabs" id="myTab2" role="tablist">
         <li class="nav-item">
-          <a class="nav-link active" id="home-tab2" data-toggle="tab" href="#home2" role="tab" aria-controls="home" aria-selected="true"><?php echo $this->lang->line("Store URL"); ?></a>
+          <a class="nav-link active" id="home-tab2" data-toggle="tab" href="#home2" role="tab" aria-controls="home" aria-selected="true"><?php echo lang("Store URL"); ?></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="contact-tab2" data-toggle="tab" href="#contact2" role="tab" aria-controls="contact" aria-selected="false"><?php echo $this->lang->line("Product URL"); ?></a>
+          <a class="nav-link" id="contact-tab2" data-toggle="tab" href="#contact2" role="tab" aria-controls="contact" aria-selected="false"><?php echo lang("Product URL"); ?></a>
         </li>
       </ul>
       <div class="tab-content tab-bordered" id="myTab3Content">

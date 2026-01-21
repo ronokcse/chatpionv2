@@ -1,6 +1,6 @@
   <?php
   $currency_icon = "$";
-  $buy_button_title = $this->lang->line("Buy Now"); 
+  $buy_button_title = lang("Buy Now"); 
   $product_link = $product_data['permalink'];
   $carousel = true;
   if($product_data['featured_images']=="" && $product_data['thumbnail']=="") $carousel = false;
@@ -38,12 +38,12 @@
 
             <?php if(!empty($product_data['product_description'])): ?>
             <li class="nav-item">
-              <a class="nav-link active show" id="description-tab2" data-toggle="tab" href="#description" role="tab" aria-controls="description" aria-selected="false"><?php echo $this->lang->line("Details"); ?></a>
+              <a class="nav-link active show" id="description-tab2" data-toggle="tab" href="#description" role="tab" aria-controls="description" aria-selected="false"><?php echo lang("Details"); ?></a>
             </li>
             <?php endif; ?>
             <?php if($have_attributes): ?>
             <li class="nav-item">
-              <a class="nav-link <?php echo empty($product_data['product_description']) ? 'active show' : '';?>" id="details-tab2" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="false"><?php echo $this->lang->line("Options"); ?></a>
+              <a class="nav-link <?php echo empty($product_data['product_description']) ? 'active show' : '';?>" id="details-tab2" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="false"><?php echo lang("Options"); ?></a>
             </li>
             <?php endif; ?> 
 
@@ -76,7 +76,7 @@
           </div>
           
         </div>
-        <a href="<?php echo $product_link;?>" class="btn btn-outline-primary btn-lg btn-block no_radius" data-attributes="" data-product-id="<?php echo $product_data['id'];?>" data-action=''><i class="fas fa-credit-card"></i> <?php echo $this->lang->line($buy_button_title); ?></a>
+        <a href="<?php echo $product_link;?>" class="btn btn-outline-primary btn-lg btn-block no_radius" data-attributes="" data-product-id="<?php echo $product_data['id'];?>" data-action=''><i class="fas fa-credit-card"></i> <?php echo lang($buy_button_title); ?></a>
       </div>
               
     </div>
@@ -135,11 +135,11 @@
           { ?>
           <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only"><?php echo $this->lang->line("Previous");?></span>
+            <span class="sr-only"><?php echo lang("Previous");?></span>
           </a>
           <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only"><?php echo $this->lang->line("Next");?></span>
+            <span class="sr-only"><?php echo lang("Next");?></span>
           </a>
         <?php } ?>
         </div>
@@ -148,13 +148,13 @@
 
       <ul class="list-group">
         <li class="list-group-item d-flex justify-content-between align-items-center no_radius">
-          <?php echo $this->lang->line("Category"); ?>
+          <?php echo lang("Category"); ?>
           <span class="badge badge-primary badge-pill">
-            <?php echo isset($category_list[$category_id]) ? $category_list[$category_id] : $this->lang->line("Uncategorised");?>
+            <?php echo isset($category_list[$category_id]) ? $category_list[$category_id] : lang("Uncategorised");?>
           </span>
         </li>
         <li class="list-group-item d-flex justify-content-between align-items-center no_radius">
-          <?php echo $this->lang->line("Sales"); ?>
+          <?php echo lang("Sales"); ?>
           <span class="badge badge-primary badge-pill"><?php echo $product_data['sales_count'];?></span>
         </li>
       </ul>

@@ -2,7 +2,7 @@
   <div class="section-header">
     <h1><i class="fab fa-wordpress"></i> <?php echo $page_title; ?></h1>
     <div class="section-header-button">
-        <a class="btn btn-primary" href="<?php echo base_url('woocommerce_integration/add_woocommerce_settings') ?>"><i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Connect WooCommerce API'); ?></a>
+        <a class="btn btn-primary" href="<?php echo base_url('woocommerce_integration/add_woocommerce_settings') ?>"><i class="fas fa-plus-circle"></i> <?php echo lang('Connect WooCommerce API'); ?></a>
     </div>
     <div class="section-header-breadcrumb">
       <div class="breadcrumb-item"><a href="<?php echo base_url('integration#'); ?>"><?php echo $page_title; ?></a></div>
@@ -10,9 +10,9 @@
   </div>
 
   <?php 
-  $this->load->view('admin/theme/message'); 
-  if($this->session->flashdata('error_message_woocommerce')!='')
-  echo "<div class='alert alert-danger text-center'><i class='fa fa-remove'></i> ".$this->session->flashdata('error_message_woocommerce')."</div>";
+  include(APPPATH . 'Views/admin/theme/message.php');
+  if(session()->getFlashdata('error_message_woocommerce')!='')
+  echo "<div class='alert alert-danger text-center'><i class='fa fa-remove'></i> ".session()->getFlashdata('error_message_woocommerce')."</div>";
   ?>
 
   <div class="section-body">
@@ -29,12 +29,12 @@
                 <div class="profile-widget-items">
                   <div class="profile-widget-item">
                     <div class="profile-widget-item-value">
-                      <a target='_BLANK' href="<?php echo base_url("woocommerce_integration/store/".$value["id"]);?>"  class='btn btn-outline-info ' data-toggle='tooltip' data-placement='top' title="<?php echo $this->lang->line('Visit Store Webview');?>"><i class='fas fa-eye'></i> <?php echo $this->lang->line('Store Webview');?></a>
+                      <a target='_BLANK' href="<?php echo base_url("woocommerce_integration/store/".$value["id"]);?>"  class='btn btn-outline-info ' data-toggle='tooltip' data-placement='top' title="<?php echo lang('Visit Store Webview');?>"><i class='fas fa-eye'></i> <?php echo lang('Store Webview');?></a>
                     </div>
                   </div>
                   <div class="profile-widget-item">
                     <div class="profile-widget-item-value">
-                     <a href='' data-site="<?php echo $value["home_url"];?>" data-id="<?php echo $value['id'];?>"  class='btn btn-outline-primary show_product' data-toggle='tooltip' data-placement='top' title="<?php echo $this->lang->line('Product List');?>"><i class='fas fa-box-open'></i> <?php echo $this->lang->line('Products');?></a>
+                     <a href='' data-site="<?php echo $value["home_url"];?>" data-id="<?php echo $value['id'];?>"  class='btn btn-outline-primary show_product' data-toggle='tooltip' data-placement='top' title="<?php echo lang('Product List');?>"><i class='fas fa-box-open'></i> <?php echo lang('Products');?></a>
                     </div>
                   </div>
                 </div>
@@ -42,20 +42,20 @@
               <div class="profile-widget-description" style="padding-bottom: 0;">
                 <div class="profile-widget-name text-center ltr"><a href='<?php echo $value["home_url"];?>' target="_BLANK"><i class='fab fa-wordpress'></i> <?php echo $value["home_url"];?></a></div>
                 <div class="profile-widget-name text-center">
-                  <small  data-toggle='tooltip' data-placement='top' title="<?php echo $this->lang->line('Consumer Key');?>"><i class='fas fa-key'></i> <?php echo (!$this->is_demo) ? $value["consumer_key"]:"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";?></small><br>
-                  <small  data-toggle='tooltip' data-placement='top' title="<?php echo $this->lang->line('Consumer Secret');?>"><i class='fas fa-mask'></i> <?php echo (!$this->is_demo) ? $value["consumer_secret"]:"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";?></small><br>
-                  <small  data-toggle='tooltip' data-placement='top' title="<?php echo $this->lang->line('Last Updated');?>"><i class='far fa-clock'></i> <?php echo date("M j, y H:i",strtotime($value["last_updated_at"]));?></small>
+                  <small  data-toggle='tooltip' data-placement='top' title="<?php echo lang('Consumer Key');?>"><i class='fas fa-key'></i> <?php echo ($is_demo!='1') ? $value["consumer_key"]:"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";?></small><br>
+                  <small  data-toggle='tooltip' data-placement='top' title="<?php echo lang('Consumer Secret');?>"><i class='fas fa-mask'></i> <?php echo ($is_demo!='1') ? $value["consumer_secret"]:"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";?></small><br>
+                  <small  data-toggle='tooltip' data-placement='top' title="<?php echo lang('Last Updated');?>"><i class='far fa-clock'></i> <?php echo date("M j, y H:i",strtotime($value["last_updated_at"]));?></small>
                 </div>
               </div>
               <div class="card-footer text-center" style="padding-top: 10px;">
                 
-               <a href='#' csrf_token="<?php echo $this->session->userdata('csrf_token_session');?>" class='mt-2 btn btn-outline-danger delete_app' table_id="<?php echo $value['id'];?>" data-toggle='tooltip' data-placement='top' title="<?php echo $this->lang->line('Delete');?>"><i class='fas fa-trash-alt'></i> <?php echo $this->lang->line('Delete');?></a>
+               <a href='#' csrf_token="<?php echo session()->get('csrf_token_session');?>" class='mt-2 btn btn-outline-danger delete_app' table_id="<?php echo $value['id'];?>" data-toggle='tooltip' data-placement='top' title="<?php echo lang('Delete');?>"><i class='fas fa-trash-alt'></i> <?php echo lang('Delete');?></a>
 
-               <a href="<?php echo base_url('woocommerce_integration/edit_woocommerce_settings/').$value['id'];?>" class='mt-2 btn btn-outline-primary' data-toggle='tooltip' data-placement='top' title="<?php echo $this->lang->line('Update');?>"><i class='fas fa-edit'></i> <?php echo $this->lang->line('Update');?></a>
+               <a href="<?php echo base_url('woocommerce_integration/edit_woocommerce_settings/').$value['id'];?>" class='mt-2 btn btn-outline-primary' data-toggle='tooltip' data-placement='top' title="<?php echo lang('Update');?>"><i class='fas fa-edit'></i> <?php echo lang('Update');?></a>
 
-               <a href="" class='mt-2 btn btn-outline-dark copy_url'  data-id="<?php echo $value['id'];?>" data-toggle='tooltip' data-placement='top' title="<?php echo $this->lang->line('Copy URL');?>"><i class='fas fa-copy'></i> <?php echo $this->lang->line('Copy URL');?></a>
+               <a href="" class='mt-2 btn btn-outline-dark copy_url'  data-id="<?php echo $value['id'];?>" data-toggle='tooltip' data-placement='top' title="<?php echo lang('Copy URL');?>"><i class='fas fa-copy'></i> <?php echo lang('Copy URL');?></a>
 
-               <a href="<?php echo base_url('woocommerce_integration/sync_woocommerce_data/').$value['id'];?>" class='mt-2 btn btn-warning' data-toggle='tooltip' data-placement='top' title="<?php echo $this->lang->line('Re-sync Data');?>"><i class='fas fa-sync-alt'></i> <?php echo $this->lang->line('Re-sync Data');?></a>
+               <a href="<?php echo base_url('woocommerce_integration/sync_woocommerce_data/').$value['id'];?>" class='mt-2 btn btn-warning' data-toggle='tooltip' data-placement='top' title="<?php echo lang('Re-sync Data');?>"><i class='fas fa-sync-alt'></i> <?php echo lang('Re-sync Data');?></a>
 
               </div>
             </div>
@@ -73,9 +73,9 @@
               <div class="empty-state-icon">
                 <i class="fas fa-times"></i>
               </div>
-              <h2><?php echo $this->lang->line("No WooCommerce Integration found."); ?></h2>
+              <h2><?php echo lang("No WooCommerce Integration found."); ?></h2>
               <p>&nbsp;</p>
-              <a class="btn btn-primary" href="<?php echo base_url('woocommerce_integration/add_woocommerce_settings') ?>"><i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Connect WooCommerce API');?></a>
+              <a class="btn btn-primary" href="<?php echo base_url('woocommerce_integration/add_woocommerce_settings') ?>"><i class="fas fa-plus-circle"></i> <?php echo lang('Connect WooCommerce API');?></a>
             </div>
           </div>
         </div>
@@ -115,9 +115,9 @@
 
     $(document).on('click','.delete_app',function(e){
       e.preventDefault();
-      var ifyoudeletethisaccount = "<?php echo $this->lang->line('Are you sure that you want to delete this API? Deleting API does not affect products exported to E-commerce.'); ?>";
+      var ifyoudeletethisaccount = "<?php echo lang('Are you sure that you want to delete this API? Deleting API does not affect products exported to E-commerce.'); ?>";
       swal({
-        title: '<?php echo $this->lang->line("Are you sure?"); ?>',
+        title: '<?php echo lang("Are you sure?"); ?>',
         text: ifyoudeletethisaccount,
         icon: 'warning',
         buttons: true,
@@ -146,13 +146,13 @@
 
               if(response.status == 1)
               {
-                swal('<?php echo $this->lang->line("Success"); ?>', response.message, 'success').then((value) => {
+                swal('<?php echo lang("Success"); ?>', response.message, 'success').then((value) => {
                    location.reload();
                 });
               }
               else
               {
-                swal('<?php echo $this->lang->line("Error"); ?>', response.message, 'error');
+                swal('<?php echo lang("Error"); ?>', response.message, 'error');
               }
             }
           });
@@ -169,7 +169,7 @@
   <div class="modal-dialog modal-mega" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-box-open"></i> <?php echo $this->lang->line("Products");?></h5>
+        <h5 class="modal-title"><i class="fas fa-box-open"></i> <?php echo lang("Products");?></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true"><i class="fas fa-times"></i></span>
         </button>
@@ -187,7 +187,7 @@
   <div class="modal-dialog modal-mega" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-copy"></i> <?php echo $this->lang->line("Copy URL");?></h5>
+        <h5 class="modal-title"><i class="fas fa-copy"></i> <?php echo lang("Copy URL");?></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true"><i class="fas fa-times"></i></span>
         </button>

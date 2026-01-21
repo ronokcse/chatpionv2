@@ -1,4 +1,4 @@
-<?php $this->load->view('admin/theme/message'); ?>
+<?php include(APPPATH . 'Views/admin/theme/message.php'); ?>
 <style>
     #search_page_id{min-width: 150px !important;}
     .list-unstyled-border li{border-bottom: none;margin-bottom: 10px;padding-top: 0;}
@@ -504,7 +504,7 @@ $(document).ready(function($) {
         },
         language: 
         {
-          url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+          url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
         },
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         columnDefs: [
@@ -621,7 +621,7 @@ $(document).ready(function($) {
               },
               language: 
               {
-                url: '<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json');?>'
+                url: '<?php echo base_url('assets/modules/datatables/language/'.$language.'.json');?>'
               },
               dom: '<"top"f>rt<"bottom"lip><"clear">',
               columnDefs: [

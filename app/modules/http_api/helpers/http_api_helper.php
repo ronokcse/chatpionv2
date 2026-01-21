@@ -1,4 +1,4 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php  if ( ! defined('BASEPATH') && ! defined('APPPATH')) exit('No direct script access allowed');
 
 if(! function_exists('http_api_run_curl')){
     function http_api_run_curl($endpoint_url=null,$method = null,$body_data = null, $body_data_type = null, $header_data = [], $option_data=[], $cookie_data = [],$json=false) {

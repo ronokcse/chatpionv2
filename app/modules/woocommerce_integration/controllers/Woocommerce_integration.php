@@ -20,43 +20,77 @@ Version: 2.1
 Description: Import WooCommerce products to sell inside Messenger using webview and export products as Ecommerce product
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
-require APPPATH . 'modules/woocommerce_integration/assets/vendor/autoload.php';
-use Automattic\WooCommerce\Client;
+namespace App\Modules\Woocommerce_integration\Controllers;
 
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+use Exception;
+
+/**
+ * CI4 module controller (ported from CI3 addon).
+ *
+ * @property mixed $input
+ * @property mixed $form_validation
+ * @property mixed $session
+ * @property mixed $basic
+ * @property mixed $uri
+ * @property mixed $db
+ */
 class Woocommerce_integration extends Home
 {
 	public $addon_data=array();
 
-	public function __construct() 
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
 	{
-		parent::__construct();
+        parent::initController($request, $response, $logger);
+
+        // Ensure DB is initialized
+        if (!isset($this->db) || $this->db === null) {
+            $this->db = \Config\Database::connect();
+        }
+
+        // Load module vendor autoload (WooCommerce SDK)
+        $vendorAutoload = APPPATH . 'modules/woocommerce_integration/assets/vendor/autoload.php';
+        if (file_exists($vendorAutoload)) {
+            require_once $vendorAutoload;
+        }
+
 		// getting addon information in array and storing to public variable
 		// addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
 		//------------------------------------------------------------------------------------------
-		$addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
-		$addondata=$this->get_addon_data($addon_path);
-		$this->addon_data=$addondata;
+        // CI4 fix: Get class name using reflection instead of router
+        $className = (new \ReflectionClass($this))->getShortName();
+		$addon_path = APPPATH . "modules/" . strtolower($className) . "/controllers/" . ucfirst($className) . ".php"; // path of addon controller
+		$this->addon_data = $this->get_addon_data($addon_path);
 
 		$function_name=$this->uri->segment(2);
 		if($function_name!="store" && $function_name!="product")
 		{
 		      // all addon must be login protected
 		      //------------------------------------------------------------------------------------------
-		      if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
+		      if ($this->session->userdata('logged_in')!= 1) {
+                    header('Location: ' . base_url('home/login_page'));
+                    exit();
+              }
 		      $this->member_validity();       
 		      // if you want the addon to be accessed by admin and member who has permission to this addon
 		      //-------------------------------------------------------------------------------------------
-		      if(isset($addondata['module_id']) && is_array($addondata['module_id']) && !empty($addondata['module_id']))
+		      if(isset($this->addon_data['module_id']) && is_array($this->addon_data['module_id']) && !empty($this->addon_data['module_id']))
               {
-                if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($addondata['module_id'],$this->module_access))==0)
+                if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->addon_data['module_id'],$this->module_access ?? []))==0)
                   {
-                        redirect('home/login_page', 'location');
+                        header('Location: ' . base_url('home/login_page'));
                         exit();
                   }
               }
 		}
-		$this->load->helper("ecommerce");
+        // CI4 helper loader
+        helper('ecommerce');
 		
 	}
 
@@ -65,11 +99,8 @@ class Woocommerce_integration extends Home
 	    $data['page_title'] = $this->lang->line('WooCommerce Integration');
 	    $data['body'] = 'woocommerce_app_settings';
 
-	    $where_custom = '';
-	    $where_custom="user_id = ".$this->user_id;
-	    $table="woocommerce_config";
-	    $this->db->where($where_custom);
-	    $data['info']=$this->basic->get_data($table,$where='',$select='',$join='','','','id desc');
+	    $where = ['where' => ['user_id' => $this->user_id]];
+	    $data['info'] = $this->basic->get_data('woocommerce_config', $where, $select='', $join='', $limit='', $start=NULL, $order_by='id desc');
 	
 	    $this->_viewcontroller($data);
 	}
@@ -129,7 +160,7 @@ class Woocommerce_integration extends Home
         	$consumer_secret = strip_tags($this->input->post('consumer_secret',true));
         	$home_url = strip_tags($this->input->post('home_url',true));
         	$this->sync_data($table_id,$consumer_key,$consumer_secret,$home_url);     
-	        redirect(base_url('woocommerce_integration'),'location');	        
+	        return redirect()->to(base_url('woocommerce_integration'));	        
 	    }
 	}
 
@@ -143,7 +174,7 @@ class Woocommerce_integration extends Home
 		$consumer_secret = $config_data[0]['consumer_secret'];
 		$home_url = $config_data[0]['home_url'];
 		$this->sync_data($table_id,$consumer_key,$consumer_secret,$home_url);
-		redirect(base_url('woocommerce_integration'),'location');
+		return redirect()->to(base_url('woocommerce_integration'));
 	}
 
 
@@ -159,7 +190,7 @@ class Woocommerce_integration extends Home
         {	            
             $per_page = 100;
             $page = 1;
-            $woocommerce_api_call = new Client($home_url, $consumer_key, $consumer_secret,['wp_api' => true,'version' => 'wc/v3','query_string_auth' =>true]);	           
+            $woocommerce_api_call = new \Automattic\WooCommerce\Client($home_url, $consumer_key, $consumer_secret, ['wp_api' => true,'version' => 'wc/v3','query_string_auth' => true]);	           
             $woocommerce_product_2d = array();
             $found = true;
             while ($found)
@@ -181,15 +212,24 @@ class Woocommerce_integration extends Home
 
             if(!empty($woocommerce_product))
             {
-            	$this->db->trans_start();
+            	$this->db->transStart();
             	// $payment_gateways = $woocommerce_api_call->get('payment_gateways');
             	$woocommerce_settings = $woocommerce_api_call->get('system_status');
             	
-            	$insert_data['currency'] = isset($woocommerce_settings->settings->currency) ? $woocommerce_settings->settings->currency : "USD";
-            	$insert_data['currency_icon'] = isset($woocommerce_settings->settings->currency_symbol) ? $woocommerce_settings->settings->currency_symbol : "$";
-            	$insert_data['currency_position'] = isset($woocommerce_settings->settings->currency_position) ? $woocommerce_settings->settings->currency_position : "left";
-            	$insert_data['decimal_point'] = isset($woocommerce_settings->settings->currency) ? $woocommerce_settings->settings->currency : "USD";
-            	$insert_data['thousand_comma'] = isset($woocommerce_settings->settings->thousand_separator) && $woocommerce_settings->settings->thousand_separator==',' ? "1" : "0";
+                // WooCommerce SDK may return array or object - handle both safely.
+                $settings = null;
+                if (is_array($woocommerce_settings)) {
+                    $settings = $woocommerce_settings['settings'] ?? [];
+                } else {
+                    $settings = $woocommerce_settings->settings ?? null;
+                }
+
+            	$insert_data['currency'] = is_array($settings) ? ($settings['currency'] ?? "USD") : ($settings->currency ?? "USD");
+            	$insert_data['currency_icon'] = is_array($settings) ? ($settings['currency_symbol'] ?? "$") : ($settings->currency_symbol ?? "$");
+            	$insert_data['currency_position'] = is_array($settings) ? ($settings['currency_position'] ?? "left") : ($settings->currency_position ?? "left");
+            	$insert_data['decimal_point'] = is_array($settings) ? ($settings['decimal_separator'] ?? ".") : ($settings->decimal_separator ?? ".");
+            	$thousandSeparator = is_array($settings) ? ($settings['thousand_separator'] ?? '') : ($settings->thousand_separator ?? '');
+            	$insert_data['thousand_comma'] = ($thousandSeparator === ',') ? "1" : "0";
                 
                 $woocommerce_product_attribute = $woocommerce_api_call->get('products/attributes');
             	$woocommerce_product_category = $woocommerce_api_call->get('products/categories');
@@ -205,7 +245,7 @@ class Woocommerce_integration extends Home
             	else
             	{
             		$this->basic->insert_data('woocommerce_config', $insert_data);
-            		$woocommerce_config_id = $this->db->insert_id();
+            		$woocommerce_config_id = $this->db->insertID();
             	}
             	$user_id = $this->user_id;
             	foreach ($woocommerce_product as $key => $value)
@@ -319,8 +359,8 @@ class Woocommerce_integration extends Home
 
             	}
 
-            	$this->db->trans_complete();
-            	if ($this->db->trans_status() === FALSE) $this->session->set_flashdata('error_message_woocommerce', $this->lang->line("Something went wrong. Failed to import WooCommerce data."));
+            	$this->db->transComplete();
+            	if ($this->db->transStatus() === false) $this->session->set_flashdata('error_message_woocommerce', $this->lang->line("Something went wrong. Failed to import WooCommerce data."));
             	else $this->session->set_flashdata('success_message', '1');
             }
 
@@ -378,18 +418,15 @@ class Woocommerce_integration extends Home
 	      $imp = implode(" OR ", $temp);
 	      $where_custom .=" AND (".$imp.") ";
 	  }
-	  $this->db->where($where_custom);
-
-	  if($store_id!="") $this->db->where(array("woocommerce_product.woocommerce_config_id"=>$store_id));       
+	  if($store_id!="") $where_custom .= " AND woocommerce_product.woocommerce_config_id = " . (int) $store_id;       
 	  
 	  $table="woocommerce_product";
-	  $select = "woocommerce_product.*,woocommerce_config.home_url,";
+	  $select = "woocommerce_product.*,woocommerce_config.home_url";
 	  $join = array('woocommerce_config'=>"woocommerce_config.id=woocommerce_product.woocommerce_config_id,left");
-	  $info=$this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='');
+	  $where = ['where' => $where_custom];
+	  $info=$this->basic->get_data($table,$where,$select,$join,$limit,$start,$order_by,$group_by='');
 	  
-	  $this->db->where($where_custom);
-	  if($store_id!="") $this->db->where(array("woocommerce_product.woocommerce_config_id"=>$store_id)); 
-	  $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+	  $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
 
 	  $total_result=$total_rows_array[0]['total_rows'];
 
@@ -422,7 +459,7 @@ class Woocommerce_integration extends Home
 		$store_id = $this->input->post("store_id",true);
 		$woocommerce_config_id = $this->input->post("woocommerce_config_id",true);
 
-		$this->db->trans_start();
+		$this->db->transStart();
 		$woocommerce_config = $this->basic->get_data("woocommerce_config",array("where"=>array("id"=>$woocommerce_config_id)));
 		if(empty($woocommerce_config))
 		{
@@ -531,14 +568,14 @@ class Woocommerce_integration extends Home
 			$default_attr["attribute_values"] = json_encode($attribute_insert_data["Color"]['values']);
 			$default_attr["attribute_name"] = "Color";
 			$this->basic->insert_data("ecommerce_attribute",$default_attr);
-			$attr_color_id = $this->db->insert_id();
+			$attr_color_id = $this->db->insertID();
 		}
 		if($attr_size_id==0 && isset($attribute_insert_data["Size"]['values']))
 		{
 			$default_attr["attribute_values"] = json_encode($attribute_insert_data["Size"]['values']);
 			$default_attr["attribute_name"] = "Size";
 			$this->basic->insert_data("ecommerce_attribute",$default_attr);
-			$attr_size_id = $this->db->insert_id();
+			$attr_size_id = $this->db->insertID();
 		}
 		$woocommece_to_ecommerce_attribute_map = array();
 		if(!empty($woocommerce_attribute_ids))
@@ -697,8 +734,8 @@ class Woocommerce_integration extends Home
     		$this->basic->execute_complex_query($sql);
 		}
 
-		$this->db->trans_complete();
-		if ($this->db->trans_status() === FALSE) echo json_encode(array("status"=>"0","message"=>$this->lang->line("Something went wrong. Failed to export products.")));
+		$this->db->transComplete();
+		if ($this->db->transStatus() === false) echo json_encode(array("status"=>"0","message"=>$this->lang->line("Something went wrong. Failed to export products.")));
 		else  echo json_encode(array("status"=>"1","message"=>count($woocommerce_products)." ".$this->lang->line("Products have been exported to ecommerce successfully.")));
 	}
 
@@ -758,7 +795,11 @@ class Woocommerce_integration extends Home
 
       $data["store_data"] = $store_data[0];
       $data["product_list"] = $this->get_product_list_array($id,$default_where,$order_by);     
-      $this->load->view('bare-theme', $data);
+      // CI4 compatibility: directly include module view (CI3 bare-theme)
+      $viewPath = APPPATH . 'modules/woocommerce_integration/views/bare-theme.php';
+      extract($data);
+      if (file_exists($viewPath)) include($viewPath);
+      else echo view('ecommerce/bare-theme', $data);
     }
 
     public function product($product_id=0)
@@ -786,7 +827,11 @@ class Woocommerce_integration extends Home
       $data['current_product_id'] = isset($product_data[0]['id']) ? $product_data[0]['id'] : 0;
       $data['current_store_id'] = isset($product_data[0]['woocommerce_config_id']) ? $product_data[0]['woocommerce_config_id'] : 0;
 
-      $this->load->view('bare-theme', $data);
+      // CI4 compatibility: directly include module view (CI3 bare-theme)
+      $viewPath = APPPATH . 'modules/woocommerce_integration/views/bare-theme.php';
+      extract($data);
+      if (file_exists($viewPath)) include($viewPath);
+      else echo view('ecommerce/bare-theme', $data);
     }
 
     private function get_product_list_array($woocommerce_config_id=0,$default_where="",$order_by="")
@@ -794,7 +839,7 @@ class Woocommerce_integration extends Home
       $where_simple = array("woocommerce_config_id"=>$woocommerce_config_id,"status"=>"1");
       if(isset($default_where['product_name'])) {
         $product_name = $default_where['product_name'];
-        $this->db->where(" product_name LIKE "."'%".$product_name."%'");
+        $where_simple['product_name LIKE '] = "%".$product_name."%";
         unset($default_where['product_name']);
       }
       if(is_array($default_where) && !empty($default_where))
@@ -830,7 +875,9 @@ class Woocommerce_integration extends Home
 	{
 		$this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        // CI4 fix: Get class name using reflection instead of router
+        $className = (new \ReflectionClass($this))->getShortName();
+        $addon_controller_name=ucfirst($className);
         $purchase_code=$this->input->post('purchase_code');
         $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
         
@@ -897,7 +944,9 @@ class Woocommerce_integration extends Home
     {        
     	$this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        // CI4 fix: Get class name using reflection instead of router
+        $className = (new \ReflectionClass($this))->getShortName();
+        $addon_controller_name=ucfirst($className);
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);      
     }
@@ -906,7 +955,9 @@ class Woocommerce_integration extends Home
     {        
     	$this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        // CI4 fix: Get class name using reflection instead of router
+        $className = (new \ReflectionClass($this))->getShortName();
+        $addon_controller_name=ucfirst($className);
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
         $sql=array

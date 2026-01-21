@@ -144,8 +144,16 @@
   	    <div class="main-wrapper h-100">
   			<div class="container" id="d-main-container">
   				<?php 
-  					if(isset($body)) $this->load->view($body);
-  					else echo $output;
+                    if (isset($body) && $body) {
+                        $viewPath = APPPATH . 'modules/woocommerce_integration/views/' . $body . '.php';
+                        if (file_exists($viewPath)) {
+                            include $viewPath;
+                        } else {
+                            echo view($body);
+                        }
+                    } else {
+                        echo $output ?? '';
+                    }
   				?>
   			</div>  			
   		</div>

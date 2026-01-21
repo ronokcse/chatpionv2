@@ -1,7 +1,7 @@
 <section class="section mt-2">
   <div class="section-header p-0 no_shadow bg-light mb-0">
       <?php
-      $buy_button_title = $this->lang->line("Buy Now"); 
+      $buy_button_title = lang("Buy Now"); 
       // $currency_icon = rtrim($store_data["currency_icon"],'&nb');
       // $currency_position = $store_data["currency_position"];
       // $decimal_point = $store_data["decimal_point"];
@@ -17,8 +17,8 @@
           <?php
           $url_cat =  isset($_GET["category"]) ? $_GET["category"] : "";
           ?>
-          <input type="text" onkeyup="search_product(this,'product-container')"  class="form-control" name="search" id="search" value= "<?php echo $this->session->userdata('search_search');?>" 
-          placeholder="<?php echo $this->lang->line("Search"); ?>">
+          <input type="text" onkeyup="search_product(this,'product-container')"  class="form-control" name="search" id="search" value= "<?php echo session()->get('search_search');?>" 
+          placeholder="<?php echo lang("Search"); ?>">
         </div>
       </form>
   </div>
@@ -27,7 +27,7 @@
     <div class="category_container">
       <?php 
       $active_class = $url_cat=='' ? 'bg-primary text-white' : '';
-      echo '<div class="slide"><a class="pointer cat_nav nav-link '.$active_class.'" href="" data-val="">'.$this->lang->line("Any Category").'</a></div>';
+      echo '<div class="slide"><a class="pointer cat_nav nav-link '.$active_class.'" href="" data-val="">'.lang("Any Category").'</a></div>';
       unset($category_list['']);
 
       foreach ($category_list as $key => $value)
@@ -44,9 +44,9 @@
         <div class="card-body">
           <div class="empty-state">
             <img class="img-fluid" style="height: 200px" src="<?php echo base_url('assets/img/drawkit/drawkit-full-stack-man-colour.svg'); ?>" alt="image">
-             <h2 class="mt-0"><?php echo $this->lang->line("We could not find any item.");?></h2>
+             <h2 class="mt-0"><?php echo lang("We could not find any item.");?></h2>
              <?php if($_POST) { ?>
-             <a href="<?php echo $_SERVER['QUERY_STRING'] ? current_url().'?'.$_SERVER['QUERY_STRING'] : current_url(); ?>" class="btn btn-outline-primary mt-4"><i class="fas fa-arrow-circle-right"></i> <?php echo $this->lang->line("Search Again");?></a>
+             <a href="<?php echo $_SERVER['QUERY_STRING'] ? current_url().'?'.$_SERVER['QUERY_STRING'] : current_url(); ?>" class="btn btn-outline-primary mt-4"><i class="fas fa-arrow-circle-right"></i> <?php echo lang("Search Again");?></a>
              <?php } ?>
           </div>
         </div>
@@ -85,7 +85,7 @@
                   <p class="text-small text-muted m-0 mb-1" style="line-height: normal !important"><?php echo strlen(strip_tags($value['product_description']))>30?substr(strip_tags($value['product_description']), 0, 30).'...':strip_tags($value['product_description']); ?></p>
                   <p class="d-none"><?php echo strip_tags($value['product_description']); ?></p>
                   
-                  <a href="<?php echo $product_link; ?>" class="btn btn-sm btn-primary" data-attributes="" data-product-id="<?php echo $value['id'];?>" data-action=''><i class="fas fa-credit-card"></i> <?php echo $this->lang->line($buy_button_title); ?></a>
+                  <a href="<?php echo $product_link; ?>" class="btn btn-sm btn-primary" data-attributes="" data-product-id="<?php echo $value['id'];?>" data-action=''><i class="fas fa-credit-card"></i> <?php echo lang($buy_button_title); ?></a>
                   
                 </div>
               </li>                
@@ -98,9 +98,9 @@
       <div class="card-body">
         <div class="empty-state">
           <img class="img-fluid" style="height: 200px" src="<?php echo base_url('assets/img/drawkit/drawkit-full-stack-man-colour.svg'); ?>" alt="image">
-           <h2 class="mt-0"><?php echo $this->lang->line("We could not find any item.");?></h2>
+           <h2 class="mt-0"><?php echo lang("We could not find any item.");?></h2>
            <?php if($_POST) { ?>
-           <a href="<?php echo $_SERVER['QUERY_STRING'] ? current_url().'?'.$_SERVER['QUERY_STRING'] : current_url(); ?>" class="btn btn-outline-primary mt-4"><i class="fas fa-arrow-circle-right"></i> <?php echo $this->lang->line("Search Again");?></a>
+           <a href="<?php echo $_SERVER['QUERY_STRING'] ? current_url().'?'.$_SERVER['QUERY_STRING'] : current_url(); ?>" class="btn btn-outline-primary mt-4"><i class="fas fa-arrow-circle-right"></i> <?php echo lang("Search Again");?></a>
            <?php } ?>
         </div>
       </div>
@@ -162,5 +162,5 @@
 </style>
 
 
-<?php include(APPPATH."views/ecommerce/cart_style.php"); ?>
-<?php include(APPPATH."views/ecommerce/common_style.php"); ?>
+<?php include(APPPATH."Views/ecommerce/cart_style.php"); ?>
+<?php include(APPPATH."Views/ecommerce/common_style.php"); ?>

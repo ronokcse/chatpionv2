@@ -11,27 +11,27 @@ var http_api_get_dynamic_value_list_url = '<?php echo base_url("http_api/get_dyn
 var http_api_verify_url = '<?php echo base_url("http_api/verify_api");?>';
 var http_api_edit_url = '<?php echo base_url("http_api/edit_api");?>';
 var http_api_submit_url = '<?php echo base_url("http_api/submit_api");?>';
-var lang_error_select_channel = '<?php echo $this->lang->line("Please select social channel first");?>';
+var lang_error_select_channel = '<?php echo lang("Please select social channel first");?>';
 var header_level = "<?php echo $header_level; ?>";
 var body_level = "<?php echo $body_level; ?>";
 var option_level = "<?php echo $option_level; ?>";
 var cookie_level = "<?php echo $cookie_level; ?>";
 var map_level = "<?php echo $map_level; ?>";
-var lang_fill_required_fields = "<?php echo $this->lang->line('Please fill the required fields.')?>";
-var lang_label_select_dynamic_data = "<?php echo $this->lang->line('Select Field')?>";
-var lang_label_select_formatter_data = "<?php echo $this->lang->line('Select Formatter')?>";
-var lang_formatter_example = "<?php echo $this->lang->line("Use Case");?>";
-var lang_fill_required_header_fields = "<?php echo $this->lang->line('Please fill the required header fields')?>";
-var lang_fill_required_body_fields = "<?php echo $this->lang->line('Please fill the required body fields')?>";
-var lang_fill_invalid_body_json = "<?php echo $this->lang->line('The body JSON provided is not a valid JSON')?>";
-var lang_fill_required_option_fields = "<?php echo $this->lang->line('Please fill the required option fields')?>";
-var lang_fill_data_error_option_fields = "<?php echo $this->lang->line('Please check the values of option fields')?>";
-var lang_fill_required_cookie_fields = "<?php echo $this->lang->line('Please fill the required cookie fields')?>";
-var lang_fill_required_map_fields = "<?php echo $this->lang->line('Please fill the required map fields')?>";
-var lang_save_missing_validation = "<?php echo $this->lang->line("Something missing");?>";
-var lang_save_variable_list_validation = "<?php echo $this->lang->line("All list type data field must have a `Concat List Items` type formatter.");?>";
-var lang_save_variable_list_multiple_validation = "<?php echo $this->lang->line("A list type data field can have only one `Concat List Items` type formatter.");?>";
-var lang_save_static_multiple_validation = "<?php echo $this->lang->line("If you are using a `Static Value` formatter, you cannot use another one.");?>";
+var lang_fill_required_fields = "<?php echo lang('Please fill the required fields.')?>";
+var lang_label_select_dynamic_data = "<?php echo lang('Select Field')?>";
+var lang_label_select_formatter_data = "<?php echo lang('Select Formatter')?>";
+var lang_formatter_example = "<?php echo lang('Use Case');?>";
+var lang_fill_required_header_fields = "<?php echo lang('Please fill the required header fields')?>";
+var lang_fill_required_body_fields = "<?php echo lang('Please fill the required body fields')?>";
+var lang_fill_invalid_body_json = "<?php echo lang('The body JSON provided is not a valid JSON')?>";
+var lang_fill_required_option_fields = "<?php echo lang('Please fill the required option fields')?>";
+var lang_fill_data_error_option_fields = "<?php echo lang('Please check the values of option fields')?>";
+var lang_fill_required_cookie_fields = "<?php echo lang('Please fill the required cookie fields')?>";
+var lang_fill_required_map_fields = "<?php echo lang('Please fill the required map fields')?>";
+var lang_save_missing_validation = "<?php echo lang('Something missing');?>";
+var lang_save_variable_list_validation = "<?php echo lang('All list type data field must have a `Concat List Items` type formatter.');?>";
+var lang_save_variable_list_multiple_validation = "<?php echo lang('A list type data field can have only one `Concat List Items` type formatter.');?>";
+var lang_save_static_multiple_validation = "<?php echo lang('If you are using a `Static Value` formatter, you cannot use another one.');?>";
 var csrf_token = $("#csrf_token").val();
 if (typeof(csrf_token)==='undefined') csrf_token = '';
 
@@ -813,7 +813,7 @@ $(document).ready(function() {
             },
         language:
             {
-                url: '<?= base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>'
+                url: '<?= base_url('assets/modules/datatables/language/'.(($language ?? service("request")->getLocale() ?? "english")).'.json'); ?>'
             },
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         columnDefs: [
@@ -1493,7 +1493,7 @@ function load_formatter_datatable() {
             },
             language:
             {
-               url: '<?= base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>'
+               url: '<?= base_url('assets/modules/datatables/language/'.(($language ?? service("request")->getLocale() ?? "english")).'.json'); ?>'
             },
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         columnDefs: [
