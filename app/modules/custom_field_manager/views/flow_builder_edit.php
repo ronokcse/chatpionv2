@@ -177,7 +177,7 @@
 	<div class="row d-none">
 		<div class="col-12">
 			<h4 class="full_width">
-				<a class="float-right icon-left text-primary btn btn-outline-primary variables"><i class="fas fa-plus"></i> <?php echo $this->lang->line('Variables'); ?></a>
+				<a class="float-right icon-left text-primary btn btn-outline-primary variables"><i class="fas fa-plus"></i> <?php echo lang('Variables'); ?></a>
 			</h4>
 		</div>
 	</div>
@@ -187,16 +187,16 @@
 			<div class="row">
 				<div class="col-12 col-md-6">
 					<div class="form-group">
-						<label for=""><?php echo $this->lang->line("Campaign Name");?> </label>
+						<label for=""><?php echo lang("Campaign Name");?> </label>
 						<input name="Campaign_name" id="Campaign_name" value="<?php echo isset($question_info[0]['flow_name']) ? $question_info[0]['flow_name'] : ''; ?>" class="form-control" type="text">
 					</div>
 				</div>
 				<div class="col-12 col-md-6 d-none">
 					<div class="form-group">
-						<label for=""><?php echo $this->lang->line("Choose a page");?> </label>
+						<label for=""><?php echo lang("Choose a page");?> </label>
 						<?php 
 							$selected_page_id = isset($question_info[0]['page_table_id']) ? $question_info[0]['page_table_id'] : 0;
-							$page_list['']=$this->lang->line('Select a Page');
+							$page_list['']=lang('Select a Page');
 							echo form_dropdown('page_table_id',$page_list,$selected_page_id,'class="form-control select2" id="page_table_id"'); 
 						?>
 					</div>
@@ -207,7 +207,7 @@
 		   	<div class="row">
 	         	<div class="col-12 col-sm-12 col-md-4 right_column">
 	         		<div class="right_column_button">
-	         			<i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Free Keyboard Input'); ?>
+	         			<i class="fas fa-plus-circle"></i> <?php echo lang('Free Keyboard Input'); ?>
 	         		</div>
 
 	         		<div class="custom_links text-center">
@@ -216,19 +216,19 @@
 	         					<div class="custom_item_icon">
 	         						<span><i class="ml-0 <?php echo $value; ?>"></i></span>
 	         					</div>
-	         					<div class="custom_item_info"><i class="fas fa-plus"></i> <?php echo $this->lang->line($key); ?>
+	         					<div class="custom_item_info"><i class="fas fa-plus"></i> <?php echo lang($key); ?>
 	         				</div>
 	         			</div>
 	         			<?php } ?>
 	         		</div>
 
 	             	<div class="right_column_button add_question" id="multiple_choice">
-	             		<i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Multiple Choice'); ?>
+	             		<i class="fas fa-plus-circle"></i> <?php echo lang('Multiple Choice'); ?>
 	             	</div>
              	</div>
 	     		<div class="col-12 col-sm-12 col-md-8 left_column">
 	     			<div id="left_header" class="mb-2 alert alert-light">
-	     				<?php echo $this->lang->line('User Input Flow Start'); ?>
+	     				<?php echo lang('User Input Flow Start'); ?>
 	     			</div>
 
 	     			<div class="total_question_container">
@@ -243,23 +243,23 @@
 	             			   <div class="input_section" style="width:100%" id="input_section_<?php echo $key; ?>">
 	             			      <div class="form-group">
 	             			         <div class="input-group mb-2">
-	             			            <input type="text" class="form-control type_questions" name="question[<?php echo $key; ?>]" placeholder="<?php echo $this->lang->line('Put your question here'); ?>" value="<?php echo $value['question']; ?>">
+	             			            <input type="text" class="form-control type_questions" name="question[<?php echo $key; ?>]" placeholder="<?php echo lang('Put your question here'); ?>" value="<?php echo $value['question']; ?>">
 	             			            <div class="input-group-append append_icon pointer" id="<?php echo $key; ?>">
 	             			               <div class="input-group-text" id="append_icon_body_<?php echo $key; ?>"><i class="fas fa-cogs"></i></div>
 	             			            </div>
 	             			         </div>
-	             			         <div class="float-right free_input_label"><?php echo $this->lang->line('Free keyboard input'); ?></div>
+	             			         <div class="float-right free_input_label"><?php echo lang('Free keyboard input'); ?></div>
 	             			      </div>
 	             			      <br>
 	             			      <div class="waiting_reply_content">
-	             			         <span>..... <?php echo $this->lang->line('Waiting for a reply from the user'); ?> ....</span>
+	             			         <span>..... <?php echo lang('Waiting for a reply from the user'); ?> ....</span>
 	             			      </div>
 	             			   </div>
 	                 		   <?php else : ?>
 	                 		   <div class="input_section" style="width:100%" id="input_section_<?php echo $key; ?>">
 	                 		      <div class="form-group mb-2">
 	                 		         <div class="input-group mb-2">
-	                 		            <input type="text" class="form-control type_questions" name="question[<?php echo $key; ?>]" placeholder="<?php echo $this->lang->line('Put your question here'); ?>" value="<?php echo $value['question']; ?>">
+	                 		            <input type="text" class="form-control type_questions" name="question[<?php echo $key; ?>]" placeholder="<?php echo lang('Put your question here'); ?>" value="<?php echo $value['question']; ?>">
 	                 		            <div class="input-group-append append_icon pointer" id="<?php echo $key; ?>">
 	                 		               <div class="input-group-text" id="append_icon_body_<?php echo $key; ?>"><i class="fas fa-cogs"></i></div>
 	                 		            </div>
@@ -274,11 +274,11 @@
 	                 		         </div>
 	                 		      </div>
 	                 		      <div class="form-group mr-2">
-	                 		         <button type="" class="btn btn-sm btn-outline-primary float-right add_more_button" div_id="multiple_choice_buttons_<?php echo $key; ?>"><i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Add more'); ?></button>
+	                 		         <button type="" class="btn btn-sm btn-outline-primary float-right add_more_button" div_id="multiple_choice_buttons_<?php echo $key; ?>"><i class="fas fa-plus-circle"></i> <?php echo lang('Add more'); ?></button>
 	                 		      </div>
 	                 		      <br>
 	                 		      <div class="waiting_reply_content">
-	                 		         <span>..... <?php echo $this->lang->line('Waiting for a reply from the user'); ?> ....</span>
+	                 		         <span>..... <?php echo lang('Waiting for a reply from the user'); ?> ....</span>
 	                 		      </div>
 	                 		   </div>
 	                 		   <?php endif; ?>
@@ -289,9 +289,9 @@
 	             			            <div class="card edit_input_parent_card">
 	             			               <div class="card-body p-3">
 	             			                  <div class="form-group mb-1" id="selected_reply_type_<?php echo $key; ?>">
-	             			                     <label><?php echo $this->lang->line('Reply type'); ?></label>
+	             			                     <label><?php echo lang('Reply type'); ?></label>
 	             			                     <select name="reply_type[<?php echo $key; ?>][]" id="reply_type_<?php echo $key; ?>" class="form-control selected_reply_type select2" div_id="selected_reply_type_<?php echo $key; ?>" checkbox_div_id="email_quickreply_checkbox_<?php echo $key; ?>" phone_checkbox_div_id="phone_quickreply_checkbox_<?php echo $key; ?>" style="width:100%;">
-	             			                     	<option value=""><?php echo $this->lang->line('Please select'); ?></option>
+	             			                     	<option value=""><?php echo lang('Please select'); ?></option>
 	             			                     	<?php 
 	             			                     		foreach($reply_types_array as $reply_type_value) : 
 	             			                     			$reply_type_key = $reply_type_value;
@@ -311,27 +311,27 @@
 	             			                  <div id="email_quickreply_checkbox_<?php echo $key; ?>" class="<?php if($value['reply_type'] != 'Email') echo 'd-none'; ?> mb-1 <?php echo $hide_quick_reply_checkbox_for_ig; ?>">
 	             			                    <div class="custom-control custom-checkbox">
 	             			                        <input type="checkbox" value="yes" id="quickreply_checkbox[<?php echo $key; ?>][]" name="quickreply_checkbox[<?php echo $key; ?>][]" class="custom-control-input" <?php if($value['quick_reply_email'] == 'yes') echo 'checked'; ?> >
-	             			                        <label class="custom-control-label" for="quickreply_checkbox[<?php echo $key; ?>][]"><?php echo $this->lang->line("Attach Email Quick-reply"); ?></label>
+	             			                        <label class="custom-control-label" for="quickreply_checkbox[<?php echo $key; ?>][]"><?php echo lang("Attach Email Quick-reply"); ?></label>
 	             			                    </div>
 	             			                  </div>
 
 	             			                  <div id="phone_quickreply_checkbox_<?php echo $key; ?>" class="<?php if($value['reply_type'] != 'Phone') echo 'd-none'; ?> mb-1 <?php echo $hide_quick_reply_checkbox_for_ig; ?>">
 	             			                    <div class="custom-control custom-checkbox">
 	             			                        <input type="checkbox" value="yes" id="phone_quickreply_checkbox[<?php echo $key; ?>][]" name="phone_quickreply_checkbox[<?php echo $key; ?>][]" class="custom-control-input" <?php if($value['quick_reply_phone'] == 'yes') echo 'checked'; ?> >
-	             			                        <label class="custom-control-label" for="phone_quickreply_checkbox[<?php echo $key; ?>][]"><?php echo $this->lang->line("Attach Phone Quick-reply"); ?></label>
+	             			                        <label class="custom-control-label" for="phone_quickreply_checkbox[<?php echo $key; ?>][]"><?php echo lang("Attach Phone Quick-reply"); ?></label>
 	             			                    </div>
 	             			                  </div>
 
 	             			                  <div class="form-group mb-1" div_id="selected_custom_field_<?php echo $key; ?>">
-	             			                     <label><?php echo $this->lang->line('Save to Custom Field'); ?></label>
+	             			                     <label><?php echo lang('Save to Custom Field'); ?></label>
 	             			                     <select name="custom_field[<?php echo $key; ?>][]" id="selected_custom_field_<?php echo $key; ?>" reply_type_id="reply_type_<?php echo $key; ?>" class="form-control selected_custom_field select2" style="width:100%;">
 	             			                     	<?php 
 	             			                     		$custom_field_array = isset($custom_fields[$value['reply_type']]) ? $custom_fields[$value['reply_type']] : [];
 	             			                     		if(empty($custom_field_array))
-	             			                     			echo "<option value=''>".$this->lang->line('No custom field found')."</option>";
+	             			                     			echo "<option value=''>".lang('No custom field found')."</option>";
 	             			                     		else
 	             			                     		{
-	             			                     			echo "<option value=''>".$this->lang->line('Please select')."</option>";
+	             			                     			echo "<option value=''>".lang('Please select')."</option>";
 	             			                     			foreach ($custom_field_array as $custom_field_key => $custom_field_value) :
 	             			                     		
 	             			                     	?>
@@ -340,24 +340,24 @@
 	             			                     </select>
 	             			                  </div>
 	             			                  <div class="form-group mb-1" id="selected_system_field_<?php echo $key; ?>">
-	             			                     <label><?php echo $this->lang->line('Save to System Field'); ?></label>
+	             			                     <label><?php echo lang('Save to System Field'); ?></label>
 	             			                     <select name="system_field[<?php echo $key; ?>][]" div_id="selected_system_field_<?php echo $key; ?>" class="form-control selected_system_field select2" style="width:100%;">
-	             			                     	<option value=""><?php echo $this->lang->line('Please select one'); ?></option>
+	             			                     	<option value=""><?php echo lang('Please select one'); ?></option>
 	             			                     	<?php foreach($system_fields_array as $single_system_field) : ?>
 	                 			                        <option value="<?php echo $single_system_field; ?>" <?php if($single_system_field==$value['system_field']) echo 'selected'; ?> > <?php echo ucfirst($single_system_field); ?> </option>
 	             			                     	<?php endforeach; ?>
 	             			                     </select>
 	             			                  </div>
 	             			                  <div class="form-group mb-1" id="assign_to_labels_<?php echo $key; ?>">
-	             			                     <label><?php echo $this->lang->line("Assign to labels"); ?></label>
+	             			                     <label><?php echo lang("Assign to labels"); ?></label>
 	             			                     <select multiple class="form-control assign_to_labels select2" name="label_assigned[<?php echo $key; ?>][]" div_id="assign_to_labels_<?php echo $key; ?>" style="width:100%;">
 	             			                     	<?php 
 	             			                     		$selected_user_labels_array = explode(',', $value['label_ids']);
 	             			                     		if(empty($user_label_info))
-	             			                     			echo "<option value=''>".$this->lang->line('No label found')."</option>";
+	             			                     			echo "<option value=''>".lang('No label found')."</option>";
 	             			                     		else
 	             			                     		{
-	             			                     			echo "<option value=''>".$this->lang->line('Please select')."</option>";
+	             			                     			echo "<option value=''>".lang('Please select')."</option>";
 	             			                     			foreach($user_label_info as $single_label_info) :
 	             			                     		
 	             			                     	?>
@@ -368,14 +368,14 @@
 
 	             			                  <?php if($messenger_sequence_exist == 'yes') { ?>
 	             			                  <div class="form-group mb-1" id="assign_to_messenger_sequence_<?php echo $key; ?>">
-	             			                     <label><?php echo $this->lang->line("Assign to a Messenger Sequence"); ?></label>
+	             			                     <label><?php echo lang("Assign to a Messenger Sequence"); ?></label>
 	             			                     <select class="form-control assign_to_messenger_sequence select2" name="messenger_sequence_assigned[<?php echo $key; ?>][]" div_id="assign_to_messenger_sequence_<?php echo $key; ?>" style="width:100%;">
 	             			                     	<?php 
 	             			                     		if(empty($messenger_sequence_info))
-	             			                     			echo "<option value=''>".$this->lang->line('No sequence campaign found')."</option>";
+	             			                     			echo "<option value=''>".lang('No sequence campaign found')."</option>";
 	             			                     		else
 	             			                     		{
-	             			                     			echo "<option value=''>".$this->lang->line('Please select')."</option>";
+	             			                     			echo "<option value=''>".lang('Please select')."</option>";
 	             			                     			foreach($messenger_sequence_info as $single_messenger_sequence_info) :
 	             			                     		
 	             			                     	?>
@@ -388,14 +388,14 @@
 
 	             			                  <?php if($sms_email_sequence_exist == 'yes') { ?>
 	             			                  <div class="form-group mb-1" id="assign_to_email_phone_sequence_<?php echo $key; ?>">
-	             			                     <label><?php echo $this->lang->line('Assign to a Email/Phone Sequence'); ?></label>
+	             			                     <label><?php echo lang('Assign to a Email/Phone Sequence'); ?></label>
 	             			                     <select class="form-control assign_to_email_phone_sequence select2" name="email_phone_sequence_assigned[<?php echo $key; ?>][]" div_id="assign_to_email_phone_sequence_<?php echo $key; ?>" style="width:100%;">
 	             			                     	<?php 
 	             			                     		if(empty($email_phone_sequence_info))
-	             			                     			echo "<option value=''>".$this->lang->line('No sequence campaign found')."</option>";
+	             			                     			echo "<option value=''>".lang('No sequence campaign found')."</option>";
 	             			                     		else
 	             			                     		{
-		                 			                     	echo "<option value=''>".$this->lang->line('Please select')."</option>";
+		                 			                     	echo "<option value=''>".lang('Please select')."</option>";
 	             			                     			foreach($email_phone_sequence_info as $single_email_phone_sequence) :
 	             			                     		
 	             			                     	?>
@@ -406,12 +406,12 @@
 	             			                  <?php } ?>
 
 	             			                  <div class="form-group mb-1" id="skip_button_field_<?php echo $key; ?>">
-	             			                     <label><?php echo $this->lang->line('Skip button text'); ?></label>
+	             			                     <label><?php echo lang('Skip button text'); ?></label>
 	             			                     <input type="text" class="form-control" name="skip_button_text[<?php echo $key; ?>]" placeholder="Put your skip button text here" value="<?php echo $value['skip_button_text']; ?>">
 	             			                  </div>
 	             			               </div>
 	             			               <div class="card-footer text-center pt-0">
-	             			                  <a href="#" class="btn btn-icon btn-sm icon-left btn-danger delete_single_block" single_block_div_id="block_<?php echo $key; ?>"><i class="fas fa-times"></i> <?php echo $this->lang->line('Remove This Question'); ?></a>
+	             			                  <a href="#" class="btn btn-icon btn-sm icon-left btn-danger delete_single_block" single_block_div_id="block_<?php echo $key; ?>"><i class="fas fa-times"></i> <?php echo lang('Remove This Question'); ?></a>
 	             			               </div>
 	             			            </div>
 	             			         </div>
@@ -424,13 +424,13 @@
 	         		</div>
 
 	     			<div class="form-group">
-	     				<label for=""><?php echo $this->lang->line("Select final reply template");?> </label>
+	     				<label for=""><?php echo lang("Select final reply template");?> </label>
 	     				<select class="form-control select2" id="postback_id" name="postback_id" style="width: 100%;">
 	     					<?php echo $postbacks; ?>
 	     				</select>
 
-	     				<a href="" class="add_template float-left" page_id_add_postback=""><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("Add");?></a>
-	     				<a href="" class="ref_template float-right" page_id_ref_postback=""><i class="fa fa-refresh"></i> <?php echo $this->lang->line("Refresh");?></a>
+	     				<a href="" class="add_template float-left" page_id_add_postback=""><i class="fa fa-plus-circle"></i> <?php echo lang("Add");?></a>
+	     				<a href="" class="ref_template float-right" page_id_ref_postback=""><i class="fa fa-refresh"></i> <?php echo lang("Refresh");?></a>
 
 	     			</div>
 	         	</div>
@@ -441,8 +441,8 @@
 
 	<div class="row pt-4">
 		<div class="col-12">
-			<button class="btn btn-lg btn-primary" id="submit_flowbuilder" name="submit_flowbuilder" type="button"><i class="fas fa-submit"></i> <?php echo $this->lang->line("Submit");?></button>
-			<a href="<?php echo base_url("custom_field_manager/campaign_list/{$selected_page_id}/1/$media_type")?>" class="btn btn-lg btn-light float-right" type="button"><i class="fas fa-times"></i> <?php echo $this->lang->line("Cancel");?></a>
+			<button class="btn btn-lg btn-primary" id="submit_flowbuilder" name="submit_flowbuilder" type="button"><i class="fas fa-submit"></i> <?php echo lang("Submit");?></button>
+			<a href="<?php echo base_url("custom_field_manager/campaign_list/{$selected_page_id}/1/$media_type")?>" class="btn btn-lg btn-light float-right" type="button"><i class="fas fa-times"></i> <?php echo lang("Cancel");?></a>
 		</div>
 	</div>
 
@@ -511,7 +511,7 @@
 		    var page_id=$("#page_table_id").val();
 		    if(page_id=="")
 		    {
-		      swal('<?php echo $this->lang->line("Warning!"); ?>', "<?php echo $this->lang->line('Please select a page first')?>", 'warning');
+		      swal('<?php echo lang("Warning!"); ?>', "<?php echo lang('Please select a page first')?>", 'warning');
 		      return false;
 		    }
 		    $("#add_template_modal").modal();
@@ -524,7 +524,7 @@
 		   var media_type="<?php echo $media_type; ?>";
 		   if(page_id=="")
 		   {
-		     swal('<?php echo $this->lang->line("Warning!"); ?>', "<?php echo $this->lang->line('Please select a page first')?>", 'warning');
+		     swal('<?php echo lang("Warning!"); ?>', "<?php echo lang('Please select a page first')?>", 'warning');
 		     return false;
 		   }
 
@@ -559,7 +559,7 @@
 		   var media_type="<?php echo $media_type; ?>";
 		   if(page_id=="")
 		   {
-		     swal('<?php echo $this->lang->line("Warning!"); ?>', "<?php echo $this->lang->line('Please select a page first')?>", 'warning');
+		     swal('<?php echo lang("Warning!"); ?>', "<?php echo lang('Please select a page first')?>", 'warning');
 		     return false;
 		   }
 
@@ -597,7 +597,7 @@
 			var media_type = "<?php echo $media_type; ?>";
 
 			if(page_table_id === '') {
-				swal('<?php echo $this->lang->line("Warning!"); ?>', '<?php echo $this->lang->line("Please select a page first"); ?>', 'warning');
+				swal('<?php echo lang("Warning!"); ?>', '<?php echo lang("Please select a page first"); ?>', 'warning');
 				return false;
 			}
 
@@ -676,7 +676,7 @@
 			var blockDivId = $(this).attr('div_id');
 			var block_array = blockDivId.split("_");
 			var random_variable = block_array.pop();
-			var content = '<input type="text" class="form-control mb-2 multiple_input_more" name="multiple_choice['+random_variable+'][]" id="multiple_choice['+random_variable+'][]" placeholder="'+'<?php echo $this->lang->line("Another Option"); ?>'+'">';
+			var content = '<input type="text" class="form-control mb-2 multiple_input_more" name="multiple_choice['+random_variable+'][]" id="multiple_choice['+random_variable+'][]" placeholder="'+'<?php echo lang("Another Option"); ?>'+'">';
 			$("#"+blockDivId).append(content);
 		});
 
@@ -704,7 +704,7 @@
 
    			var valid = true;
    			if($('input.type_questions').length === 0) {
-   				swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Please add atleast one question"); ?>', 'warning');
+   				swal('<?php echo lang("Error"); ?>', '<?php echo lang("Please add atleast one question"); ?>', 'warning');
    				return false;
    			}
 
@@ -714,7 +714,7 @@
 			    }
 	  		})
 		  	if (!valid) {
-	  			swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Please fill all the questions"); ?>', 'warning');
+	  			swal('<?php echo lang("Error"); ?>', '<?php echo lang("Please fill all the questions"); ?>', 'warning');
 	  			return false;
 		  	}
 
@@ -724,17 +724,17 @@
 		  	var media_type = '<?php echo $media_type; ?>';
 
 		  	if(campaign_name == '') {
-		  		swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Campaign Name is required"); ?>', 'warning');	
+		  		swal('<?php echo lang("Error"); ?>', '<?php echo lang("Campaign Name is required"); ?>', 'warning');	
 		  		return false;
 		  	}
 
 		  	if(page_name == "") {
-				swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Please select a Page"); ?>', 'warning');
+				swal('<?php echo lang("Error"); ?>', '<?php echo lang("Please select a Page"); ?>', 'warning');
 				return false;
 		  	}
 
 		  	if(postback == "") {
-		  		swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Please Select a Postback"); ?>', 'warning');
+		  		swal('<?php echo lang("Error"); ?>', '<?php echo lang("Please Select a Postback"); ?>', 'warning');
 		  		return false;
 		  	}
 
@@ -757,16 +757,16 @@
 					if(response.status=='1') 
 					{	
 						var assign_url = "<?php echo base_url('custom_field_manager/campaign_list/'); ?>"+page_name+'/1/'+media_type;
-						swal('<?php echo $this->lang->line("Success"); ?>', response.message, 'success').then((value) => {
+						swal('<?php echo lang("Success"); ?>', response.message, 'success').then((value) => {
                               location.assign(assign_url);
                             });
 					}
-					else swal('<?php echo $this->lang->line("Error"); ?>', response.message, 'error');
+					else swal('<?php echo lang("Error"); ?>', response.message, 'error');
 				},
 		        error:function(response){
 		          var span = document.createElement("span");
 		          span.innerHTML = response.responseText;
-		          swal({ title:'<?php echo $this->lang->line("Error!"); ?>', content:span, icon:'error'});
+		          swal({ title:'<?php echo lang("Error!"); ?>', content:span, icon:'error'});
 		        }
 
 			});
@@ -782,7 +782,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title full_width">
-        	<i class="fa fa-plus-circle"></i> <?php echo $this->lang->line('Add Template'); ?>
+        	<i class="fa fa-plus-circle"></i> <?php echo lang('Add Template'); ?>
         </h5>
         <button type="button" class="close red" data-dismiss="modal" aria-hidden="true">&times;</button>
       </div>
@@ -790,7 +790,7 @@
         <iframe src="" frameborder="0" width="100%" onload="resizeIframe(this)"></iframe>
       </div>
       <div class="modal-footer">
-        <button data-dismiss="modal" type="button" class="btn-lg btn btn-dark"><i class="fa fa-refresh"></i> <?php echo $this->lang->line("Close & Refresh List");?></button>
+        <button data-dismiss="modal" type="button" class="btn-lg btn btn-dark"><i class="fa fa-refresh"></i> <?php echo lang("Close & Refresh List");?></button>
       </div>
     </div>
   </div>
@@ -801,7 +801,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-book-reader"></i> <?php echo $this->lang->line("All Variables you currently have"); ?></h5>
+                <h5 class="modal-title"><i class="fas fa-book-reader"></i> <?php echo lang("All Variables you currently have"); ?></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
@@ -811,12 +811,12 @@
                 <div class="row">
                     <div class="col-12">
                     	<div class="section">
-                    		<div class="section-title"><?php echo $this->lang->line('Variable'); ?></div>
-                			<p><?php echo $this->lang->line('After you have saved a response in Custom Field, you can use it as a variable in your message reply to subscriber.'); ?></p>
+                    		<div class="section-title"><?php echo lang('Variable'); ?></div>
+                			<p><?php echo lang('After you have saved a response in Custom Field, you can use it as a variable in your message reply to subscriber.'); ?></p>
                     	</div>
                     	<div class="section">
-                    		<div class="section-title"><?php echo $this->lang->line('How to use Variable?'); ?></div>
-                			<p><?php echo $this->lang->line('To use variable for Custom Field, write the variable surrounding by #  like')."<b> #Custom Field#</b>"; ?></p>
+                    		<div class="section-title"><?php echo lang('How to use Variable?'); ?></div>
+                			<p><?php echo lang('To use variable for Custom Field, write the variable surrounding by #  like')."<b> #Custom Field#</b>"; ?></p>
                     	</div>
                     	<div class="section" id="variable_display_section">
                     		<!-- content goes here -->
@@ -826,7 +826,7 @@
             </div>
 
             <div class="modal-footer bg-whitesmoke br">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->lang->line('Close'); ?></button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo lang('Close'); ?></button>
             </div>
 
         </div>

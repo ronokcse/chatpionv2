@@ -488,30 +488,37 @@ theme "inset", "inset-dark", "inset-2", "inset-2-dark", "inset-3", "inset-3-dark
 
   <?php if(session()->get('is_mobile')=='0') : ?>
   $(document).ready(function() { 
+
+      // Hardening: don't crash if mCustomScrollbar plugin isn't loaded (some pages load different JS bundles)
+      var hasCustomScrollbar = (typeof $.fn !== 'undefined' && typeof $.fn.mCustomScrollbar === 'function');
      
-      $(".xscroll").mCustomScrollbar({
-        autoHideScrollbar:true,
-        theme:"rounded-dark",
-        axis: "x"
-      });
-      $(".yscroll").mCustomScrollbar({
-        autoHideScrollbar:true,
-        theme:"rounded-dark"
-      });
-      $(".xyscroll").mCustomScrollbar({
-        autoHideScrollbar:true,
-        theme:"rounded-dark",
-        axis:"yx"
-      });
+      if (hasCustomScrollbar) {
+        $(".xscroll").mCustomScrollbar({
+          autoHideScrollbar:true,
+          theme:"rounded-dark",
+          axis: "x"
+        });
+        $(".yscroll").mCustomScrollbar({
+          autoHideScrollbar:true,
+          theme:"rounded-dark"
+        });
+        $(".xyscroll").mCustomScrollbar({
+          autoHideScrollbar:true,
+          theme:"rounded-dark",
+          axis:"yx"
+        });
+      }
 
       $("div:not(.data-card) > .table-responsive").niceScroll();      
 
       $(".nicescroll,.makeNiceScroll").niceScroll();
       $(".makeNiceScroll").niceScroll();
-      $(".makeScroll,.video-widget-info,.account_list").mCustomScrollbar({
-        autoHideScrollbar:true,
-        theme:"rounded-dark"
-      });
+      if (hasCustomScrollbar) {
+        $(".makeScroll,.video-widget-info,.account_list").mCustomScrollbar({
+          autoHideScrollbar:true,
+          theme:"rounded-dark"
+        });
+      }
 
       $('#xxx').on('hide.bs.dropdown', function (e) {
           if (e.clickEvent) {

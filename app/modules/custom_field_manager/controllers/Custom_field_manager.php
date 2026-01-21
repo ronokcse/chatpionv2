@@ -382,7 +382,12 @@ class Custom_field_manager extends Home
     $where = array(
       'where' => array('flow_campaign_id'=>$table_id)
     );
-    $join = array('messenger_bot_subscriber'=>'messenger_bot_subscriber.subscribe_id=user_input_flow_questions_answer.subscriber_id,left');
+    // CI4/MySQL8 fix: avoid "Illegal mix of collations" when comparing subscribe_id vs subscriber_id
+    // by forcing both sides to the same collation during the JOIN.
+    $join = array(
+      'messenger_bot_subscriber' =>
+        'messenger_bot_subscriber.subscribe_id COLLATE utf8mb4_unicode_ci = user_input_flow_questions_answer.subscriber_id COLLATE utf8mb4_unicode_ci,left'
+    );
     $select = array('messenger_bot_subscriber.id','messenger_bot_subscriber.first_name','messenger_bot_subscriber.last_name','messenger_bot_subscriber.full_name','messenger_bot_subscriber.profile_pic','messenger_bot_subscriber.subscribe_id','messenger_bot_subscriber.image_path','messenger_bot_subscriber.page_table_id','user_input_flow_questions_answer.answer_time');
     $info = $this->basic->get_data('user_input_flow_questions_answer',$where,$select,$join,$limit,$start,$order_by,'messenger_bot_subscriber.subscribe_id');
 
@@ -1536,8 +1541,8 @@ class Custom_field_manager extends Home
       ob_end_clean();
     }
 
-    // Determines request method
-    $method = $this->input->method();
+    // Determines request method (CI4)
+    $method = $this->request->getMethod();
 
     // Handles POST request
     if ('post' == strtolower($method)) {

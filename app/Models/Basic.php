@@ -301,7 +301,19 @@ class Basic extends Model
 			$join_condition=$join_condition_type[0]; 
 			$join_type=$join_condition_type[1] ?? 'inner';
 
-			$builder->join($join_table,$join_condition,$join_type); //forms the join clauses
+			// CI4 fix: if join condition contains SQL keywords/functions (e.g. COLLATE),
+			// prevent Query Builder from "protecting identifiers" inside the condition,
+			// which can break SQL like `COLLATE utf8mb4_unicode_ci`.
+			$needsRaw = (stripos($join_condition, ' collate ') !== false)
+				|| (stripos($join_condition, ' binary ') !== false)
+				|| (stripos($join_condition, ' convert(') !== false)
+				|| (stripos($join_condition, ' cast(') !== false);
+
+			if ($needsRaw) {
+				$builder->join($join_table, $join_condition, $join_type, false);
+			} else {
+				$builder->join($join_table, $join_condition, $join_type); //forms the join clauses
+			}
 		}
 	}
 

@@ -1,4 +1,4 @@
-<?php $this->load->view('admin/theme/message'); ?>
+<?php include(APPPATH . 'Views/admin/theme/message.php'); ?>
 <style>
     #page_id{width: 150px;}
     #searching{max-width: 40%;}
@@ -9,7 +9,7 @@
       #add_custom_field { max-width: 100% !important; }
     }
 </style>
-<input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $this->session->userdata('csrf_token_session'); ?>">
+<input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo session()->get('csrf_token_session'); ?>">
 
 <div class="table-responsive2 data-card">
     <input type="hidden" id="media_type" value="<?php echo $media_type; ?>">
@@ -17,11 +17,11 @@
 		<thead>
 			<tr>
 				<th>#</th>      
-				<th><?php echo $this->lang->line("ID"); ?></th>      
-				<th><?php echo $this->lang->line("Name"); ?></th>      
-				<th><?php echo $this->lang->line("Reply Type"); ?></th>
-                <th><?php echo $this->lang->line("Created Time"); ?></th>
-				<th><?php echo $this->lang->line("Action"); ?></th>
+				<th><?php echo lang("ID"); ?></th>      
+				<th><?php echo lang("Name"); ?></th>      
+				<th><?php echo lang("Reply Type"); ?></th>
+                <th><?php echo lang("Created Time"); ?></th>
+				<th><?php echo lang("Action"); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -30,9 +30,9 @@
 </div>
 
 <?php 
-$areyousure=$this->lang->line("are you sure");
+$areyousure=lang("are you sure");
 // $drop_menu = '<a class="btn btn-primary add_custom_field d-none" href="'.base_url('custom_field_manager/input_flow_builder/').$media_type">';
-$drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#"><i class="fas fa-plus-circle"></i> '.$this->lang->line("New Custom Field").'</a>';
+$drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#"><i class="fas fa-plus-circle"></i> '.lang("New Custom Field").'</a>';
 ?> 
 
 
@@ -63,7 +63,7 @@ $drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#">
     		},
     		language: 
     		{
-    			url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+    			url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
     		},
     		dom: '<"top"f>rt<"bottom"lip><"clear">',
     		columnDefs: [
@@ -126,11 +126,11 @@ $drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#">
             var media_type = "<?php echo $media_type; ?>";
 
             if(custom_field_name == '') {
-                $("#name_err").text("<?php echo $this->lang->line('Name Is Required') ?>")
+                $("#name_err").text("<?php echo lang('Name Is Required') ?>")
                 return false;
             }
             if(selected_reply_type == '') {
-                $("#reply_type_err").text("<?php echo $this->lang->line('Reply Type Is Required') ?>")
+                $("#reply_type_err").text("<?php echo lang('Reply Type Is Required') ?>")
                 return false;
             }
 
@@ -149,7 +149,7 @@ $drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#">
                     if(response.status =="0")
                     {   
                         var errorMessage = JSON.stringify(response,null,10);
-                        swal('<?php echo $this->lang->line("Error"); ?>',errorMessage, "error");
+                        swal('<?php echo lang("Error"); ?>',errorMessage, "error");
                         $("#result_status").css({"background":"#EEE","margin":"10px"});
 
                     } else if(response.status=='1')
@@ -180,8 +180,8 @@ $drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#">
             event.preventDefault();
 
             swal({
-                title: '<?php echo $this->lang->line("Delete Custom Field"); ?>',
-                text: '<?php echo $this->lang->line("Do you want to delete this custom field?"); ?>',
+                title: '<?php echo lang("Delete Custom Field"); ?>',
+                text: '<?php echo lang("Do you want to delete this custom field?"); ?>',
                 icon: 'warning',
                 buttons: true,
                 dangerMode: true,
@@ -208,7 +208,7 @@ $drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#">
                             } 
                             else
                             {
-                                swal("<?php echo $this->lang->line('Error') ?>", response.message, "error");
+                                swal("<?php echo lang('Error') ?>", response.message, "error");
                             }
 
                             table.draw();
@@ -238,14 +238,14 @@ $drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#">
     <div class="modal-dialog" style="min-width: 30%;">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("Add Custom Field") ?></h5>
+                <h5 class="modal-title"><i class="fa fa-plus-circle"></i> <?php echo lang("Add Custom Field") ?></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body" id="add_custom_field_modal_body">
                 <div class="row">
                     <div class="col-12">
                         <div class="form-group">
-                          <label><i class="fas fa-tags"></i> <?php echo $this->lang->line('Custom Field Name'); ?></label>
+                          <label><i class="fas fa-tags"></i> <?php echo lang('Custom Field Name'); ?></label>
                           <input type="text" name="custom_field_name" id="custom_field_name" class="form-control">
                           <span id="name_err" class="red"></span>
                         </div>
@@ -253,7 +253,7 @@ $drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#">
 
                     <div class="col-12">
                         <div class="form-group">
-                          <label><i class="fas fa-file-alt"></i> <?php echo $this->lang->line('Reply Type'); ?></label>
+                          <label><i class="fas fa-file-alt"></i> <?php echo lang('Reply Type'); ?></label>
                           <select class="form-control select2" id="selected_reply_type" name="selected_reply_type" style="width: 100%;">
                             <?php 
                                 foreach ($reply_types as $value) 
@@ -273,8 +273,8 @@ $drop_menu = '<a class="btn btn-primary add_custom_field float-right"  href="#">
 
             <div id="result_status"></div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-lg btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> <?php echo $this->lang->line('Close'); ?></button>
-              <button id="create_custom_field" type="button" class="btn btn-lg btn-primary"><i class="fas fa-save"></i> <?php echo $this->lang->line('Save'); ?></button>
+              <button type="button" class="btn btn-lg btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> <?php echo lang('Close'); ?></button>
+              <button id="create_custom_field" type="button" class="btn btn-lg btn-primary"><i class="fas fa-save"></i> <?php echo lang('Save'); ?></button>
             </div>
         </div>
     </div>

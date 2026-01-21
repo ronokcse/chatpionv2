@@ -26,6 +26,11 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @property mixed $input
+ * @property mixed $flow_builder
+ * @property mixed $fb_rx_login
+ */
 class Visual_flow_builder extends Home
 {
     /**
@@ -532,7 +537,8 @@ class Visual_flow_builder extends Home
               $builder_table_id = $system_flow_data[0]['id'];  
         }
 
-        $this->db->trans_start();
+        // CI4 DB: start transaction
+        $this->db->transStart();
 
         $insert_data = [
                         'user_id' => $this->user_id,
@@ -594,7 +600,7 @@ class Visual_flow_builder extends Home
                 $insert_data['action_type'] = $action_button_type;
             }
             $this->basic->insert_data('visual_flow_builder_campaign',$insert_data);
-            $visual_flow_campaign_id = $this->db->insert_id();
+            $visual_flow_campaign_id = $this->db->insertID();
         }
 
         $submitted_unique_ids = $bot_settings_array['unique_ids'];
@@ -733,7 +739,7 @@ class Visual_flow_builder extends Home
             if(!in_array($action_button_type, $action_buttons_array))
             {
                 $this->basic->insert_data('messenger_bot',$insert_data_to_bot);
-                $messenger_bot_table_id = $this->db->insert_id();
+                $messenger_bot_table_id = $this->db->insertID();
                 $messenger_bot_table_id_info[$insert_data['postback_id']]= $messenger_bot_table_id;
 
             }
@@ -760,13 +766,13 @@ class Visual_flow_builder extends Home
             if(!in_array($action_button_type, $action_buttons_array))
             {
                 $this->basic->insert_data('messenger_bot_postback',$insert_data);
-                $postback_table_idfor_engagement = $this->db->insert_id();
+                $postback_table_idfor_engagement = $this->db->insertID();
                 $temp_postback_table_id = $postback_table_idfor_engagement;
                 $postback_id_table_id_info[$insert_data['postback_id']]= $temp_postback_table_id;
 
                 if($webhook_url != ''){
                     $this->basic->insert_data('messenger_bot_thirdparty_webhook',$insert_data_messenger_bot_thirdparty_webhooks);
-                    $webhook_table_id = $this->db->insert_id();
+                    $webhook_table_id = $this->db->insertID();
                     $insert_data_messenger_bot_thirdparty_webhook_trigger = [];
                     $insert_data_messenger_bot_thirdparty_webhook_trigger['webhook_id'] = $webhook_table_id;
                     $insert_data_messenger_bot_thirdparty_webhook_trigger['trigger_option'] = 'trigger_postback_'.$postback_id;
@@ -783,12 +789,12 @@ class Visual_flow_builder extends Home
                 $insert_data_to_bot['trigger_matching_type'] = $trigger_matching_type;
                 $this->basic->insert_data('messenger_bot',$insert_data_to_bot);
 
-                $temp_messenger_bot_table_id = $this->db->insert_id();
+                $temp_messenger_bot_table_id = $this->db->insertID();
                 $messenger_bot_table_id_info[$insert_data['postback_id']] = $messenger_bot_table_id_info[$insert_data['postback_id']] ? $messenger_bot_table_id_info[$insert_data['postback_id']].','.$temp_messenger_bot_table_id : $temp_messenger_bot_table_id;
                 
                 if($webhook_url != ''){
                     $this->basic->insert_data('messenger_bot_thirdparty_webhook',$insert_data_messenger_bot_thirdparty_webhooks);
-                    $webhook_table_id = $this->db->insert_id();
+                    $webhook_table_id = $this->db->insertID();
                     $trigger_keywords_array = explode(',',$trigger_keywords);
                     foreach($trigger_keywords_array as $single_keyword)
                     {
@@ -1002,8 +1008,8 @@ class Visual_flow_builder extends Home
                         }
                         else
                         {
-                            $zip = new ZipArchive;
-                            if ($zip->open('download/'.$name2.'.zip', ZipArchive::CREATE) === TRUE)
+                            $zip = new \ZipArchive;
+                            if ($zip->open('download/'.$name2.'.zip', \ZipArchive::CREATE) === TRUE)
                             {
                                 $zip->addFile($name.'/'.$name.'.php');
                                 $zip->addFromString($name.'/'.$name.'.php', $wp_content);
@@ -1031,7 +1037,7 @@ class Visual_flow_builder extends Home
                         $this->basic->insert_data($table_name,$insert_data2);
 
                         if(isset($value['new_sequence_information']))
-                            $this->new_sequence_information_array[$postback_id]['action_button_settings']['insert_table_id'] = $this->db->insert_id();
+                            $this->new_sequence_information_array[$postback_id]['action_button_settings']['insert_table_id'] = $this->db->insertID();
                     }
 
                 }
@@ -1154,7 +1160,7 @@ class Visual_flow_builder extends Home
                 $this->_insert_usage_log($module_id=219,$request=1);
 
                 $this->basic->insert_data('messenger_bot_drip_campaign',$insert_info);
-                $new_sequence_id=$this->db->insert_id();
+                $new_sequence_id=$this->db->insertID();
             }
             else{
                 $update_data_new_sequence=array("message_content"=>$insert_info['message_content'],"message_content_hourly"=>$insert_info['message_content_hourly']);
@@ -1206,17 +1212,21 @@ class Visual_flow_builder extends Home
                 $user_input_flow_campaign_id = $single_flow_campaign['id'];
                 $this->basic->delete_data('user_input_flow_campaign',['id'=>$user_input_flow_campaign_id]);
 
-                $this->db->where_in('flow_campaign_id',$user_input_flow_campaign_id);
-                $this->db->delete('user_input_flow_questions'); 
+                // CI4 DB: delete with builder
+                $this->db->table('user_input_flow_questions')
+                    ->where('flow_campaign_id', $user_input_flow_campaign_id)
+                    ->delete(); 
 
-                $this->db->where_in('flow_campaign_id',$user_input_flow_campaign_id);
-                $this->db->delete('user_input_flow_questions_answer');
+                // CI4 DB: delete with builder
+                $this->db->table('user_input_flow_questions_answer')
+                    ->where('flow_campaign_id', $user_input_flow_campaign_id)
+                    ->delete();
             }
         }
 
 
-        $this->db->trans_complete();
-        if ($this->db->trans_status() === FALSE)
+        $this->db->transComplete();
+        if ($this->db->transStatus() === FALSE)
             echo json_encode(array("status" => "0", "message" =>$this->lang->line("Creating template was unsuccessful. Database error occured during creating template.")));
         else
         {
@@ -1586,12 +1596,12 @@ class Visual_flow_builder extends Home
                     else
                     {
                         $this->basic->insert_data('otn_postback',$insert_data);
-                        $otn_postback = $this->db->insert_id();
+                        $otn_postback = $this->db->insertID();
                     }
 
 
                     $this->basic->insert_data('otn_postback',$insert_data);
-                    $otn_postback = $this->db->insert_id();
+                    $otn_postback = $this->db->insertID();
 
                     // $reply_bot[$single_reply_key]['message']['postback_for_postbacktable'] = $otn_campaign_info['postback_id'];
                     // $reply_bot[$single_reply_key]['message']['otn_postback_table_id'] = $otn_postback;
@@ -1649,7 +1659,7 @@ class Visual_flow_builder extends Home
                     else
                     {
                         $this->basic->insert_data('otn_postback',$insert_data);
-                        $rcn_postback = $this->db->insert_id();
+                        $rcn_postback = $this->db->insertID();
                     }
 
                     // $reply_bot[$single_reply_key]['message']['rcn_postback_for_postbacktable'] = $rcn_campaign_info['postback_id'];
@@ -2187,7 +2197,7 @@ class Visual_flow_builder extends Home
                     else
                     {
                         $this->basic->insert_data('user_input_flow_campaign',$insert_update_data);
-                        $flow_campaign_id = $this->db->insert_id();
+                        $flow_campaign_id = $this->db->insertID();
                     }
 
                     $i=0;
@@ -2213,11 +2223,15 @@ class Visual_flow_builder extends Home
                     $need_to_delete_ids = array_diff($last_question_ids, $new_question_ids);
                     if(!empty($need_to_delete_ids))
                     {
-                        $this->db->where_in('id',$need_to_delete_ids);
-                        $this->db->delete('user_input_flow_questions'); 
+                        // CI4 DB: delete with builder
+                        $this->db->table('user_input_flow_questions')
+                            ->whereIn('id', $need_to_delete_ids)
+                            ->delete(); 
 
-                        $this->db->where_in('question_id',$need_to_delete_ids);
-                        $this->db->delete('user_input_flow_questions_answer');
+                        // CI4 DB: delete with builder
+                        $this->db->table('user_input_flow_questions_answer')
+                            ->whereIn('question_id', $need_to_delete_ids)
+                            ->delete();
                     }
 
                 }
@@ -2244,7 +2258,7 @@ class Visual_flow_builder extends Home
                         $insert_data_messenger_bot_thirdparty_webhooks['variable_post'] = 'psid,subscribed_at,postbackid,first_name,last_name,email,user_input_flow_campaign,page_id,page_name,phone_number,birthdate,user_location,labels';
 
                         $this->basic->insert_data('messenger_bot_thirdparty_webhook',$insert_data_messenger_bot_thirdparty_webhooks);
-                        $webhook_table_id = $this->db->insert_id();
+                        $webhook_table_id = $this->db->insertID();
                         $insert_data_messenger_bot_thirdparty_webhook_trigger = [];
                         $insert_data_messenger_bot_thirdparty_webhook_trigger['webhook_id'] = $webhook_table_id;
                         $insert_data_messenger_bot_thirdparty_webhook_trigger['trigger_option'] = 'trigger_userinput_'.$flow_campaign_id;
@@ -2498,10 +2512,7 @@ class Visual_flow_builder extends Home
     {
         $mime_type = mime_content_type($temporary_file);
 
-        /**
-         * An array of supported mime types
-         * @var $supported_mime_types
-         */
+        /** @var string[] $supported_mime_types An array of supported mime types */
         $supported_mime_types = [
             // Image extensions
             'image/jpeg',
@@ -2551,7 +2562,7 @@ class Visual_flow_builder extends Home
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ];
 
-        return in_array(strtolower($mime_type), $supported_mime_types);
+        return in_array(strtolower($mime_type), $supported_mime_types, true);
     }
 
     private function find_file_type($filename) {
@@ -2828,19 +2839,29 @@ class Visual_flow_builder extends Home
         else
             $data['is_openai_addon_access'] = 0;
  
-        $this->load->view('index.php', $data); 
+        // CI4 fix: render module view via admin iframe theme (loads module view from app/modules/visual_flow_builder/views/index.php)
+        $data['iframe'] = '1';
+        $this->_viewcontroller($data);
     } 
 
     public function edit_builder_data($table_id = 0, $go_back_link=1, $media_type='fb')
     {
+        // CI4 fix: allow shorter route format /edit_builder_data/{id}/{media_type}
+        if (in_array($go_back_link, ['fb', 'ig'], true) && $media_type === 'fb') {
+            $media_type = $go_back_link;
+            $go_back_link = 1;
+        }
+
         if(!check_module_action_access($module_id=315,$actions=2,'check')){
           redirect()->to('home/access_forbidden')->send();
           exit();
         }
 
         $info = $this->basic->get_data('visual_flow_builder_campaign',['where'=>['user_id'=>$this->user_id,'id'=>$table_id]]);
-        if(empty($info) || $table_id==0)
+        if(empty($info) || $table_id==0) {
             redirect()->to('visual_flow_builder/flowbuilder_manager')->send();
+            exit();
+        }
 
         $data = [];
 
@@ -2959,7 +2980,9 @@ class Visual_flow_builder extends Home
         else
             $data['is_openai_addon_access'] = 0;
 
-        $this->load->view('index.php', $data);
+        // CI4 fix: render module view via admin iframe theme (loads module view from app/modules/visual_flow_builder/views/index.php)
+        $data['iframe'] = '1';
+        $this->_viewcontroller($data);
     } 
 
     public function duplicate_builder_data($table_id = 0, $go_back_link=1, $media_type='fb')
@@ -2995,7 +3018,7 @@ class Visual_flow_builder extends Home
 
 
         $this->basic->insert_data('visual_flow_builder_campaign',$insert_data);
-        $last_insert_id = $this->db->insert_id();
+        $last_insert_id = $this->db->insertID();
         $url = 'visual_flow_builder/edit_builder_data'.'/'.$last_insert_id.'/1/'.$media_type;
 
 		redirect()->to($url)->send();
@@ -3034,7 +3057,7 @@ class Visual_flow_builder extends Home
 		];
 
         $this->basic->insert_data('visual_flow_builder_campaign',$insert_data);
-        $last_insert_id = $this->db->insert_id();
+        $last_insert_id = $this->db->insertID();
 
 		$response['media_type'] = $media_type;
 		$response['id'] = $last_insert_id;
@@ -3160,36 +3183,98 @@ class Visual_flow_builder extends Home
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'desc';
         $order_by=$sort." ".$order;
 
-        $where_custom = '';
-        $where_custom = "visual_flow_builder_campaign.user_id = ".$this->user_id;
-        if($page_auto_id != 0) {
-            $where_custom .= " AND visual_flow_builder_campaign.page_id = ".$page_auto_id;
+        // CI4 fix: use Query Builder instead of raw SQL string building
+        if (!isset($this->db) || $this->db === null) {
+            $this->db = \Config\Database::connect();
         }
 
-        if($this->using_media_type != '') {
-            $where_custom .= " AND visual_flow_builder_campaign.media_type = ".$this->db->escape($this->using_media_type);
+        // Resolve requested media type from query string (?media_type=fb|ig) or controller state
+        $requested_media_type = service('request')->getGet('media_type');
+        $media_type_filter = '';
+        if (in_array($requested_media_type, ['fb','ig'], true)) {
+            $media_type_filter = $requested_media_type;
+        } elseif (!empty($this->using_media_type)) {
+            $media_type_filter = $this->using_media_type;
+        }
+
+        // Enforce team page access if set
+        if (!empty($this->team_allowed_pages) && is_array($this->team_allowed_pages)) {
+            $allowed_pages = array_values(array_filter(array_map('intval', $this->team_allowed_pages), fn($v) => $v > 0));
+            if ($page_auto_id != 0 && !in_array((int)$page_auto_id, $allowed_pages, true)) {
+                $data = [
+                    'draw' => (int)($_POST['draw'] ?? 0) + 1,
+                    'recordsTotal' => 0,
+                    'recordsFiltered' => 0,
+                    'data' => [],
+                ];
+                echo json_encode($data);
+                exit();
+            }
+        }
+
+        $table = "visual_flow_builder_campaign";
+
+        // Main query
+        $builder = $this->db->table($table);
+        $builder->select('visual_flow_builder_campaign.*, facebook_rx_fb_page_info.page_name');
+        $builder->join('facebook_rx_fb_page_info', 'visual_flow_builder_campaign.page_id = facebook_rx_fb_page_info.id', 'left');
+
+        $builder->where('visual_flow_builder_campaign.user_id', $this->user_id);
+        $builder->where('visual_flow_builder_campaign.is_system', '0');
+
+        if ($page_auto_id != 0) {
+            $builder->where('visual_flow_builder_campaign.page_id', (int)$page_auto_id);
+        } elseif (!empty($this->team_allowed_pages) && is_array($this->team_allowed_pages)) {
+            $allowed_pages = array_values(array_filter(array_map('intval', $this->team_allowed_pages), fn($v) => $v > 0));
+            if (!empty($allowed_pages)) {
+                $builder->whereIn('visual_flow_builder_campaign.page_id', $allowed_pages);
+            }
+        }
+
+        if (!empty($media_type_filter)) {
+            $builder->where('visual_flow_builder_campaign.media_type', $media_type_filter);
         }
 
         if ($search_value != '') {
-            foreach ($search_columns as $key => $value) 
-            $temp[] = $value." LIKE "."'%$search_value%'";
-            $imp = implode(" OR ", $temp);
-            $where_custom .=" AND (".$imp.") ";
+            $builder->groupStart();
+            // campaign reference_name
+            $builder->like('visual_flow_builder_campaign.reference_name', $search_value);
+            // joined page name
+            $builder->orLike('facebook_rx_fb_page_info.page_name', $search_value);
+            $builder->groupEnd();
         }
 
-        $where_custom .= " AND is_system = '0'";
+        $builder->orderBy($order_by);
+        $builder->limit($limit, $start);
+        $info = $builder->get()->getResultArray();
 
-        $this->db->where($where_custom);
+        // Count query (same filters)
+        $countBuilder = $this->db->table($table);
+        $countBuilder->join('facebook_rx_fb_page_info', 'visual_flow_builder_campaign.page_id = facebook_rx_fb_page_info.id', 'left');
+        $countBuilder->where('visual_flow_builder_campaign.user_id', $this->user_id);
+        $countBuilder->where('visual_flow_builder_campaign.is_system', '0');
 
-        $table="visual_flow_builder_campaign";
-        $join = array('facebook_rx_fb_page_info' => "visual_flow_builder_campaign.page_id = facebook_rx_fb_page_info.id,left");
-        $select =array('visual_flow_builder_campaign.*','facebook_rx_fb_page_info.page_name');
-        $info=$this->basic->get_data($table,$where='',$select,$join,$limit,$start,$order_by,$group_by='');
+        if ($page_auto_id != 0) {
+            $countBuilder->where('visual_flow_builder_campaign.page_id', (int)$page_auto_id);
+        } elseif (!empty($this->team_allowed_pages) && is_array($this->team_allowed_pages)) {
+            $allowed_pages = array_values(array_filter(array_map('intval', $this->team_allowed_pages), fn($v) => $v > 0));
+            if (!empty($allowed_pages)) {
+                $countBuilder->whereIn('visual_flow_builder_campaign.page_id', $allowed_pages);
+            }
+        }
 
-        $this->db->where($where_custom);
+        if (!empty($media_type_filter)) {
+            $countBuilder->where('visual_flow_builder_campaign.media_type', $media_type_filter);
+        }
 
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
-        $total_result=$total_rows_array[0]['total_rows'];
+        if ($search_value != '') {
+            $countBuilder->groupStart();
+            $countBuilder->like('visual_flow_builder_campaign.reference_name', $search_value);
+            $countBuilder->orLike('facebook_rx_fb_page_info.page_name', $search_value);
+            $countBuilder->groupEnd();
+        }
+
+        $total_result = $countBuilder->countAllResults();
 
         $data['draw'] = (int)$_POST['draw'] + 1;
         $data['recordsTotal'] = $total_result;
@@ -3214,7 +3299,8 @@ class Visual_flow_builder extends Home
         }
         else
         {
-            $this->db->trans_start();
+            // CI4 DB: start transaction
+            $this->db->transStart();
 
             $this->basic->delete_data('visual_flow_builder_campaign',['id'=>$table_id,'user_id'=>$this->user_id]);
             
@@ -3225,8 +3311,10 @@ class Visual_flow_builder extends Home
             $this->basic->delete_data('visual_flow_campaign_unique_ids',['visual_flow_campaign_id'=>$table_id]);
             if(!empty($unique_ids))
             {
-                $this->db->where_in('message_unique_id',$unique_ids);
-                $this->db->delete('messenger_bot_message_sent_stat');
+                // CI4 DB: delete with builder
+                $this->db->table('messenger_bot_message_sent_stat')
+                    ->whereIn('message_unique_id', $unique_ids)
+                    ->delete();
             }
 
             $this->basic->delete_data('otn_postback',['visual_flow_campaign_id'=>$table_id]);
@@ -3247,10 +3335,13 @@ class Visual_flow_builder extends Home
                 $this->basic->delete_data('user_input_flow_campaign',['visual_flow_campaign_id'=>$table_id]);
                 if(!empty($user_input_flow_campaign_ids))
                 {
-                    $this->db->where_in('flow_campaign_id',$user_input_flow_campaign_ids);
-                    $this->db->delete('user_input_flow_questions');
-                    $this->db->where_in('flow_campaign_id',$user_input_flow_campaign_ids);
-                    $this->db->delete('user_input_flow_questions_answer');
+                    // CI4 DB: delete with builder
+                    $this->db->table('user_input_flow_questions')
+                        ->whereIn('flow_campaign_id', $user_input_flow_campaign_ids)
+                        ->delete();
+                    $this->db->table('user_input_flow_questions_answer')
+                        ->whereIn('flow_campaign_id', $user_input_flow_campaign_ids)
+                        ->delete();
                 }
             }
 
@@ -3261,10 +3352,13 @@ class Visual_flow_builder extends Home
             $this->basic->delete_data('messenger_bot_drip_campaign',['visual_flow_campaign_id'=>$table_id]);
             if(!empty($drip_campaign_ids))
             {
-                $this->db->where_in('messenger_bot_drip_campaign_id',$drip_campaign_ids);
-                $this->db->delete('messenger_bot_drip_campaign_assign');
-                $this->db->where_in('messenger_bot_drip_campaign_id',$drip_campaign_ids);
-                $this->db->delete('messenger_bot_drip_report');
+                // CI4 DB: delete with builder
+                $this->db->table('messenger_bot_drip_campaign_assign')
+                    ->whereIn('messenger_bot_drip_campaign_id', $drip_campaign_ids)
+                    ->delete();
+                $this->db->table('messenger_bot_drip_report')
+                    ->whereIn('messenger_bot_drip_campaign_id', $drip_campaign_ids)
+                    ->delete();
             }
 
             $this->basic->delete_data('messenger_bot',['visual_flow_campaign_id'=>$table_id,'user_id'=>$this->user_id,'keyword_type'=>'reply']);
@@ -3273,8 +3367,8 @@ class Visual_flow_builder extends Home
             $this->basic->delete_data('messenger_bot_postback',['visual_flow_campaign_id'=>$table_id,'user_id'=>$this->user_id,'template_for'=>'reply_message']);
             $this->basic->update_data('messenger_bot_postback',['visual_flow_campaign_id'=>$table_id,'user_id'=>$this->user_id,'template_for !='=>'reply_message'], ['visual_flow_campaign_id'=>0, 'visual_flow_type'=>'general']);
 
-            $this->db->trans_complete();
-            if ($this->db->trans_status() === FALSE)
+            $this->db->transComplete();
+            if ($this->db->transStatus() === FALSE)
             {
                 $response['status'] = 0; 
                 $response['message'] = $this->lang->line('Deleting template was unsuccessful. Database error occured during deleting template.');
@@ -3713,7 +3807,8 @@ class Visual_flow_builder extends Home
         var postback_new_html_label = '<?php echo $this->lang->line("Choose label(s)"); ?>';
         var postback_new_html_sequence = '<?php echo $this->lang->line("Choose sequence"); ?>';
 
-        var postback_new_html_info_sequence = '<?php echo $this->lang->line("You are going to change the sequence value. If you do so, then the components, created by choosing 'New sequence' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button."); ?>';
+        // CI4/JS fix: use json_encode to safely escape quotes inside translation strings
+        var postback_new_html_info_sequence = <?php echo json_encode($this->lang->line("You are going to change the sequence value. If you do so, then the components, created by choosing 'New sequence' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button.")); ?>;
 
         var postback_new_modal_title = '<?php echo $this->lang->line("Configure New Postback"); ?>';
         var postback_new_modal_msg_title = '<?php echo $this->lang->line("Please provide a title."); ?>';
@@ -3723,7 +3818,7 @@ class Visual_flow_builder extends Home
         var otn_socket_output_next = '<?php echo $this->lang->line("Compose Next Message"); ?>';
         var otn_html_label_title = '<?php echo $this->lang->line("Title"); ?>';
         var otn_html_label_postback_id = '<?php echo $this->lang->line("OTN postback ID"); ?>';
-        var otn_html_sequence_info = '<?php echo $this->lang->line("You are going to change the OTN postback ID. If you do so, then the components, created by choosing 'New OTN' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button."); ?>';
+        var otn_html_sequence_info = <?php echo json_encode($this->lang->line("You are going to change the OTN postback ID. If you do so, then the components, created by choosing 'New OTN' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button.")); ?>;
 
         var otn_modal_title = '<?php echo $this->lang->line("Configure One Time Notification"); ?>';
         var otn_modal_msg_title = '<?php echo $this->lang->line("Please provide a title."); ?>';
@@ -3742,7 +3837,7 @@ class Visual_flow_builder extends Home
         var otn_single_html_template_name = '<?php echo $this->lang->line("Template name"); ?>';
         var otn_single_html_labels = '<?php echo $this->lang->line("Label(s)"); ?>';
         var otn_single_html_sequence = '<?php echo $this->lang->line("Choose sequence"); ?>';
-        var otn_single_html_sequence_info = '<?php echo $this->lang->line("You are going to change the sequence value. If you do so, then the components, created by choosing 'New sequence' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button."); ?>';
+        var otn_single_html_sequence_info = <?php echo json_encode($this->lang->line("You are going to change the sequence value. If you do so, then the components, created by choosing 'New sequence' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button.")); ?>;
 
         var otn_single_template_template_name = '<?php echo $this->lang->line("Template name"); ?>';
         var otn_single_template_labels = '<?php echo $this->lang->line("Label(s)"); ?>';
@@ -3754,7 +3849,7 @@ class Visual_flow_builder extends Home
         var Rcn_modal_title = '<?php echo $this->lang->line("Configure Recurring Notification"); ?>';
         var Rcn_html_label_title = '<?php echo $this->lang->line("Title"); ?>';
         var Rcn_html_label_postback_id = '<?php echo $this->lang->line("RCN postback ID"); ?>';
-        var Rcn_html_sequence_info = '<?php echo $this->lang->line("You are going to change the RCN postback ID. If you do so, then the components, created by choosing 'New RCN' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button."); ?>';
+        var Rcn_html_sequence_info = <?php echo json_encode($this->lang->line("You are going to change the RCN postback ID. If you do so, then the components, created by choosing 'New RCN' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button.")); ?>;
         var Rcn_html_label_img_media_url = '<?php echo $this->lang->line("Please provide attached image"); ?>';
         var Rcn_modal_msg_title = '<?php echo $this->lang->line("Please provide a title."); ?>';
         var Rcn_modal_msg_postback_id = '<?php echo $this->lang->line("Please choose a RCN postback ID."); ?>';
@@ -3775,7 +3870,7 @@ class Visual_flow_builder extends Home
         var Rcn_single_html_template_name = '<?php echo $this->lang->line("Template name"); ?>';
         var Rcn_single_html_labels = '<?php echo $this->lang->line("Label(s)"); ?>';
         var Rcn_single_html_sequence = '<?php echo $this->lang->line("Choose sequence"); ?>';
-        var Rcn_single_html_sequence_info = '<?php echo $this->lang->line("You are going to change the sequence value. If you do so, then the components, created by choosing 'New sequence' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button."); ?>';
+        var Rcn_single_html_sequence_info = <?php echo json_encode($this->lang->line("You are going to change the sequence value. If you do so, then the components, created by choosing 'New sequence' previously, will be lost. If you want so, click on the 'OK' button, otherwise, click on 'Cancel' button.")); ?>;
 
         var Rcn_single_template_template_name = '<?php echo $this->lang->line("Template name"); ?>';
         var Rcn_single_template_labels = '<?php echo $this->lang->line("Label(s)"); ?>';
@@ -4073,7 +4168,7 @@ class Visual_flow_builder extends Home
         var others_buttons_msg_components_required = '<?php echo $this->lang->line("Please add some more components."); ?>';
         var others_buttons_msg_components_components_connection_required = '<?php echo $this->lang->line("All components should be connected."); ?>';
         var others_buttons_msg_components_components_data_required = '<?php echo $this->lang->line("Some component(s) have no data."); ?>';
-        var others_buttons_msg_components_new_postback_next_connection_required = '<?php echo $this->lang->line("New postback's Next must have connection"); ?>';
+        var others_buttons_msg_components_new_postback_next_connection_required = <?php echo json_encode($this->lang->line("New postback's Next must have connection")); ?>;
         var others_buttons_msg_components_non_promotional_data_required = '<?php echo $this->lang->line("Provide data for non-promotional sequence."); ?>';
 
         var utils_title_success = '<?php echo $this->lang->line("Success!"); ?>';
@@ -4192,12 +4287,15 @@ class Visual_flow_builder extends Home
         if (!empty($channel)) {
             $table_type = 'settings_http_apis';
 
-            $this->db->where('user_id', $this->user_id)
+            // CI4 DB: use query builder
+            $info_type = $this->db->table($table_type)
+                ->where('user_id', $this->user_id)
                 ->where('api_type', $channel)
                 ->where('is_mapped', '1')
                 ->where('status', '1')
-                ->order_by('id', 'DESC');
-            $info_type = $this->db->get($table_type)->result();
+                ->orderBy('id', 'DESC')
+                ->get()
+                ->getResult();
 
             foreach ($info_type as $value) {
                 $id = $value->id;

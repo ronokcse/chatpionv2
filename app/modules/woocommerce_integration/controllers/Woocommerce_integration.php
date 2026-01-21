@@ -418,6 +418,7 @@ class Woocommerce_integration extends Home
 	      $imp = implode(" OR ", $temp);
 	      $where_custom .=" AND (".$imp.") ";
 	  }
+	//   dd($store_id);
 	  if($store_id!="") $where_custom .= " AND woocommerce_product.woocommerce_config_id = " . (int) $store_id;       
 	  
 	  $table="woocommerce_product";

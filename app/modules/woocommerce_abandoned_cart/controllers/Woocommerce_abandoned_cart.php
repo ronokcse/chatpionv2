@@ -1560,26 +1560,42 @@ class Woocommerce_abandoned_cart extends Home
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'desc';
         $order_by=$sort." ".$order;
 
-        $where_custom="user_id = ".$this->user_id." AND woocommerce_drip_campaign_id = ".$woocommerce_drip_campaign_id." AND sent_at >= '".$from_date."' AND sent_at <= '".$to_date."'";      
+        // CI4 fix: use Query Builder so date/search filters always apply (data + count)
+        $table = "woocommerce_drip_campaign_report";
 
-        if ($search_value != '') 
-        {
-            foreach ($search_columns as $key => $value) 
-            $temp[] = $value." LIKE "."'%$search_value%'";
-            $imp = implode(" OR ", $temp);
-            $where_custom .=" AND (".$imp.") ";
+        $builder = $this->db->table($table);
+        $builder->where('user_id', (int) $this->user_id);
+        $builder->where('woocommerce_drip_campaign_id', (int) $woocommerce_drip_campaign_id);
+        $builder->where('sent_at >=', $from_date);
+        $builder->where('sent_at <=', $to_date);
+
+        if ($search_value != '') {
+            $builder->groupStart();
+            foreach ($search_columns as $col) {
+                $builder->orLike($col, $search_value);
+            }
+            $builder->groupEnd();
         }
-     
-        $this->db->where($where_custom);
-        
-        $table="woocommerce_drip_campaign_report";
-        $info=$this->basic->get_data($table,$where='',$select='',$join='',$limit,$start,$order_by,$group_by='');
-        // echo $this->db->last_query();
 
-        $this->db->where($where_custom);
-        $total_rows_array=$this->basic->count_row($table,$where='',$count=$table.".id",$join,$group_by='');
+        $info = $builder
+            ->orderBy($sort, $order)
+            ->limit($limit, $start)
+            ->get()
+            ->getResultArray();
 
-        $total_result=$total_rows_array[0]['total_rows'];
+        $countBuilder = $this->db->table($table);
+        $countBuilder->where('user_id', (int) $this->user_id);
+        $countBuilder->where('woocommerce_drip_campaign_id', (int) $woocommerce_drip_campaign_id);
+        $countBuilder->where('sent_at >=', $from_date);
+        $countBuilder->where('sent_at <=', $to_date);
+        if ($search_value != '') {
+            $countBuilder->groupStart();
+            foreach ($search_columns as $col) {
+                $countBuilder->orLike($col, $search_value);
+            }
+            $countBuilder->groupEnd();
+        }
+        $total_result = $countBuilder->countAllResults();
 
         foreach($info as $key => $value) 
         {

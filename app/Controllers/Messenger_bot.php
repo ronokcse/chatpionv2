@@ -5947,7 +5947,8 @@ class Messenger_bot extends Home
         $sort_index = isset($_POST['order'][0]['column']) ? strval($_POST['order'][0]['column']) : 2;
         $sort = isset($display_columns[$sort_index]) ? $display_columns[$sort_index] : 'id';
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'desc';
-        $order_by = $sort . " " . $order;
+        // CI4 DB: orderBy expects column + direction
+        $order_by = $sort . " " . $order; // keep for backward compatibility in other usages
 
 
         $where_simple = array();
@@ -12049,28 +12050,67 @@ class Messenger_bot extends Home
 
         $table_name = "send_email_to_autoresponder_log";
 
+        // CI4 fix: use Query Builder so filters always apply (data query + count query)
+        $builder = $this->db->table($table_name);
+
         if (session()->get('user_type') == 'Admin') {
-            $sql = "(user_id=0 OR user_id=" . $this->user_id . ")";
-
-            if ($auto_responder_type != "") $sql .= " AND auto_responder_type='" . $auto_responder_type . "'";
-            if ($autoresponder_service_name != "" && $auto_responder_type == "Email Autoresponder") $sql .= " AND api_name='" . $autoresponder_service_name . "'";
-
-            if ($error_search != "") $sql .= " AND (status like '%" . $error_search . "%' OR auto_responder_type like '%" . $error_search . "%' OR response like '%" . $error_search . "%' OR email like '%" . $error_search . "%')";
-            $this->db->where($sql);
+            $builder->groupStart()
+                ->where('user_id', 0)
+                ->orWhere('user_id', (int) $this->user_id)
+                ->groupEnd();
         } else {
-            $sql = "user_id=" . $this->user_id;
-
-            if ($auto_responder_type != "") $sql .= " AND auto_responder_type='" . $auto_responder_type . "'";
-            if ($autoresponder_service_name != "" && $auto_responder_type == "Email Autoresponder") $sql .= " AND api_name='" . $autoresponder_service_name . "'";
-
-            if ($error_search != "") $sql .= " AND (status like '%" . $error_search . "%' OR auto_responder_type like '%" . $error_search . "%' OR response like '%" . $error_search . "%' OR email like '%" . $error_search . "%')";
-            $this->db->where($sql);
+            $builder->where('user_id', (int) $this->user_id);
         }
-        $info = $this->basic->get_data($table_name, $where = '', $select = '', $join = '', $limit, $start, $order_by);
 
-        $this->db->where($sql);
-        $total_rows_array = $this->basic->count_row('send_email_to_autoresponder_log', $where = '');
-        $total_result = $total_rows_array[0]['total_rows'];
+        if ($auto_responder_type != "") {
+            $builder->where('auto_responder_type', $auto_responder_type);
+        }
+
+        if ($autoresponder_service_name != "" && $auto_responder_type == "Email Autoresponder") {
+            $builder->where('api_name', $autoresponder_service_name);
+        }
+
+        if ($error_search != "") {
+            $builder->groupStart()
+                ->like('status', $error_search)
+                ->orLike('auto_responder_type', $error_search)
+                ->orLike('response', $error_search)
+                ->orLike('email', $error_search)
+                ->groupEnd();
+        }
+
+        // Data query
+        $info = $builder
+            ->orderBy($sort, $order)
+            ->limit($limit, $start)
+            ->get()
+            ->getResultArray();
+
+        // Count query (same filters)
+        $countBuilder = $this->db->table($table_name);
+        if (session()->get('user_type') == 'Admin') {
+            $countBuilder->groupStart()
+                ->where('user_id', 0)
+                ->orWhere('user_id', (int) $this->user_id)
+                ->groupEnd();
+        } else {
+            $countBuilder->where('user_id', (int) $this->user_id);
+        }
+        if ($auto_responder_type != "") {
+            $countBuilder->where('auto_responder_type', $auto_responder_type);
+        }
+        if ($autoresponder_service_name != "" && $auto_responder_type == "Email Autoresponder") {
+            $countBuilder->where('api_name', $autoresponder_service_name);
+        }
+        if ($error_search != "") {
+            $countBuilder->groupStart()
+                ->like('status', $error_search)
+                ->orLike('auto_responder_type', $error_search)
+                ->orLike('response', $error_search)
+                ->orLike('email', $error_search)
+                ->groupEnd();
+        }
+        $total_result = $countBuilder->countAllResults();
 
         foreach ($info as $key => $error_info) {
             $action_button = "<div style='min-width:90px'><a class='btn btn-circle btn-outline-danger error_response' data-toggle='tooltip' title='" . $this->lang->line("Response") . "' href='#' data-id='" . $error_info['id'] . "'> <i class='fas fa-eye'></i></a></div>

@@ -172,7 +172,7 @@
 	<div class="row d-none">
 		<div class="col-12">
 			<h4 class="full_width">
-				<a class="float-right icon-left text-primary btn btn-outline-primary variables"><i class="fas fa-plus"></i> <?php echo $this->lang->line('Variables'); ?></a>
+				<a class="float-right icon-left text-primary btn btn-outline-primary variables"><i class="fas fa-plus"></i> <?php echo lang('Variables'); ?></a>
 			</h4>
 		</div>
 	</div>
@@ -181,15 +181,15 @@
 			<div class="row">
 				<div class="col-12 col-md-6">
 					<div class="form-group">
-						<label for=""><?php echo $this->lang->line("Campaign Name");?> </label>
+						<label for=""><?php echo lang("Campaign Name");?> </label>
 						<input name="Campaign_name" id="Campaign_name" value="" class="form-control" type="text">
 					</div>
 				</div>
 				<div class="col-12 col-md-6 d-none">
 					<div class="form-group">
-						<label for=""><?php echo $this->lang->line("Choose a page");?> </label>
+						<label for=""><?php echo lang("Choose a page");?> </label>
 						<?php 
-							$page_list['']=$this->lang->line('Select a Page');
+							$page_list['']=lang('Select a Page');
 							echo form_dropdown('page_table_id',$page_list,$page_id,'class="form-control select2" id="page_table_id"'); 
 						?>
 					</div>
@@ -200,7 +200,7 @@
          		
              	<div class="col-12 col-sm-12 col-md-4 right_column">
              		<div class="right_column_button">
-             			<i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Free Keyboard Input'); ?>
+             			<i class="fas fa-plus-circle"></i> <?php echo lang('Free Keyboard Input'); ?>
              		</div>
 
              		<div class="custom_links text-center">
@@ -209,33 +209,33 @@
              					<div class="custom_item_icon">
              						<span><i class="ml-0 <?php echo $value; ?>"></i></span>
              					</div>
-             					<div class="custom_item_info"><i class="fas fa-plus"></i> <?php echo $this->lang->line($key); ?>
+             					<div class="custom_item_info"><i class="fas fa-plus"></i> <?php echo lang($key); ?>
              				</div>
              			</div>
              			<?php } ?>
              		</div>
 
                  	<div class="right_column_button add_question btn btn-light w-100 border-0 text-left" id="multiple_choice" data-toggle="tooltip" title="Click to Add">
-                 		<i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Multiple Choice'); ?>
+                 		<i class="fas fa-plus-circle"></i> <?php echo lang('Multiple Choice'); ?>
                  	</div>
              	</div>
 
  	    		<div class="col-12 col-sm-12 col-md-8 left_column">
  	    			<div id="left_header" class="mb-2 alert alert-light">
- 	    				<?php echo $this->lang->line('User Input Flow Start'); ?>
+ 	    				<?php echo lang('User Input Flow Start'); ?>
  	    			</div>
  	    			<div class="total_question_container">
  	    				
  	    			</div>
 
  					<div class="form-group postback_div" style="display: none;">
- 						<label for=""><?php echo $this->lang->line("Select final reply template");?> </label>
+						<label for=""><?php echo lang("Select final reply template");?> </label>
  						<select class="form-control select2" id="postback_id" name="postback_id" style="width: 100%;">
- 							<option value=""><?php echo $this->lang->line('Please select a page first'); ?></option>
+							<option value=""><?php echo lang('Please select a page first'); ?></option>
  						</select>
 
- 						<a href="" class="add_template float-left" page_id_add_postback=""><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("Add");?></a>
- 						<a href="" class="ref_template float-right" page_id_ref_postback=""><i class="fa fa-refresh"></i> <?php echo $this->lang->line("Refresh");?></a>
+						<a href="" class="add_template float-left" page_id_add_postback=""><i class="fa fa-plus-circle"></i> <?php echo lang("Add");?></a>
+						<a href="" class="ref_template float-right" page_id_ref_postback=""><i class="fa fa-refresh"></i> <?php echo lang("Refresh");?></a>
  					</div>
 
  	        	</div>
@@ -245,8 +245,8 @@
 
 	<div class="row pt-4">
 		<div class="col-12">
-			<button class="btn btn-lg btn-primary" id="submit_flowbuilder" name="submit_flowbuilder" type="button"><i class="fas fa-submit"></i> <?php echo $this->lang->line("Submit");?></button>
-			<button class="btn btn-lg btn-light float-right" onclick="goBack('custom_field_manager/campaign_list')" type="button"><i class="fas fa-times"></i> <?php echo $this->lang->line("Cancel");?></button>
+			<button class="btn btn-lg btn-primary" id="submit_flowbuilder" name="submit_flowbuilder" type="button"><i class="fas fa-submit"></i> <?php echo lang("Submit");?></button>
+			<button class="btn btn-lg btn-light float-right" onclick="goBack('custom_field_manager/campaign_list')" type="button"><i class="fas fa-times"></i> <?php echo lang("Cancel");?></button>
 		</div>
 	</div>
 
@@ -308,7 +308,7 @@
 		    var page_id=$("#page_table_id").val();
 		    if(page_id=="")
 		    {
-		      swal('<?php echo $this->lang->line("Warning!"); ?>', "<?php echo $this->lang->line('Please select a page first')?>", 'warning');
+		      swal('<?php echo lang("Warning!"); ?>', "<?php echo lang('Please select a page first')?>", 'warning');
 		      return false;
 		    }
 		    $("#add_template_modal").modal();
@@ -321,7 +321,7 @@
 		   var media_type="<?php echo $media_type; ?>";
 		   if(page_id=="")
 		   {
-		     swal('<?php echo $this->lang->line("Warning!"); ?>', "<?php echo $this->lang->line('Please select a page first')?>", 'warning');
+		     swal('<?php echo lang("Warning!"); ?>', "<?php echo lang('Please select a page first')?>", 'warning');
 		     return false;
 		   }
 		   
@@ -356,7 +356,7 @@
 		   	var media_type="<?php echo $media_type; ?>";
 		   	if(page_id=="")
 		   	{
-		    	swal('<?php echo $this->lang->line("Warning!"); ?>', "<?php echo $this->lang->line('Please select a page first')?>", 'warning');
+		    	swal('<?php echo lang("Warning!"); ?>', "<?php echo lang('Please select a page first')?>", 'warning');
 		     	return false;
 		   	}
 
@@ -396,7 +396,7 @@
 			var media_type = "<?php echo $media_type; ?>";
 
 			if(page_table_id === '') {
-				swal('<?php echo $this->lang->line("Warning!"); ?>', '<?php echo $this->lang->line("Please select a page first"); ?>', 'warning');
+				swal('<?php echo lang("Warning!"); ?>', '<?php echo lang("Please select a page first"); ?>', 'warning');
 				return false;
 			}
 
@@ -478,7 +478,7 @@
 			var blockDivId = $(this).attr('div_id');
 			var block_array = blockDivId.split("_");
 			var random_variable = block_array.pop();
-			var content = '<input type="text" class="form-control mb-2 multiple_input_more" name="multiple_choice['+random_variable+'][]" id="multiple_choice['+random_variable+'][]" placeholder="'+'<?php echo $this->lang->line("Another Option"); ?>'+'">';
+			var content = '<input type="text" class="form-control mb-2 multiple_input_more" name="multiple_choice['+random_variable+'][]" id="multiple_choice['+random_variable+'][]" placeholder="'+'<?php echo lang("Another Option"); ?>'+'">';
 			$("#"+blockDivId).append(content);
 		});
 
@@ -505,7 +505,7 @@
 		{    
    			var valid = true;
    			if($('input.type_questions').length === 0) {
-   				swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Please add atleast one question"); ?>', 'warning');
+   				swal('<?php echo lang("Error"); ?>', '<?php echo lang("Please add atleast one question"); ?>', 'warning');
    				return false;
    			}
 
@@ -515,7 +515,7 @@
 			    }
 	  		})
 		  	if (!valid) {
-	  			swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Please fill all the questions"); ?>', 'warning');
+	  			swal('<?php echo lang("Error"); ?>', '<?php echo lang("Please fill all the questions"); ?>', 'warning');
 	  			return false;
 		  	}
 
@@ -524,17 +524,17 @@
 		  	var postback = $("#postback_id").val();
 
 		  	if(campaign_name == '') {
-		  		swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Campaign Name is required"); ?>', 'warning');	
+		  		swal('<?php echo lang("Error"); ?>', '<?php echo lang("Campaign Name is required"); ?>', 'warning');	
 		  		return false;
 		  	}
 
 		  	if(page_name == "") {
-				swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Please select a Page"); ?>', 'warning');
+				swal('<?php echo lang("Error"); ?>', '<?php echo lang("Please select a Page"); ?>', 'warning');
 				return false;
 		  	}
 
 		  	if(postback == "") {
-		  		swal('<?php echo $this->lang->line("Error"); ?>', '<?php echo $this->lang->line("Please Select a Postback"); ?>', 'warning');
+		  		swal('<?php echo lang("Error"); ?>', '<?php echo lang("Please Select a Postback"); ?>', 'warning');
 		  		return false;
 		  	}
 
@@ -557,16 +557,16 @@
 					if(response.status=='1') 
 					{	
 						var assign_url = "<?php echo base_url('custom_field_manager/campaign_list/'.$media_type); ?>";
-						swal('<?php echo $this->lang->line("Success"); ?>', response.message, 'success').then((value) => {
+						swal('<?php echo lang("Success"); ?>', response.message, 'success').then((value) => {
                               location.assign(assign_url);
                             });
 					}
-					else swal('<?php echo $this->lang->line("Error"); ?>', response.message, 'error');
+					else swal('<?php echo lang("Error"); ?>', response.message, 'error');
 				},
 		        error:function(response){
 		          var span = document.createElement("span");
 		          span.innerHTML = response.responseText;
-		          swal({ title:'<?php echo $this->lang->line("Error!"); ?>', content:span, icon:'error'});
+		          swal({ title:'<?php echo lang("Error!"); ?>', content:span, icon:'error'});
 		        }
 
 			});
@@ -583,7 +583,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title full_width">
-        	<i class="fa fa-plus-circle"></i> <?php echo $this->lang->line('Add Template'); ?>
+        	<i class="fa fa-plus-circle"></i> <?php echo lang('Add Template'); ?>
         </h5>
         <button type="button" class="close red" data-dismiss="modal" aria-hidden="true">&times;</button>
       </div>
@@ -591,7 +591,7 @@
         <iframe src="" frameborder="0" width="100%" onload="resizeIframe(this)"></iframe>
       </div>
       <div class="modal-footer">
-        <button data-dismiss="modal" type="button" class="btn-lg btn btn-dark"><i class="fa fa-refresh"></i> <?php echo $this->lang->line("Close & Refresh List");?></button>
+        <button data-dismiss="modal" type="button" class="btn-lg btn btn-dark"><i class="fa fa-refresh"></i> <?php echo lang("Close & Refresh List");?></button>
       </div>
     </div>
   </div>
@@ -601,7 +601,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-book-reader"></i> <?php echo $this->lang->line("All Variables you currently have"); ?></h5>
+                <h5 class="modal-title"><i class="fas fa-book-reader"></i> <?php echo lang("All Variables you currently have"); ?></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
@@ -611,12 +611,12 @@
                 <div class="row">
                     <div class="col-12">
                     	<div class="section">
-                    		<div class="section-title"><?php echo $this->lang->line('Variable'); ?></div>
-                			<p><?php echo $this->lang->line('After you have saved a response in Custom Field, you can use it as a variable in your message reply to subscriber.'); ?></p>
+                    		<div class="section-title"><?php echo lang('Variable'); ?></div>
+                			<p><?php echo lang('After you have saved a response in Custom Field, you can use it as a variable in your message reply to subscriber.'); ?></p>
                     	</div>
                     	<div class="section">
-                    		<div class="section-title"><?php echo $this->lang->line('How to use Variable?'); ?></div>
-                			<p><?php echo $this->lang->line('To use variable for Custom Field, write the variable surrounding by #  like')."<b> #Custom Field#</b>"; ?></p>
+                    		<div class="section-title"><?php echo lang('How to use Variable?'); ?></div>
+                			<p><?php echo lang('To use variable for Custom Field, write the variable surrounding by #  like')."<b> #Custom Field#</b>"; ?></p>
                     	</div>
                     	<div class="section" id="variable_display_section">
                     		<!-- content goes here -->
@@ -626,7 +626,7 @@
             </div>
 
             <div class="modal-footer bg-whitesmoke br">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->lang->line('Close'); ?></button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo lang('Close'); ?></button>
             </div>
 
         </div>

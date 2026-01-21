@@ -90,22 +90,36 @@ class Team_member extends Home
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'desc';
         $order_by=$sort." ".$order;
 
-        $where_custom="user_id = ".$this->user_id;
+        // CI4 fix: use Query Builder so search filter always applies (data + count)
+        $table = "team_roles";
 
-        if ($search_value != '') 
-        {
-            foreach ($search_columns as $key => $value) 
-            $temp[] = $value." LIKE "."'%$search_value%'";
-            $imp = implode(" OR ", $temp);
-            $where_custom .=" AND (".$imp.") ";
+        $builder = $this->db->table($table);
+        $builder->where('user_id', (int) $this->user_id);
+
+        if ($search_value != '') {
+            $builder->groupStart();
+            foreach ($search_columns as $col) {
+                $builder->orLike($col, $search_value);
+            }
+            $builder->groupEnd();
         }
-            
-        $table="team_roles";        
-        $this->db->where($where_custom);    
-        $info=$this->basic->get_data($table,$where="",$select='',$join='',$limit,$start,$order_by,$group_by='');
-        $this->db->where($where_custom);    
-        $total_rows_array=$this->basic->count_row($table,$where="",$count=$table.".id",$join='',$group_by='');
-        $total_result=$total_rows_array[0]['total_rows'];
+
+        $info = $builder
+            ->orderBy($sort, $order)
+            ->limit($limit, $start)
+            ->get()
+            ->getResultArray();
+
+        $countBuilder = $this->db->table($table);
+        $countBuilder->where('user_id', (int) $this->user_id);
+        if ($search_value != '') {
+            $countBuilder->groupStart();
+            foreach ($search_columns as $col) {
+                $countBuilder->orLike($col, $search_value);
+            }
+            $countBuilder->groupEnd();
+        }
+        $total_result = $countBuilder->countAllResults();
 
         $data['draw'] = (int)$_POST['draw'] + 1;
         $data['recordsTotal'] = $total_result;
@@ -319,24 +333,40 @@ class Team_member extends Home
         $order = isset($_POST['order'][0]['dir']) ? strval($_POST['order'][0]['dir']) : 'asc';
         $order_by=$sort." ".$order;
 
-        $table="team_members";
-        $where_custom=$table.".user_id = ".$this->user_id;
+        // CI4 fix: use Query Builder so search filter always applies (data + count)
+        $table = "team_members";
+        $joinTable = "team_roles";
 
-        if ($search_value != '') 
-        {
-            foreach ($search_columns as $key => $value) 
-            $temp[] = $value." LIKE "."'%$search_value%'";
-            $imp = implode(" OR ", $temp);
-            $where_custom .=" AND (".$imp.") ";
+        $builder = $this->db->table($table);
+        $builder->select(["team_members.*", "team_roles.role_name"]);
+        $builder->join($joinTable, "team_roles.id=team_members.team_role_id", "left");
+        $builder->where("team_members.user_id", (int) $this->user_id);
+
+        if ($search_value != '') {
+            $builder->groupStart();
+            foreach ($search_columns as $col) {
+                $builder->orLike($col, $search_value);
+            }
+            $builder->groupEnd();
         }
-            
-        $join = array('team_roles'=>"team_roles.id=team_members.team_role_id,left");
-        $select= array("team_members.*","team_roles.role_name");
-        $this->db->where($where_custom);  
-        $info=$this->basic->get_data($table,$where="",$select,$join,$limit,$start,$order_by,$group_by='');
-        $this->db->where($where_custom);  
-        $total_rows_array=$this->basic->count_row($table,$where="",$count=$table.".id",$join,$group_by='');
-        $total_result=$total_rows_array[0]['total_rows'];
+
+        $info = $builder
+            ->orderBy($sort, $order)
+            ->limit($limit, $start)
+            ->get()
+            ->getResultArray();
+
+        $countBuilder = $this->db->table($table);
+        $countBuilder->join($joinTable, "team_roles.id=team_members.team_role_id", "left");
+        $countBuilder->where("team_members.user_id", (int) $this->user_id);
+        if ($search_value != '') {
+            $countBuilder->groupStart();
+            foreach ($search_columns as $col) {
+                $countBuilder->orLike($col, $search_value);
+            }
+            $countBuilder->groupEnd();
+        }
+        $total_result = $countBuilder->countAllResults();
         $i=0;
         $base_url=base_url();
         foreach ($info as $key => $value) 
