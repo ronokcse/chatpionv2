@@ -25,31 +25,53 @@ Version: 3.1
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Messenger_bot_connectivity\Controllers;
 
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
+/**
+ * @property mixed $input
+ * @property mixed $form_validation
+ */
 class Messenger_bot_connectivity extends Home
 {
 	public $addon_data = array();
+	public $page_table_name;
+	public $user_info_id;
+	public $user_info_session;
+	public $fb_user_info_table_name;
+	public $fb_rx_config_table_name;
+	public $facebook_rx_config_id;
+	public $is_input_flow_addon_exists;
 
-	public function __construct()
+	/**
+	 * CI4 fix: Use initController instead of __construct
+	 */
+	public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
 	{
-		parent::__construct();
+		parent::initController($request, $response, $logger);
 
 		$function_name = $this->uri->segment(2);
 		if ($function_name != "webview" && $function_name != "form_submit") {
-			if ($this->session->userdata('logged_in') != 1) redirect('home/login', 'location');
+			if ($this->session->userdata('logged_in') != 1) {
+				// CI4 fix: use URL redirect (CI3 redirect() signature may be treated as named route redirect in CI4)
+				return redirect()->to(base_url('home/login_page'));
+				exit();
+			}
 		}
-
-		// if(file_exists(APPPATH.'modules/'.strtolower($this->router->fetch_class()).'/config/messenger_bot_enhancers_config.php'))
-		// $this->load->config("messenger_bot_enhancers_config");
 
 		// getting addon information in array and storing to public variable
 		// addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
 		//------------------------------------------------------------------------------------------
-		$addon_path = APPPATH . "modules/" . strtolower($this->router->fetch_class()) . "/controllers/" . ucfirst($this->router->fetch_class()) . ".php"; // path of addon controller
+		$controller_name = (new \ReflectionClass($this))->getShortName();
+		$addon_path = APPPATH . "modules/" . strtolower($controller_name) . "/controllers/" . ucfirst($controller_name) . ".php"; // path of addon controller
 		$addondata = $this->get_addon_data($addon_path);
 		$this->member_validity();
 		$this->addon_data = $addondata;
+
 		// Engagement variables
 		$this->page_table_name = "facebook_rx_fb_page_info";
 		$this->user_info_id = "facebook_rx_fb_user_info_id";
@@ -67,7 +89,10 @@ class Messenger_bot_connectivity extends Home
 	*/
 	public function index()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access))  redirect('home/login_page', 'location');
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access ?? [])) {
+			header('Location: ' . base_url('home/login_page'));
+			exit();
+		}
 
 		$data['pages'] = $this->get_pages();
 		$data['user_id'] = $this->user_id;
@@ -79,7 +104,10 @@ class Messenger_bot_connectivity extends Home
 
 	public function load_form_builder($page_id = 0)
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access))  redirect('home/login_page', 'location');
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access ?? [])) {
+			header('Location: ' . base_url('home/login_page'));
+			exit();
+		}
 
 		if ($page_id == 0 || $page_id == '') exit;
 		$data['page_id'] = $page_id;
@@ -94,7 +122,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function handle_select_boxes_data()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access ?? []))  exit();
 		// Kicks out if not an AJAX request
 		if (! $this->input->is_ajax_request()) {
 			$message = $this->lang->line('Bad Request');
@@ -480,7 +508,10 @@ class Messenger_bot_connectivity extends Home
 
 	public function webview_builder_manager($page_id = 0, $iframe = '0')
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access))  redirect('home/login_page', 'location');
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access ?? [])) {
+			header('Location: ' . base_url('home/login_page'));
+			exit();
+		}
 		$data['body'] = 'webview_builder/manager';
 		$data['page_title'] = $this->lang->line('Webview Manager');
 		$data['page_id'] = $page_id;
@@ -490,7 +521,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function webview_manager_data()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access ?? []))  exit();
 		$this->ajax_check();
 
 		$search_value = isset($_POST['search']) ? $_POST['search']['value'] : null;
@@ -645,7 +676,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function get_submitted_subscribers()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access ?? []))  exit();
 
 		$this->ajax_check();
 		$form_id = $this->input->post('form_id', true);
@@ -697,7 +728,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function get_subscriber_formdata()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access ?? []))  exit();
 		$this->ajax_check();
 		$id = $this->input->post("id", true);
 		$page_table_id = $this->input->post("page_id", true);
@@ -798,7 +829,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function handle_form_details_data()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(261, $this->module_access ?? []))  exit();
 
 		// Kicks out if not an AJAX request
 		if (! $this->input->is_ajax_request()) {
@@ -1594,7 +1625,7 @@ class Messenger_bot_connectivity extends Home
 
 		try {
 			$canonical_id = $this->generate_hash($title);
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			// Logs error
 			log_message('error', 'Could not generate hash while saving webview form in the ' . __METHOD__ . ' method.');
 		}
@@ -1611,6 +1642,13 @@ class Messenger_bot_connectivity extends Home
 	private function checks_button_tag_in_json_form_data($json_data)
 	{
 		$button_found = false;
+		// In some code paths this can be a JSON string; normalize to array.
+		if (is_string($json_data)) {
+			$json_data = json_decode($json_data, true);
+		}
+		if (! is_array($json_data)) {
+			return false;
+		}
 		foreach ($json_data as $key => $value) {
 			if (isset($value['type']) && 'button' === $value['type']) {
 				$button_found = true;
@@ -1771,7 +1809,10 @@ class Messenger_bot_connectivity extends Home
 	}
 	public function json_api_connector_dashbaord()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access))  redirect('home/login_page', 'location');
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access ?? [])) {
+			header('Location: ' . base_url('home/login_page'));
+			exit();
+		}
 		$this->is_input_flow_addon_exists = $this->addon_exist("custom_field_manager");
 
 		$page_info = array();
@@ -1789,13 +1830,14 @@ class Messenger_bot_connectivity extends Home
 		$data['page_title']     = $this->lang->line("Json API Connector");
 		$data['page_info']      = $page_info;
 		$data['body']           = "json_api_connector_dashboard";
+		$data['is_input_flow_addon_exists'] = $this->is_input_flow_addon_exists;
 
 		$this->_viewcontroller($data);
 	}
 
 	public function json_api_connector_dashbaord_data()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access ?? []))  exit();
 		$this->ajax_check();
 
 		$searching       = trim($this->input->post("searching", true));
@@ -1883,7 +1925,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function find_page_postback()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access ?? []))  exit();
 		$this->ajax_check();
 
 		$data = array();
@@ -1926,7 +1968,7 @@ class Messenger_bot_connectivity extends Home
 
 		if ($this->is_input_flow_addon_exists) {
 			if ($this->basic->is_exist("modules", array("id" => 292))) {
-				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access)) {
+				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access ?? [])) {
 
 					$user_input_flow_campaigns = $this->basic->get_data("user_input_flow_campaign", array('where' => array('page_table_id' => $pageID, 'user_id' => $user_id)));
 					$elements['html3'] = '<div class="form-group">
@@ -1970,12 +2012,19 @@ class Messenger_bot_connectivity extends Home
 		// get the page_name,page_id by page_table_id
 		$page_name = $this->basic->get_data('facebook_rx_fb_page_info', array('where' => array('user_id' => $this->user_id, 'id' => $page_table_id, 'bot_enabled' => '1')), array('page_name', 'page_id'));
 
+		if (empty($page_name) || !isset($page_name[0])) {
+			$ext['result'] = 0;
+			$ext['msg']    = $this->lang->line("Page not found or bot not enabled.");
+			echo json_encode($ext);
+			exit();
+		}
+
 		$alldata = array();
 
 		$alldata['name']          = trim($connector_name);
 		$alldata['user_id']       = $this->user_id;
 		$alldata['webhook_url']   = trim($webhook_url);
-		$alldata['variable_post'] = implode(',', $variable_post);
+		$alldata['variable_post'] = implode(',', $variable_post ?? []);
 		$alldata['page_id']       = $page_name[0]['page_id'];
 		// $alldata['page_id']       = $page_table_id;
 		$alldata['page_name']     = $page_name[0]['page_name'];
@@ -2020,30 +2069,50 @@ class Messenger_bot_connectivity extends Home
 
 		$table = 'messenger_bot_thirdparty_webhook';
 
-		if ($this->basic->insert_data($table, $alldata)) {
-			$inserted_id = $this->db->insert_id();
-			$triggered_table = array();
-
-			foreach ($field as $value) {
-				$triggered_table['webhook_id']     = $inserted_id;
-				$triggered_table['trigger_option'] = $value;
-				$this->basic->insert_data('messenger_bot_thirdparty_webhook_trigger', $triggered_table);
-			}
-
-			$ext['result'] = 1;
-			$ext['msg'] = $this->lang->line("Connection has been Created successfully.");
-		} else {
+		// CI4: Use builder directly to get insert ID
+		$builder = $this->db->table($table);
+		$builder->insert($alldata);
+		$inserted_id = $this->db->insertID();
+		
+		// Validate that we got a valid insert ID
+		if (empty($inserted_id) || $inserted_id <= 0) {
 			$ext['result'] = 0;
-			$ext['msg']    = $this->lang->line("Something went wrong,please try again.");
+			$ext['msg']    = $this->lang->line("Failed to get connector ID. Please try again.");
+			if (!headers_sent()) {
+				header('Content-Type: application/json');
+			}
+			echo json_encode($ext);
+			exit();
+		}
+		
+		$triggered_table = array();
+
+		// Only insert triggers if field array is not empty
+		if (!empty($field) && is_array($field)) {
+			foreach ($field as $value) {
+				if (!empty($value)) {
+					$triggered_table['webhook_id']     = $inserted_id;
+					$triggered_table['trigger_option'] = $value;
+					$this->basic->insert_data('messenger_bot_thirdparty_webhook_trigger', $triggered_table);
+				}
+			}
 		}
 
+		$ext['result'] = 1;
+		$ext['msg'] = $this->lang->line("Connection has been Created successfully.");
+
+		// CI4: Set proper JSON response headers and return
+		if (!headers_sent()) {
+			header('Content-Type: application/json');
+		}
 		echo json_encode($ext);
+		exit();
 	}
 
 
 	public function ajax_view_connector_info()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access ?? []))  exit();
 		$this->ajax_check();
 
 		$table_id       = $this->input->post('table_id', true);
@@ -2123,7 +2192,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function ajax_get_connector_last_activities()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access ?? []))  exit();
 		$this->ajax_check();
 
 		$table_id = $this->input->post('table_id');
@@ -2165,7 +2234,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function ajax_get_update_connector_info()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access ?? []))  exit();
 		$this->ajax_check();
 
 		$this->is_input_flow_addon_exists = $this->addon_exist("custom_field_manager");
@@ -2174,6 +2243,12 @@ class Messenger_bot_connectivity extends Home
 		$table          = 'messenger_bot_thirdparty_webhook';
 		$where['where'] = array('id' => $table_id);
 		$info           = $this->basic->get_data($table, $where);
+		
+		if (empty($info) || !isset($info[0])) {
+			echo json_encode(array('status' => 'error', 'message' => 'Connector not found'));
+			exit();
+		}
+		
 		$connector_name = $info[0]['name'];
 		$webhook_url    = $info[0]['webhook_url'];
 		$webhook_id     = $info[0]['id'];
@@ -2183,15 +2258,23 @@ class Messenger_bot_connectivity extends Home
 		$triggered_postback_val = array();
 		$pageInfoPostack = $this->basic->get_data('facebook_rx_fb_page_info', array('where' => array('page_id' => $pageid, 'bot_enabled' => '1')));
 
-		$get_page_postbacks = $this->basic->get_data('messenger_bot_postback', array('where' => array('page_id' => $pageInfoPostack[0]['id'])));
-		$get_page_webviews = $this->basic->get_data('webview_builder', array('where' => array('page_id' => $pageInfoPostack[0]['id'])));
+		$get_page_postbacks = array();
+		$get_page_webviews = array();
+		
+		if (!empty($pageInfoPostack) && isset($pageInfoPostack[0]['id'])) {
+			$page_table_id = $pageInfoPostack[0]['id'];
+			$get_page_postbacks = $this->basic->get_data('messenger_bot_postback', array('where' => array('page_id' => $page_table_id)));
+			$get_page_webviews = $this->basic->get_data('webview_builder', array('where' => array('page_id' => $page_table_id)));
+		}
 
 
+		$get_page_user_input_flow_campaigns = array();
 		if ($this->is_input_flow_addon_exists) {
 			if ($this->basic->is_exist("modules", array("id" => 292))) {
-				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access)) {
-
-					$get_page_user_input_flow_campaigns = $this->basic->get_data('user_input_flow_campaign', array('where' => array('page_table_id' => $pageInfoPostack[0]['id'])));
+				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access ?? [])) {
+					if (!empty($pageInfoPostack) && isset($pageInfoPostack[0]['id'])) {
+						$get_page_user_input_flow_campaigns = $this->basic->get_data('user_input_flow_campaign', array('where' => array('page_table_id' => $page_table_id)));
+					}
 				}
 			}
 		}
@@ -2367,7 +2450,7 @@ class Messenger_bot_connectivity extends Home
 	                        </div>';
 		if ($this->is_input_flow_addon_exists) {
 			if ($this->basic->is_exist("modules", array("id" => 292))) {
-				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access)) {
+				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access ?? [])) {
 					$update_form .= '<div class="col-12 col-md-3">
 		                                              <div class="custom-control custom-checkbox">
 		                                                <input type="checkbox" value="trigger_user_input" id="trigger_user_input_updated" name="updated_field[]" ' . $checked_user_input . ' class="custom-control-input">
@@ -2421,7 +2504,7 @@ class Messenger_bot_connectivity extends Home
 		// User Input Flow data div
 		if ($this->is_input_flow_addon_exists) {
 			if ($this->basic->is_exist("modules", array("id" => 292))) {
-				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access)) {
+				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access ?? [])) {
 					$update_form .= '<div class="col-12 col-md-6" id="updated_input_flow_div">
 	                    <div class="form-group">
 	                      <label>' . $this->lang->line("Choose User Input Flow Campaign") . '</label>
@@ -2484,7 +2567,7 @@ class Messenger_bot_connectivity extends Home
 	                            </div>';
 		if ($this->is_input_flow_addon_exists) {
 			if ($this->basic->is_exist("modules", array("id" => 292))) {
-				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access)) {
+				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access ?? [])) {
 					$update_form .= '<div class="custom-control custom-checkbox">
 	                                <input type="checkbox" value="user_input_flow_campaign" id="user_input_flow_campaign_updated" name="updated_variable_post[]" ' . $user_input_flow_campaign . ' class="custom-control-input">
 	                                <label class="custom-control-label" for="user_input_flow_campaign_updated">' . $this->lang->line("User input data") . '</label>
@@ -2544,7 +2627,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function find_page_update_postback()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access ?? []))  exit();
 		$this->ajax_check();
 		$triggered_postback_webview_val = array();
 
@@ -2559,7 +2642,7 @@ class Messenger_bot_connectivity extends Home
 
 		if ($this->is_input_flow_addon_exists) {
 			if ($this->basic->is_exist("modules", array("id" => 292))) {
-				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access)) {
+				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access ?? [])) {
 
 					$user_input_flow_campaigns = $this->basic->get_data("user_input_flow_campaign", array('where' => array('page_table_id' => $pageID, 'user_id' => $this->user_id)));
 				}
@@ -2609,7 +2692,7 @@ class Messenger_bot_connectivity extends Home
 
 		if ($this->is_input_flow_addon_exists) {
 			if ($this->basic->is_exist("modules", array("id" => 292))) {
-				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access)) {
+				if ($this->session->userdata('user_type') == 'Admin' || in_array(292, $this->module_access ?? [])) {
 
 					$elements['html3'] = '<div class="form-group">
 			              <label>' . $this->lang->line("Choose User Input Flow Campaign") . '</label>
@@ -2636,7 +2719,7 @@ class Messenger_bot_connectivity extends Home
 
 	public function ajax_connector_info_updating()
 	{
-		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access))  exit();
+		if ($this->session->userdata('user_type') != 'Admin' && !in_array(258, $this->module_access ?? []))  exit();
 		$this->ajax_check();
 		$post_data = $_POST;
 
@@ -2748,8 +2831,10 @@ class Messenger_bot_connectivity extends Home
 	{
 		$this->ajax_check();
 
-		$addon_controller_name = ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
-		$purchase_code = $this->input->post('purchase_code');
+		// CI4 fix: derive controller name via reflection instead of CI3 router
+		$controller_name = (new \ReflectionClass($this))->getShortName();
+		$addon_controller_name = ucfirst($controller_name);
+		$purchase_code = $this->input->post('purchase_code', true);
 		$this->addon_credential_check($purchase_code, strtolower($addon_controller_name)); // retuns json status,message if error
 
 		//this addon system support 2-level sidebar entry, to make sidebar entry you must provide 2D array like below
@@ -2847,7 +2932,9 @@ class Messenger_bot_connectivity extends Home
 	{
 		$this->ajax_check();
 
-		$addon_controller_name = ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+		// CI4 fix: derive controller name via reflection instead of CI3 router
+		$controller_name = (new \ReflectionClass($this))->getShortName();
+		$addon_controller_name = ucfirst($controller_name);
 		// only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
 		$this->unregister_addon($addon_controller_name);
 	}
@@ -2856,7 +2943,9 @@ class Messenger_bot_connectivity extends Home
 	{
 		$this->ajax_check();
 
-		$addon_controller_name = ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+		// CI4 fix: derive controller name via reflection instead of CI3 router
+		$controller_name = (new \ReflectionClass($this))->getShortName();
+		$addon_controller_name = ucfirst($controller_name);
 
 		// mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
 		$sql = array(

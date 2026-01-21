@@ -14,9 +14,9 @@
         setTimeout(function(){ 
             $('#post_date_range').daterangepicker({
               ranges: {
-                '<?php echo $this->lang->line("Last 30 Days");?>': [moment().subtract(29, 'days'), moment()],
-                '<?php echo $this->lang->line("This Month");?>'  : [moment().startOf('month'), moment().endOf('month')],
-                '<?php echo $this->lang->line("Last Month");?>'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                '<?php echo lang("Last 30 Days");?>': [moment().subtract(29, 'days'), moment()],
+                '<?php echo lang("This Month");?>'  : [moment().startOf('month'), moment().endOf('month')],
+                '<?php echo lang("Last Month");?>'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
               },
               startDate: moment().subtract(29, 'days'),
               endDate  : moment()
@@ -45,7 +45,7 @@
             },
             language: 
             {
-              url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+              url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($controller) ? $controller->language : ($language ?? 'english')).'.json'); ?>"
             },
             dom: '<"top"f>rt<"bottom"lip><"clear">',
             columnDefs: [
@@ -139,7 +139,7 @@
                     },
                     language: 
                     {
-                      url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+                      url: "<?php echo base_url('assets/modules/datatables/language/'.(isset($controller) ? $controller->language : ($language ?? 'english')).'.json'); ?>"
                     },
                     dom: '<"top"f>rt<"bottom"lip><"clear">',
                     columnDefs: [
@@ -191,7 +191,7 @@
                var parseData2 = Object.assign({}, parseData);
                delete parseData2['user_input_data'];
                var i = 1;
-               var appendTable = '<table class="table table-bordered table-hover text-center"><thead><tr><th>#</th><th>'+ '<?php echo $this->lang->line('Field Name'); ?>' +'</th><th>'+ '<?php echo $this->lang->line('Value'); ?>' +'</th></tr></thead><tbody>';
+               var appendTable = '<table class="table table-bordered table-hover text-center"><thead><tr><th>#</th><th>'+ '<?php echo lang('Field Name'); ?>' +'</th><th>'+ '<?php echo lang('Value'); ?>' +'</th></tr></thead><tbody>';
 
                 jQuery.each(parseData2, (index, item) => {
                    if(index.indexOf('_') != -1) index = index.replace(/[_\W]+/g, " ")
@@ -207,7 +207,7 @@
 
                 if(user_input_data != '') {
                     var j = 1;
-                    var appendTable2 = '<table class="table table-bordered table-hover text-center"><thead><tr><th>#</th><th>'+ '<?php echo $this->lang->line('Question'); ?>' +'</th><th>'+ '<?php echo $this->lang->line('Answer'); ?>' +'</th></tr></thead><tbody>';
+                    var appendTable2 = '<table class="table table-bordered table-hover text-center"><thead><tr><th>#</th><th>'+ '<?php echo lang('Question'); ?>' +'</th><th>'+ '<?php echo lang('Answer'); ?>' +'</th></tr></thead><tbody>';
 
                     user_input_data.forEach((item, index ) => {
                         var question= item.question;
@@ -231,7 +231,7 @@
 
             } else {
 
-                $("#json_formate_data").html("<p>"+'<?php echo $this->lang->line('No Data Available to show.'); ?>'+"</p>");
+                $("#json_formate_data").html("<p>"+'<?php echo lang('No Data Available to show.'); ?>'+"</p>");
                 $(".infos").html(""); 
                 $(".user_input_flows").html('');
                 $(".user_input_flows_card").css('display','none');
@@ -294,43 +294,43 @@
 
             if(name == '')
             {   
-                var error = '<?php echo $this->lang->line("Name is Required."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>', error, 'warning');
+                var error = '<?php echo lang("Name is Required."); ?>';
+                swal('<?php echo lang("Warning"); ?>', error, 'warning');
 
             } else if(page_table_id == '')
             {
-                var error = '<?php echo $this->lang->line("Please select a page."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select a page."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(webhook_url == '')
             {
-                var error = '<?php echo $this->lang->line("Webhook URL is Required."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Webhook URL is Required."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(checkorNot1 == true && (postbackids == null || postbackids == '' || typeof(postbackids) == "undefined"))
             {
-                var error = '<?php echo $this->lang->line("Please select at least one Postback ID."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one Postback ID."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(checkorNot2 == true && (webviewids == null || webviewids == '' || typeof(webviewids) == "undefined"))
             {
-                var error = '<?php echo $this->lang->line("Please select at least one Webview Data."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one Webview Data."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(checkorNot3 == true && (input_campaigns == null || input_campaigns == '' || typeof(input_campaigns) == "undefined"))
             {
-                var error = '<?php echo $this->lang->line("Please select at least one Input Flow Campaign."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one Input Flow Campaign."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(triggered_webhook == 0)
             {
-                var error = '<?php echo $this->lang->line("Please select at least one field from Trigger Webhook Section."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one field from Trigger Webhook Section."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(sending_data == 0)
             {
-                var error = '<?php echo $this->lang->line("Please select at least one field from Which Data You Want To Send Section."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one field from Which Data You Want To Send Section."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
             } 
             else
             {
@@ -351,18 +351,31 @@
                     {
                         $(that).removeClass('btn-progress');
 
-                        if(response.result =='1')
+                        // Handle response (could be string or object)
+                        if (typeof response === 'string') {
+                            try {
+                                response = JSON.parse(response);
+                            } catch(e) {
+                                console.error('Failed to parse response:', response);
+                                iziToast.error({title: '',message: 'Invalid response from server',position: 'bottomRight'});
+                                return;
+                            }
+                        }
+
+                        if(response.result =='1' || response.result == 1)
                         {
-                            iziToast.success({title: '',message: response.msg,position: 'bottomRight'});
+                            iziToast.success({title: '',message: response.msg || response.message || 'Success',position: 'bottomRight'});
                             $("#add_new_connector_modal").modal('hide');
                             table.draw();
-
-
                         } else
                         {
-                            iziToast.errr({title: '',message: response.msg,position: 'bottomRight'});
-
+                            iziToast.error({title: '',message: response.msg || response.message || 'Error occurred',position: 'bottomRight'});
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        $(that).removeClass('btn-progress');
+                        console.error('AJAX Error:', status, error);
+                        iziToast.error({title: '',message: 'An error occurred. Please try again.',position: 'bottomRight'});
                     }
                 });
             }        
@@ -472,43 +485,43 @@
 
             if(name == '')
             {   
-                var error = '<?php echo $this->lang->line("Name is Required."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>', error, 'warning');
+                var error = '<?php echo lang("Name is Required."); ?>';
+                swal('<?php echo lang("Warning"); ?>', error, 'warning');
 
             } else if(page_table_id == '')
             {
-                var error = '<?php echo $this->lang->line("Please select a page."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select a page."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(webhook_url == '')
             {
-                var error = '<?php echo $this->lang->line("Webhook URL is Required."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Webhook URL is Required."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(triggered_webhook == 0)
             {
-                var error = '<?php echo $this->lang->line("Please select at least one field from Trigger Webhook Section."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one field from Trigger Webhook Section."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(checkedornot1 == true && (postbackids == null || postbackids == '' || typeof(postbackids) == "undefined"))
             {
-                var error = '<?php echo $this->lang->line("Please select at least one Postback ID."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one Postback ID."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(checkedornot2 == true && (webviewsdata == null || webviewsdata == '' || typeof(webviewsdata) == "undefined"))
             {
-                var error = '<?php echo $this->lang->line("Please select at least one Webview Data."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one Webview Data."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(checkedornot3 == true && (user_input_data == null || user_input_data == '' || typeof(user_input_data) == "undefined"))
             {
-                var error = '<?php echo $this->lang->line("Please select at least one Webview Data."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one Webview Data."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             } else if(sending_data == 0)
             {
-                var error = '<?php echo $this->lang->line("Please select at least one field from Which Data You Want To Send Section."); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error, 'warning');
+                var error = '<?php echo lang("Please select at least one field from Which Data You Want To Send Section."); ?>';
+                swal('<?php echo lang("Warning"); ?>',error, 'warning');
 
             }
             else
@@ -545,11 +558,11 @@
             }        
         }); 
 
-        var Doyouwanttodeletethisrecordfromdatabase = "<?php echo $this->lang->line('Do you want to detete this record?'); ?>";
+        var Doyouwanttodeletethisrecordfromdatabase = "<?php echo lang('Do you want to detete this record?'); ?>";
         $(document).on('click','.delete_connector',function(e){
             e.preventDefault();
             swal({
-                title: '<?php echo $this->lang->line("Are you sure?"); ?>',
+                title: '<?php echo lang("Are you sure?"); ?>',
                 text: Doyouwanttodeletethisrecordfromdatabase,
                 icon: 'warning',
                 buttons: true,
@@ -569,11 +582,11 @@
 
                             if(response == '1')
                             {
-                                iziToast.success({title: '',message: '<?php echo $this->lang->line("Campaign has been deleted successfully."); ?>',position: 'bottomRight'});
+                                iziToast.success({title: '',message: '<?php echo lang("Campaign has been deleted successfully."); ?>',position: 'bottomRight'});
                                 table.draw();
                             } else
                             {
-                                iziToast.error({title: '',message: '<?php echo $this->lang->line("Something Went Wrong, please try again."); ?>',position: 'bottomRight'});
+                                iziToast.error({title: '',message: '<?php echo lang("Something Went Wrong, please try again."); ?>',position: 'bottomRight'});
                             }
                         }
                     });
@@ -588,8 +601,8 @@
             if($("#page_table_id").val()=='')
             {
                 $(this).prop('checked', false); 
-                var error = '<?php echo $this->lang->line("Please select at least one page"); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error,'warning');
+                var error = '<?php echo lang("Please select at least one page"); ?>';
+                swal('<?php echo lang("Warning"); ?>',error,'warning');
                 return;
             } 
 
@@ -616,8 +629,8 @@
             if($("#page_table_id").val()=='')
             {
                 $(this).prop('checked', false); 
-                var error = '<?php echo $this->lang->line("Please select at least one page"); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error,'warning');
+                var error = '<?php echo lang("Please select at least one page"); ?>';
+                swal('<?php echo lang("Warning"); ?>',error,'warning');
                 return;
 
             } 
@@ -644,8 +657,8 @@
             if($("#page_table_id").val()=='')
             {
                 $(this).prop('checked', false); 
-                var error = '<?php echo $this->lang->line("Please select at least one page"); ?>';
-                swal('<?php echo $this->lang->line("Warning"); ?>',error,'warning');
+                var error = '<?php echo lang("Please select at least one page"); ?>';
+                swal('<?php echo lang("Warning"); ?>',error,'warning');
                 return;
 
             } 
