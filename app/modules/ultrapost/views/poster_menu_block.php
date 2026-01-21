@@ -1,13 +1,19 @@
- <section class="section">
+<?php
+  // CI4 view: derive needed state from helpers / config instead of $this
+  $user_type = session()->get('user_type');
+  $module_access = session()->get('module_access') ?? [];
+  $instagram_enabled = config('MyConfig')->instagram_reply_enable_disable ?? '0';
+?>
+<section class="section">
   <div class="section-header">
-    <?php if(($this->session->userdata('user_type') == 'Admin' || in_array(296,$this->module_access)) && $this->config->item('instagram_reply_enable_disable') == '1') : ?>
-      <h1><i class="fab fa-facebook-square"></i> <?php echo $this->lang->line("Facebook & Instagram Poster"); ?></h1>
+    <?php if(($user_type == 'Admin' || in_array(296, $module_access)) && $instagram_enabled == '1') : ?>
+      <h1><i class="fab fa-facebook-square"></i> <?php echo lang("Facebook & Instagram Poster"); ?></h1>
       <?php else : ?>
       <h1><i class="fab fa-facebook-square"></i> <?php echo $page_title; ?></h1>
     <?php endif; ?>
     <div class="section-header-button d-none">
      <a class="btn btn-primary" href="<?php echo base_url('social_accounts/index'); ?>">
-        <i class="fa fa-cloud-download-alt"></i> <?php echo $this->lang->line("Import Facebook Accounts"); ?></a> 
+        <i class="fa fa-cloud-download-alt"></i> <?php echo lang("Import Facebook Accounts"); ?></a> 
     </div>
   </div>
 
@@ -42,7 +48,7 @@
 
 <section class="section">
   <div class="section-header">
-    <h1><i class="fa fa-share-alt-square"></i> <?php echo $this->lang->line("Social Poster"); ?></h1>
+    <h1><i class="fa fa-share-alt-square"></i> <?php echo lang("Social Poster"); ?></h1>
   </div>
 
   <div class="section-body">

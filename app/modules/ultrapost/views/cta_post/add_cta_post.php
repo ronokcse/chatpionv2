@@ -1,13 +1,13 @@
 <?php 
-	$this->load->view("include/upload_js"); 
+	echo view("include/upload_js"); 
 
 	$image_upload_limit = 1; 
-	if($this->config->item('facebook_poster_image_upload_limit') != '')
-	$image_upload_limit = $this->config->item('facebook_poster_image_upload_limit'); 
+	if(config('MyConfig')->facebook_poster_image_upload_limit != '')
+	$image_upload_limit = config('MyConfig')->facebook_poster_image_upload_limit; 
 
 	$video_upload_limit = 10; 
-	if($this->config->item('facebook_poster_video_upload_limit') != '')
-	$video_upload_limit = $this->config->item('facebook_poster_video_upload_limit');
+	if(config('MyConfig')->facebook_poster_video_upload_limit != '')
+	$video_upload_limit = config('MyConfig')->facebook_poster_video_upload_limit;
 ?>
 <style type="text/css">
 	.card{margin-bottom:0;border-radius: 0;}
@@ -28,8 +28,8 @@
 	<div class="section-header">
 		<h1><i class="fas fa-hand-point-up"></i> <?php echo $page_title; ?></h1>
 		<div class="section-header-breadcrumb">
-			<div class="breadcrumb-item"><a href="<?php echo base_url("ultrapost"); ?>"><?php echo $this->lang->line("Facebook Poster"); ?></a></div>
-			<div class="breadcrumb-item"><a href='<?php echo base_url("ultrapost/cta_post"); ?>'><?php echo $this->lang->line("CTA Posts");?></a></div>
+			<div class="breadcrumb-item"><a href="<?php echo base_url("ultrapost"); ?>"><?php echo lang("Facebook Poster"); ?></a></div>
+			<div class="breadcrumb-item"><a href='<?php echo base_url("ultrapost/cta_post"); ?>'><?php echo lang("CTA Posts");?></a></div>
 			<div class="breadcrumb-item"><?php echo $page_title; ?></div>
 		</div>
 	</div>
@@ -38,56 +38,56 @@
 		<div class="row">
 			<div class="col-12 col-md-7 collef">
 				<div class="card main_card">
-					<div class="card-header"><h4><i class="fas fa-list"></i> <?php echo $this->lang->line('Campaign Form'); ?></h4></div>
+					<div class="card-header"><h4><i class="fas fa-list"></i> <?php echo lang('Campaign Form'); ?></h4></div>
 		          	<div class="card-body">
 			          	<!-- tab body started -->
 			          	<div class="tab-content">
 							<form action="#" enctype="multipart/form-data" id="cta_poster_form" method="post">
 								<div class="form-group">
-									<label><?php echo $this->lang->line('Campaign Name'); ?></label>
+									<label><?php echo lang('Campaign Name'); ?></label>
 									<input type="input" class="form-control"  name="campaign_name" id="campaign_name">
 								</div>
 
 								<div class="form-group">
-									<label><?php echo $this->lang->line('Message'); ?></label>
-									<a href="#" data-placement="right"  data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("message") ?>" data-content="<?php echo $this->lang->line("support Spintax"); ?>, Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
-									<textarea class="form-control" name="message" id="message" placeholder="<?php echo $this->lang->line('Type your message here...'); ?>"></textarea>
+									<label><?php echo lang('Message'); ?></label>
+									<a href="#" data-placement="right"  data-toggle="popover" data-trigger="focus" title="<?php echo lang("message") ?>" data-content="<?php echo lang("support Spintax"); ?>, Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+									<textarea class="form-control" name="message" id="message" placeholder="<?php echo lang('Type your message here...'); ?>"></textarea>
 								</div>
 
 								<div class="row">
 									<div class="col-12 col-md-6">
 										<div class="form-group">
-											<label><?php echo $this->lang->line('Paste link'); ?></label>
+											<label><?php echo lang('Paste link'); ?></label>
 											<input class="form-control" name="link" id="link"  type="text">
 										</div>
 										<div class="form-group hidden">
-											<label><?php echo $this->lang->line('Preview image URL'); ?></label>
+											<label><?php echo lang('Preview image URL'); ?></label>
 											<input class="form-control" name="link_preview_image" id="link_preview_image" type="text"> 
 										</div>					
 										<div class="form-group hidden">      
-					                         <div id="link_preview_upload"><?php echo $this->lang->line('Upload');?></div>                              
+					                         <div id="link_preview_upload"><?php echo lang('Upload');?></div>                              
 					                        <br/>
 					                    </div>
 										<div class="form-group hidden">
-											<label><?php echo $this->lang->line('Title'); ?></label>
+											<label><?php echo lang('Title'); ?></label>
 											<input class="form-control" name="link_caption" id="link_caption" type="text"> 
 										</div>	
 										<div class="form-group hidden">
-											<label><?php echo $this->lang->line('Description'); ?></label>
+											<label><?php echo lang('Description'); ?></label>
 											<textarea class="form-control" name="link_description" id="link_description"></textarea>
 										</div>
 									</div>
 
 									<div class="col-12 col-md-6">
 										<div class="form-group">
-											<label><?php echo $this->lang->line('CTA button type'); ?></label>
+											<label><?php echo lang('CTA button type'); ?></label>
 											<?php echo form_dropdown("cta_type",$cta_dropdown,"MESSAGE_PAGE","class='form-control select2' id='cta_type' style='width:100%;'");?>
 										</div>
 									</div>
 
 									<div class="col-12">
 										<div class="form-group cta_value_container_div">
-											<label><?php echo $this->lang->line('CTA button action link'); ?></label>
+											<label><?php echo lang('CTA button action link'); ?></label>
 											<input type="text" class="form-control"  name="cta_value" id="cta_value">
 										</div>
 										<?php 
@@ -99,8 +99,8 @@
 
 									<div class="col-12 col-md-6">
 										<div class="form-group">
-											<label><?php echo $this->lang->line('Post to pages'); ?>
-												<a href="#" data-placement="right" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("Select Page"); ?>" data-content="<?php echo $this->lang->line("Select the page you want to post. You can select multiple page to post."); ?>"><i class='fa fa-info-circle'></i> </a>
+											<label><?php echo lang('Post to pages'); ?>
+												<a href="#" data-placement="right" data-toggle="popover" data-trigger="focus" title="<?php echo lang("Select Page"); ?>" data-content="<?php echo lang("Select the page you want to post. You can select multiple page to post."); ?>"><i class='fa fa-info-circle'></i> </a>
 											</label>
 											<select multiple class="form-control select2" id="post_to_pages" name="post_to_pages[]" style="width:100%;">
 											<?php
@@ -117,10 +117,10 @@
 
 									<div class="col-12 col-md-6">
 										<div class="form-group">
-											<label><?php echo $this->lang->line('Auto Reply Template'); ?></label>
+											<label><?php echo lang('Auto Reply Template'); ?></label>
 											<select  class="form-control select2" id="auto_reply_template" name="auto_reply_template" style="width:100%;">
 											<?php
-												echo "<option value='0'>{$this->lang->line('Please select a template')}</option>";
+												echo "<option value='0'>".lang('Please select a template')."</option>";
 												foreach($auto_reply_template as $key=>$val)
 												{
 													$id=$val['id'];
@@ -134,13 +134,13 @@
 									
 									<div class="col-12 col-md-6">
 										<div class="form-group">
-										<label><?php echo $this->lang->line("Posting Time") ?>
-											<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("Posting Time") ?>" data-content="<?php echo $this->lang->line("If you schedule a campaign, system will automatically process this campaign at mentioned time and time zone. Schduled campaign may take upto 1 hour longer than your schedule time depending on server's processing.") ?>"><i class='fa fa-info-circle'></i> </a>
+										<label><?php echo lang("Posting Time") ?>
+											<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang("Posting Time") ?>" data-content="<?php echo lang("If you schedule a campaign, system will automatically process this campaign at mentioned time and time zone. Schduled campaign may take upto 1 hour longer than your schedule time depending on server's processing.") ?>"><i class='fa fa-info-circle'></i> </a>
 										</label><br>
 										  <label class="custom-switch mt-2">
 											<input type="checkbox" name="schedule_type" value="now" id="schedule_type" class="custom-switch-input" checked>
 											<span class="custom-switch-indicator"></span>
-											<span class="custom-switch-description"><?php echo $this->lang->line('Post Now');?></span>
+											<span class="custom-switch-description"><?php echo lang('Post Now');?></span>
 										  </label>
 										</div>
 									</div>
@@ -149,28 +149,28 @@
 								<div class="row">
 									<div class="schedule_block_item col-12 col-md-6">
 										<div class="form-group">
-											<label><?php echo $this->lang->line('Schedule time'); ?></label>
+											<label><?php echo lang('Schedule time'); ?></label>
 											<input placeholder="Time"  name="schedule_time" id="schedule_time" class="form-control datepicker_x" type="text"/>
 										</div>
 									</div>
 
 									<div class="schedule_block_item col-12 col-md-6">
 										<div class="form-group">
-											<label><?php echo $this->lang->line('Time zone'); ?></label>
+											<label><?php echo lang('Time zone'); ?></label>
 											<?php
 											$time_zone[''] = 'Please Select';
-											echo form_dropdown('time_zone',$time_zone,$this->config->item('time_zone'),' class="form-control select2" id="time_zone" required style="width:100%;"');
+											echo form_dropdown('time_zone',$time_zone,config('MyConfig')->time_zone ?? '',' class="form-control select2" id="time_zone" required style="width:100%;"');
 											?>
 										</div>
 									</div>
 
 									<div class=" schedule_block_item col-12 col-md-6">
 										<div class="input-group">
-										  	<label class="input-group-addon"><?php echo $this->lang->line('repost this post'); ?></label>
+										  	<label class="input-group-addon"><?php echo lang('repost this post'); ?></label>
 										  	<div class="input-group">
 					                          	<input type="number" class="form-control" name="repeat_times" id="repeat_times" aria-describedby="basic-addon2">
 					                          	<div class="input-group-prepend">
-						                            <div class="input-group-text"><?php echo $this->lang->line('Times'); ?></div>
+						                            <div class="input-group-text"><?php echo lang('Times'); ?></div>
 					                          	</div>
 				                        	</div>
 										</div>
@@ -179,9 +179,9 @@
 									<div class="col-12 col-md-6">
 										<div class="schedule_block_item">
 											<div class="form-group">
-												<label><?php echo $this->lang->line('time interval'); ?></label>
+												<label><?php echo lang('time interval'); ?></label>
 												<?php
-													$time_interval[''] = $this->lang->line('Please Select Periodic Time Schedule');
+													$time_interval[''] = lang('Please Select Periodic Time Schedule');
 													echo form_dropdown('time_interval',$time_interval,set_value('time_interval'),' class="form-control select2" id="time_interval" required style="width:100%;"');
 												?>
 											</div>
@@ -192,8 +192,8 @@
 								<div class="clearfix"></div>
 
 								<div class="card-footer padding-0">
-									<button class="btn btn-lg btn-primary" submit_type="text_submit" id="submit_post" name="submit_post" type="button"><i class="fas fa-paper-plane"></i> <?php echo $this->lang->line("Create Campaign") ?></button>
-									<a class="btn btn-lg btn-light float-right" onclick='goBack("ultrapost/cta_post",0)'><i class="fas fa-times"></i> <?php echo $this->lang->line("Cancel") ?> </a>
+									<button class="btn btn-lg btn-primary" submit_type="text_submit" id="submit_post" name="submit_post" type="button"><i class="fas fa-paper-plane"></i> <?php echo lang("Create Campaign") ?></button>
+									<a class="btn btn-lg btn-light float-right" onclick='goBack("ultrapost/cta_post",0)'><i class="fas fa-times"></i> <?php echo lang("Cancel") ?> </a>
 								</div>
 							</form>
 						</div>
@@ -203,10 +203,10 @@
 			<!-- preview section -->
 			<div class="col-12 col-md-5 colmid d-none d-sm-block">
 				<div class="card main_card">
-					<div class="card-header"><h4><i class="fab fa-facebook"></i> <?php echo $this->lang->line('Preview'); ?></h4></div>
+					<div class="card-header"><h4><i class="fab fa-facebook"></i> <?php echo lang('Preview'); ?></h4></div>
 		          	<div class="card-body">
 		          		<div class="section-title text-info" style="margin: -30px 0px 10px 0px; font-weight: normal;">
-		          			<?php echo $this->lang->line('This preview may differ with actual post.'); ?>
+		          			<?php echo lang('This preview may differ with actual post.'); ?>
 		          		</div>
 			          	<?php $profile_picture="https://graph.facebook.com/me/picture?access_token={$facebook_rx_fb_user_info_access_token}&width=150&height=150";?>
 						<ul class="list-unstyled list-unstyled-border">
@@ -215,9 +215,9 @@
 							  <div class="media-body">
 							    <h6 class="media-title"><a href="#"><?php echo $facebook_rx_fb_user_info_name;?></a></h6>
 							    <div class="text-small text-muted">
-							    	<?php echo isset($app_info[0]['app_name']) ? $app_info[0]['app_name'] : $this->config->item("product_short_name");?> 
+							    	<?php echo isset($app_info[0]['app_name']) ? $app_info[0]['app_name'] : (config('MyConfig')->product_short_name ?? '');?> 
 							    	<div class="bullet"></div> 
-							    	<span class="text-primary"><?php echo $this->lang->line('Now'); ?></span></div>
+							    	<span class="text-primary"><?php echo lang('Now'); ?></span></div>
 							  </div>
 							</li>
 						</ul>
@@ -232,7 +232,7 @@
 							</div>
 							<div class="preview_og_info_link inline-block pull-left">							
 							</div>
-							<div class="button_container"><a class="cta-btn btn btn-sm btn-default float-right"><?php echo $this->lang->line('Message Page'); ?></a></div>
+							<div class="button_container"><a class="cta-btn btn btn-sm btn-default float-right"><?php echo lang('Message Page'); ?></a></div>
 						</div>
 
 		          	</div>          
@@ -459,20 +459,20 @@
           	         
     		if($("#link").val()=="")
     		{
-    			swal('<?php echo $this->lang->line("Warning"); ?>', "<?php echo $this->lang->line('Please paste a link to post.');?>", 'warning');
+    			swal('<?php echo lang("Warning"); ?>', "<?php echo lang('Please paste a link to post.');?>", 'warning');
     			return;
     		}
 
     		if($("#cta_value").val()=="" || $("#cta_type").val()=="")
     		{ 
-    			swal('<?php echo $this->lang->line("Warning"); ?>', "<?php echo $this->lang->line('Please select cta button type and enter cta button action link.');?>", 'warning');
+    			swal('<?php echo lang("Warning"); ?>', "<?php echo lang('Please select cta button type and enter cta button action link.');?>", 'warning');
     			return;
     		}
     	
         	var post_to_pages = $("#post_to_pages").val();
         	if(post_to_pages=='' || typeof(post_to_pages) =='undefined')
         	{
-        		swal('<?php echo $this->lang->line("Warning"); ?>', "<?php echo $this->lang->line('Please select pages to publish this post.');?>", 'warning');
+        		swal('<?php echo lang("Warning"); ?>', "<?php echo lang('Please select pages to publish this post.');?>", 'warning');
         		return;
         	}
           	
@@ -482,7 +482,7 @@
         	var time_zone = $("#time_zone").val();
         	if(typeof(schedule_type)=='undefined' && (schedule_time=="" || time_zone==""))
         	{
-        		swal('<?php echo $this->lang->line("Warning"); ?>', "<?php echo $this->lang->line('Please select schedule time/time zone.');?>", 'warning');
+        		swal('<?php echo lang("Warning"); ?>', "<?php echo lang('Please select schedule time/time zone.');?>", 'warning');
         		return;
         	}
 
@@ -502,13 +502,17 @@
 		       success:function(response)
 		       {  		         
 		       		$(that).removeClass('btn-progress');  
-		         	var report_link="<a href='"+base_url+"ultrapost/cta_post'><?php echo $this->lang->line('Click here to see report'); ?></a>";
+		         	var report_link="<a href='"+base_url+"ultrapost/cta_post'><?php echo lang('Click here to see report'); ?></a>";
 
 		         	if(response.status=="1")
 			        {
 			        	var span = document.createElement("span");
 			        	span.innerHTML = report_link;
-			        	swal({ title:response.message, content:span,icon:'success'});
+			        	swal({ title:response.message, content:span,icon:'success'})
+			        	 .then(function(){
+			        	 	// Redirect the top window (in case this is inside an iframe)
+			        	 	window.top.location = base_url+"ultrapost/cta_post";
+			        	 });
 			        }
 			        else
 			        {
@@ -535,7 +539,7 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				<h4 class="modal-title"><?php echo $this->lang->line('Auto Post Campaign Status'); ?></h4>
+				<h4 class="modal-title"><?php echo lang('Auto Post Campaign Status'); ?></h4>
 			</div>
 			<div class="modal-body">
 				<div class="alert text-center" id="response_modal_content">

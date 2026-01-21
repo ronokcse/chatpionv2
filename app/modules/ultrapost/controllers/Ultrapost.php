@@ -12,27 +12,44 @@ Version: 1.0
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Ultrapost\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Ultrapost extends Home
 {
     public $addon_data=array();
-    public function __construct()
-    {
-        parent::__construct();
-        if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
 
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(100,$this->module_access))
-        {
-            redirect('home/login_page', 'location');
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
+    {
+        parent::initController($request, $response, $logger);
+
+        // Must be logged in
+        if ($this->session->userdata('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
             exit();
         }
 
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
-        $this->addon_data=$this->get_addon_data($addon_path);
-        $this->member_validity();
-        $this->user_id=$this->session->userdata('user_id'); // user_id of logged in user, we may need it
+        // Only admin or users with module 100 access
+        if ($this->session->userdata('user_type') != 'Admin' && !in_array(100, $this->module_access ?? [])) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
+        // Load addon metadata
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path = APPPATH . "modules/" . strtolower($controller_name) . "/controllers/" . ucfirst($controller_name) . ".php"; // path of addon controller
+        $this->addon_data = $this->get_addon_data($addon_path);
+
+        $this->member_validity();
+        // user_id of logged in user, we may need it
+        $this->user_id = $this->session->userdata('user_id');
     }
 
     public function index()
@@ -202,7 +219,7 @@ class Ultrapost extends Home
         $user_infos = $this->basic->get_data("facebook_rx_fb_user_info",array("where"=>array("user_id"=>$this->user_id,"id"=>$this->session->userdata("facebook_rx_fb_user_info"))));
 
         if ( count( $user_infos ) == 0 ) 
-            return redirect( base_url( 'facebook_rx_account_import/index' ), 'location' );
+            return redirect()->to(base_url('facebook_rx_account_import/index'));
 
         $data["fb_user_info"] = $user_infos;
         if($this->config->item('facebook_poster_botenabled_pages') == '1'){
@@ -638,7 +655,7 @@ class Ultrapost extends Home
                     $response = $this->fb_rx_login->cta_post($message, $link,"","",$cta_type,$cta_value,"","",$page_access_token,$fb_page_id);
 
                 }
-                catch(Exception $e) 
+                catch(\Exception $e) 
                 {
                   $error_msg = $e->getMessage();
                   $return_val=array("status"=>"0","message"=>$error_msg);
@@ -857,7 +874,7 @@ class Ultrapost extends Home
         check_module_action_access($module_id=220,$actions=2);
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET'){
-            redirect('home/access_forbidden', 'location');
+            return redirect()->to(base_url('home/access_forbidden'));
         }
         if ($_POST)
         {
@@ -1147,7 +1164,7 @@ class Ultrapost extends Home
         $user_infos = $this->basic->get_data("facebook_rx_fb_user_info",array("where"=>array("user_id"=>$this->user_id,"id"=>$this->session->userdata("facebook_rx_fb_user_info"))));
 
         if ( count( $user_infos ) == 0 ) 
-            return redirect( base_url( 'facebook_rx_account_import/index' ), 'location' );
+            return redirect()->to(base_url('facebook_rx_account_import/index'));
 
         $data["fb_user_info"] = $user_infos;
         if($this->config->item('facebook_poster_botenabled_pages') == '1'){
@@ -1650,7 +1667,7 @@ class Ultrapost extends Home
                          $response = $this->fb_rx_login->carousel_post($message=$slider_message,$link=$slider_link,$child_attachments=$slider_post_content,$scheduled_publish_time="",$post_access_token=$page_access_token,$page_id=$fb_page_id);                    
                          
                      }
-                     catch(Exception $e) 
+                    catch(\Exception $e) 
                      {
                        $error_msg = $e->getMessage();
                        $return_val=array("status"=>"0","message"=>$error_msg);
@@ -1668,7 +1685,7 @@ class Ultrapost extends Home
                          
                         
                      }
-                     catch(Exception $e) 
+                    catch(\Exception $e)
                      {
                        $error_msg = $e->getMessage();
                        $return_val=array("status"=>"0","message"=>$error_msg);
@@ -1907,7 +1924,7 @@ class Ultrapost extends Home
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET')
         {
-            redirect('home/access_forbidden', 'location');
+            return redirect()->to(base_url('home/access_forbidden'));
         }
 
         if($_POST)

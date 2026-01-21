@@ -1,13 +1,16 @@
 <?php 
-	$this->load->view("include/upload_js"); 
+	echo view("include/upload_js"); 
 
 	$image_upload_limit = 1; 
-	if($this->config->item('facebook_poster_image_upload_limit') != '')
-	$image_upload_limit = $this->config->item('facebook_poster_image_upload_limit'); 
+	if(config('MyConfig')->facebook_poster_image_upload_limit != '')
+	$image_upload_limit = config('MyConfig')->facebook_poster_image_upload_limit; 
 
 	$video_upload_limit = 10; 
-	if($this->config->item('facebook_poster_video_upload_limit') != '')
-	$video_upload_limit = $this->config->item('facebook_poster_video_upload_limit');
+	if(config('MyConfig')->facebook_poster_video_upload_limit != '')
+	$video_upload_limit = config('MyConfig')->facebook_poster_video_upload_limit;
+
+	// CI4: resolve theme color code from config, with a safe default
+	$THEMECOLORCODE = config('MyConfig')->THEMECOLORCODE ?? '#6777ef';
 ?>
 
 <style type="text/css">
@@ -31,8 +34,8 @@
 	<div class="section-header">
 		<h1><i class="fas fa-video"></i> <?php echo $page_title; ?></h1>
 		<div class="section-header-breadcrumb">
-			<div class="breadcrumb-item"><a href="<?php echo base_url("ultrapost"); ?>"><?php echo $this->lang->line("Facebook Poster"); ?></a></div>
-			<div class="breadcrumb-item"><a href='<?php echo base_url("ultrapost/carousel_slider_post"); ?>'><?php echo $this->lang->line("Carousel/Slider Posts"); ?></a></div>
+			<div class="breadcrumb-item"><a href="<?php echo base_url("ultrapost"); ?>"><?php echo lang("Facebook Poster"); ?></a></div>
+			<div class="breadcrumb-item"><a href='<?php echo base_url("ultrapost/carousel_slider_post"); ?>'><?php echo lang("Carousel/Slider Posts"); ?></a></div>
 			<div class="breadcrumb-item"><?php echo $page_title; ?></div>
 		</div>
 	</div>
@@ -44,10 +47,10 @@
 					<div class="card-header" style="border-bottom: 0;padding-bottom:0 !important;">
 						<ul class="nav nav-tabs" role="tablist" style="width:100% !important;margin-bottom:-7px;">
 							<li class="nav-item">
-								<a id="slider_post" class="nav-link post_type active" data-toggle="tab" href="#" role="tab" aria-selected="false"><i class="fa fa-file-image-o"></i> <?php echo $this->lang->line('Carousel') ?></a>
+								<a id="slider_post" class="nav-link post_type active" data-toggle="tab" href="#" role="tab" aria-selected="false"><i class="fa fa-file-image-o"></i> <?php echo lang('Carousel') ?></a>
 							</li>              
 							<li class="nav-item">
-								<a id="video_post" class="nav-link post_type" data-toggle="tab" href="#" role="tab" aria-selected="true"><i class="fa fa-video-camera"></i> <?php echo $this->lang->line("Video Slide Show") ?></a>
+								<a id="video_post" class="nav-link post_type" data-toggle="tab" href="#" role="tab" aria-selected="true"><i class="fa fa-video-camera"></i> <?php echo lang("Video Slide Show") ?></a>
 							</li>
 
 						</ul>
@@ -61,7 +64,7 @@
 									<div class="col-12 col-md-6">
 										<div class="form-group">
 											<div class="form-group">
-												<label><?php echo $this->lang->line('Campaign Name'); ?> <span class="red">*</span></label>
+												<label><?php echo lang('Campaign Name'); ?> <span class="red">*</span></label>
 												<input class="form-control" name="campaign_name" id="campaign_name" />
 											</div>
 										</div>
@@ -69,7 +72,7 @@
 
 									<div class="col-12 col-md-6">
 										<div class="form-group">
-											<label><?php echo $this->lang->line('Post to pages'); ?> <span class="red">*</span></label>
+											<label><?php echo lang('Post to pages'); ?> <span class="red">*</span></label>
 											<select multiple class="form-control select2" id="post_to_pages" name="post_to_pages[]" style="width:100%;">	
 											<?php
 												foreach($fb_page_info as $key=>$val)
@@ -90,9 +93,9 @@
 											 	$facebook_rx_fb_user_info_name=isset($fb_user_info[0]["name"]) ? $fb_user_info[0]["name"] : ""; 
 											 	$facebook_rx_fb_user_info_access_token=isset($fb_user_info[0]["access_token"]) ? $fb_user_info[0]["access_token"] : ""; 
 											 ?>
-											<label><?php echo $this->lang->line('Post to timeline/pages'); ?></label><br/>
-											<input name="post_to_profile" value="<?php echo $facebook_rx_fb_user_info_id;?>" id="post_to_profile_yes"  type="radio"> <?php echo $this->lang->line('Post to timeline'); ?> (<?php echo $facebook_rx_fb_user_info_name;?>) &nbsp;&nbsp;
-											<input name="post_to_profile" value="No" id="post_to_profile_no" type="radio" checked> <?php echo $this->lang->line('No, don\'t post'); ?>
+											<label><?php echo lang('Post to timeline/pages'); ?></label><br/>
+											<input name="post_to_profile" value="<?php echo $facebook_rx_fb_user_info_id;?>" id="post_to_profile_yes"  type="radio"> <?php echo lang('Post to timeline'); ?> (<?php echo $facebook_rx_fb_user_info_name;?>) &nbsp;&nbsp;
+											<input name="post_to_profile" value="No" id="post_to_profile_no" type="radio" checked> <?php echo lang('No, don\'t post'); ?>
 										</div>
 									</div>
 								</div>
@@ -102,21 +105,21 @@
 								<div class="row" id="slider_block">
 									<div class="col-12">
 										<div class="card card-primary" id="slider_content">
-											<div class="card-header"><h4><?php echo $this->lang->line('Carousel'); ?></h4></div>
+											<div class="card-header"><h4><?php echo lang('Carousel'); ?></h4></div>
 											
 											<div class="card-body">
 												<div class="row">
 													<div class="col-12 col-md-6">
 														<div class="form-group">
-															<label><?php echo $this->lang->line('Slider Link'); ?> <span class="red">*</span></label>
-															<input type="text" class="form-control" name="slider_link" id="slider_link" placeholder="<?php echo $this->lang->line('Type link here...'); ?>" />
+															<label><?php echo lang('Slider Link'); ?> <span class="red">*</span></label>
+															<input type="text" class="form-control" name="slider_link" id="slider_link" placeholder="<?php echo lang('Type link here...'); ?>" />
 														</div>
 													</div>
 													<div class="col-12 col-md-6">
 														<div class="form-group">
-															<label><?php echo $this->lang->line('Message'); ?></label>
-															<a href="#" data-placement="right"  data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("message") ?>" data-content="<?php echo $this->lang->line("support Spintax"); ?>, Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
-															<textarea class="form-control" name="slider_message" id="slider_message" placeholder="<?php echo $this->lang->line('Type your status here...'); ?>"></textarea>
+															<label><?php echo lang('Message'); ?></label>
+															<a href="#" data-placement="right"  data-toggle="popover" data-trigger="focus" title="<?php echo lang("message") ?>" data-content="<?php echo lang("support Spintax"); ?>, Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+															<textarea class="form-control" name="slider_message" id="slider_message" placeholder="<?php echo lang('Type your status here...'); ?>"></textarea>
 														</div>
 													</div>
 												</div>
@@ -125,36 +128,36 @@
 													<div id="slider_content_1">
 														<div class="card">
 															<div class="card-header">
-																<h4><?php echo $this->lang->line('Slider Content 1:'); ?></h4>
+																<h4><?php echo lang('Slider Content 1:'); ?></h4>
 															</div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Title'); ?></label>
-																			<input type="text" class="form-control" name="post_title_1" id="post_title_1" placeholder="<?php echo $this->lang->line('Type your post title here...'); ?>" />
+																			<label><?php echo lang('Title'); ?></label>
+																			<input type="text" class="form-control" name="post_title_1" id="post_title_1" placeholder="<?php echo lang('Type your post title here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Action Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_link_1" id="post_link_1" placeholder="<?php echo $this->lang->line('Type link here...'); ?>" />
+																			<label><?php echo lang('Action Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_link_1" id="post_link_1" placeholder="<?php echo lang('Type link here...'); ?>" />
 																		</div>
 																	</div>								
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Description'); ?></label>
-																			<textarea style="min-height:130px;" class="form-control" name="post_description_1" id="post_description_1" placeholder="<?php echo $this->lang->line('Type your description here...'); ?>"></textarea>
+																			<label><?php echo lang('Description'); ?></label>
+																			<textarea style="min-height:130px;" class="form-control" name="post_description_1" id="post_description_1" placeholder="<?php echo lang('Type your description here...'); ?>"></textarea>
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_image_link_1" id="post_image_link_1" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_image_link_1" id="post_image_link_1" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload image'); ?></label>
-																			<div id="post_image_1"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload image'); ?></label>
+																			<div id="post_image_1"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -165,36 +168,36 @@
 													<div class="slide_content_block_d_none" id="slider_conten_2">
 														<div class="card">
 															<div class="card-header">
-																<h4><?php echo $this->lang->line('Slider Content 2:'); ?></h4>
+																<h4><?php echo lang('Slider Content 2:'); ?></h4>
 															</div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-sm-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Title'); ?></label>
-																			<input type="text" class="form-control" name="post_title_2" id="post_title_2" placeholder="<?php echo $this->lang->line('Type your post title here...'); ?>" />
+																			<label><?php echo lang('Title'); ?></label>
+																			<input type="text" class="form-control" name="post_title_2" id="post_title_2" placeholder="<?php echo lang('Type your post title here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Action Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_link_2" id="post_link_2" placeholder="<?php echo $this->lang->line('Type link here...'); ?>" />
+																			<label><?php echo lang('Action Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_link_2" id="post_link_2" placeholder="<?php echo lang('Type link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Description'); ?></label>
-																			<textarea style="min-height:130px;" class="form-control" name="post_description_2" id="post_description_2" placeholder="<?php echo $this->lang->line('Type your description here...'); ?>"></textarea>
+																			<label><?php echo lang('Description'); ?></label>
+																			<textarea style="min-height:130px;" class="form-control" name="post_description_2" id="post_description_2" placeholder="<?php echo lang('Type your description here...'); ?>"></textarea>
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_image_link_2" id="post_image_link_2" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_image_link_2" id="post_image_link_2" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload image'); ?></label>
-																			<div id="post_image_2"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload image'); ?></label>
+																			<div id="post_image_2"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -205,37 +208,37 @@
 													<div class="slide_content_block_d_none" id="slider_conten_3">
 														<div class="card">
 															<div class="card-header">
-																<h4><?php echo $this->lang->line('Slider Content 3:'); ?></h4>
+																<h4><?php echo lang('Slider Content 3:'); ?></h4>
 															</div>
 
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Title'); ?></label>
-																			<input type="text" class="form-control" name="post_title_3" id="post_title_3" placeholder="<?php echo $this->lang->line('Type your post title here...'); ?>" />
+																			<label><?php echo lang('Title'); ?></label>
+																			<input type="text" class="form-control" name="post_title_3" id="post_title_3" placeholder="<?php echo lang('Type your post title here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Action Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_link_3" id="post_link_3" placeholder="<?php echo $this->lang->line('Type link here...'); ?>" />
+																			<label><?php echo lang('Action Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_link_3" id="post_link_3" placeholder="<?php echo lang('Type link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Description'); ?></label>
-																			<textarea style="min-height:130px;" class="form-control" name="post_description_3" id="post_description_3" placeholder="<?php echo $this->lang->line('Type your description here...'); ?>"></textarea>
+																			<label><?php echo lang('Description'); ?></label>
+																			<textarea style="min-height:130px;" class="form-control" name="post_description_3" id="post_description_3" placeholder="<?php echo lang('Type your description here...'); ?>"></textarea>
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_image_link_3" id="post_image_link_3" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_image_link_3" id="post_image_link_3" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload image'); ?></label>
-																			<div id="post_image_3"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload image'); ?></label>
+																			<div id="post_image_3"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -246,37 +249,37 @@
 													<div class="slide_content_block_d_none" id="slider_conten_4">
 														<div class="card">
 															<div class="card-header">
-																<h4><?php echo $this->lang->line('Slider Content 4:'); ?></h4>
+																<h4><?php echo lang('Slider Content 4:'); ?></h4>
 															</div>
 
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Title'); ?></label>
-																			<input type="text" class="form-control" name="post_title_4" id="post_title_4" placeholder="<?php echo $this->lang->line('Type your post title here...'); ?>" />
+																			<label><?php echo lang('Title'); ?></label>
+																			<input type="text" class="form-control" name="post_title_4" id="post_title_4" placeholder="<?php echo lang('Type your post title here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Action Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_link_4" id="post_link_4" placeholder="<?php echo $this->lang->line('Type link here...'); ?>" />
+																			<label><?php echo lang('Action Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_link_4" id="post_link_4" placeholder="<?php echo lang('Type link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Description'); ?></label>
-																			<textarea style="min-height:130px;" class="form-control" name="post_description_4" id="post_description_4" placeholder="<?php echo $this->lang->line('Type your description here...'); ?>"></textarea>
+																			<label><?php echo lang('Description'); ?></label>
+																			<textarea style="min-height:130px;" class="form-control" name="post_description_4" id="post_description_4" placeholder="<?php echo lang('Type your description here...'); ?>"></textarea>
 																		</div>
 																	</div>
 																	<div class="col-12 col-sm-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_image_link_4" id="post_image_link_4" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_image_link_4" id="post_image_link_4" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload image'); ?></label>
-																			<div id="post_image_4"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload image'); ?></label>
+																			<div id="post_image_4"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>	
@@ -286,35 +289,35 @@
 
 													<div class="slide_content_block_d_none" id="slider_conten_5">
 														<div class="card">
-															<div class="card-header"><h4><?php echo $this->lang->line('Slider Content 5:'); ?></h4></div>
+															<div class="card-header"><h4><?php echo lang('Slider Content 5:'); ?></h4></div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-sm-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Title'); ?></label>
-																			<input type="text" class="form-control" name="post_title_5" id="post_title_5" placeholder="<?php echo $this->lang->line('Type your post title here...'); ?>" />
+																			<label><?php echo lang('Title'); ?></label>
+																			<input type="text" class="form-control" name="post_title_5" id="post_title_5" placeholder="<?php echo lang('Type your post title here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-sm-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Action Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_link_5" id="post_link_5" placeholder="<?php echo $this->lang->line('Type link here...'); ?>" />
+																			<label><?php echo lang('Action Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_link_5" id="post_link_5" placeholder="<?php echo lang('Type link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Description'); ?></label>
-																			<textarea style="min-height:130px;" class="form-control" name="post_description_5" id="post_description_5" placeholder="<?php echo $this->lang->line('Type your description here...'); ?>"></textarea>
+																			<label><?php echo lang('Description'); ?></label>
+																			<textarea style="min-height:130px;" class="form-control" name="post_description_5" id="post_description_5" placeholder="<?php echo lang('Type your description here...'); ?>"></textarea>
 																		</div>
 																	</div>
 																	<div class="col-12 col-sm-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?> <span class="red">*</span></label>
-																			<input type="text" class="form-control" name="post_image_link_5" id="post_image_link_5" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?> <span class="red">*</span></label>
+																			<input type="text" class="form-control" name="post_image_link_5" id="post_image_link_5" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload image'); ?></label>
-																			<div id="post_image_5"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload image'); ?></label>
+																			<div id="post_image_5"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -324,7 +327,7 @@
 												</div>
 
 												<div class="clearfix">
-													<p class="btn btn-outline-primary float-right mt-2" id="add_more"><i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Add More Content'); ?></p>
+													<p class="btn btn-outline-primary float-right mt-2" id="add_more"><i class="fas fa-plus-circle"></i> <?php echo lang('Add More Content'); ?></p>
 												</div>
 											</div>
 										</div> <!-- card card-primary end -->
@@ -336,40 +339,40 @@
 								<div class="row" id="video_block">
 									<div class="col-12">
 										<div class="card card-primary" id="video_content">
-											<div class="card-header"><h4><?php echo $this->lang->line('Video-Slide'); ?></h4></div>
+											<div class="card-header"><h4><?php echo lang('Video-Slide'); ?></h4></div>
 											<div class="card-body">
 
 												<div class="row">
 													<div class="col-12">
 														<div class="form-group">
-															<label><?php echo $this->lang->line('Message'); ?></label>
-															<a href="#" data-placement="right"  data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("message") ?>" data-content="<?php echo $this->lang->line("support Spintax"); ?>, Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
-															<textarea class="form-control" name="video_message" id="video_message" placeholder="<?php echo $this->lang->line('Type your message here...'); ?>"></textarea>
+															<label><?php echo lang('Message'); ?></label>
+															<a href="#" data-placement="right"  data-toggle="popover" data-trigger="focus" title="<?php echo lang("message") ?>" data-content="<?php echo lang("support Spintax"); ?>, Spintax example : {Hello|Howdy|Hola} to you, {Mr.|Mrs.|Ms.} {{Jason|Malina|Sara}|Williams|Davis}"><i class='fa fa-info-circle'></i> </a>
+															<textarea class="form-control" name="video_message" id="video_message" placeholder="<?php echo lang('Type your message here...'); ?>"></textarea>
 														</div>
 													</div>
 
 													<div class="col-12 col-md-6">
 														<div class="form-group">
-															<label><?php echo $this->lang->line('Image Duration (second)'); ?></label>
+															<label><?php echo lang('Image Duration (second)'); ?></label>
 															<select class="form-control select2" id="video_image_duration" name="video_image_duration" style="width:100%;">	
-																<option value="1"><?php echo $this->lang->line('1 sec'); ?></option>	
-																<option value="2"><?php echo $this->lang->line('2 sec'); ?></option>
-																<option value="3"><?php echo $this->lang->line('3 sec'); ?></option>
-																<option value="4"><?php echo $this->lang->line('4 sec'); ?></option>
-																<option value="5"><?php echo $this->lang->line('5 sec'); ?></option>
+																<option value="1"><?php echo lang('1 sec'); ?></option>	
+																<option value="2"><?php echo lang('2 sec'); ?></option>
+																<option value="3"><?php echo lang('3 sec'); ?></option>
+																<option value="4"><?php echo lang('4 sec'); ?></option>
+																<option value="5"><?php echo lang('5 sec'); ?></option>
 															</select>
 														</div>
 													</div>
 
 													<div class="col-12 col-md-6">
 														<div class="form-group">
-															<label><?php echo $this->lang->line('Transition Duration (second)'); ?></label>
+															<label><?php echo lang('Transition Duration (second)'); ?></label>
 															<select class="form-control select2" id="video_image_transition_duration" name="video_image_transition_duration" style="width:100%;">	
-																<option value="1"><?php echo $this->lang->line('1 sec'); ?></option>
-																<option value="2"><?php echo $this->lang->line('2 sec'); ?></option>
-																<option value="3"><?php echo $this->lang->line('3 sec'); ?></option>
-																<option value="4"><?php echo $this->lang->line('4 sec'); ?></option>
-																<option value="5"><?php echo $this->lang->line('5 sec'); ?></option>		
+																<option value="1"><?php echo lang('1 sec'); ?></option>
+																<option value="2"><?php echo lang('2 sec'); ?></option>
+																<option value="3"><?php echo lang('3 sec'); ?></option>
+																<option value="4"><?php echo lang('4 sec'); ?></option>
+																<option value="5"><?php echo lang('5 sec'); ?></option>		
 															</select>
 														</div>
 													</div>
@@ -378,19 +381,19 @@
 												<div class="card card-secondary">
 													<div id="video_image_div_1">
 														<div class="card">
-															<div class="card-header"><h4><?php echo $this->lang->line('Image Content 1 :'); ?></h4></div>
+															<div class="card-header"><h4><?php echo lang('Image Content 1 :'); ?></h4></div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?></label>
-																			<input type="text" class="form-control" name="video_image_link_1" id="video_image_link_1" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?></label>
+																			<input type="text" class="form-control" name="video_image_link_1" id="video_image_link_1" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload Image'); ?></label>
-																			<div id="video_images_1"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload Image'); ?></label>
+																			<div id="video_images_1"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -400,19 +403,19 @@
 
 													<div class="video_content_block_d_none" id="video_image_div_2">
 														<div class="card">
-															<div class="card-header"><h4><?php echo $this->lang->line('Image Content 2 :'); ?></h4></div>
+															<div class="card-header"><h4><?php echo lang('Image Content 2 :'); ?></h4></div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?></label>
-																			<input type="text" class="form-control" name="video_image_link_2" id="video_image_link_2" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?></label>
+																			<input type="text" class="form-control" name="video_image_link_2" id="video_image_link_2" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload Image'); ?></label>
-																			<div id="video_images_2"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload Image'); ?></label>
+																			<div id="video_images_2"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -422,19 +425,19 @@
 
 													<div class="video_content_block_d_none" id="video_image_div_3">
 														<div class="card">
-															<div class="card-header"><h4><?php echo $this->lang->line('Image Content 3 :'); ?></h4></div>
+															<div class="card-header"><h4><?php echo lang('Image Content 3 :'); ?></h4></div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?></label>
-																			<input type="text" class="form-control" name="video_image_link_3" id="video_image_link_3" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?></label>
+																			<input type="text" class="form-control" name="video_image_link_3" id="video_image_link_3" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload Image'); ?></label>
-																			<div id="video_images_3"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload Image'); ?></label>
+																			<div id="video_images_3"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -444,19 +447,19 @@
 
 													<div class="video_content_block_d_none" id="video_image_div_4">
 														<div class="card">
-															<div class="card-header"><h4><?php echo $this->lang->line('Image Content 4 :'); ?></h4></div>
+															<div class="card-header"><h4><?php echo lang('Image Content 4 :'); ?></h4></div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?></label>
-																			<input type="text" class="form-control" name="video_image_link_4" id="video_image_link_4" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?></label>
+																			<input type="text" class="form-control" name="video_image_link_4" id="video_image_link_4" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload Image'); ?></label>
-																			<div id="video_images_4"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload Image'); ?></label>
+																			<div id="video_images_4"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -466,19 +469,19 @@
 
 													<div class="video_content_block_d_none" id="video_image_div_5">
 														<div class="card">
-															<div class="card-header"><h4><?php echo $this->lang->line('Image Content 5 :'); ?></h4></div>
+															<div class="card-header"><h4><?php echo lang('Image Content 5 :'); ?></h4></div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?></label>
-																			<input type="text" class="form-control" name="video_image_link_5" id="video_image_link_5" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?></label>
+																			<input type="text" class="form-control" name="video_image_link_5" id="video_image_link_5" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload Image'); ?></label>
-																			<div id="video_images_5"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload Image'); ?></label>
+																			<div id="video_images_5"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -488,19 +491,19 @@
 
 													<div class="video_content_block_d_none" id="video_image_div_6">
 														<div class="card">
-															<div class="card-header"><h4><?php echo $this->lang->line('Image Content 6 :'); ?></h4></div>
+															<div class="card-header"><h4><?php echo lang('Image Content 6 :'); ?></h4></div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?></label>
-																			<input type="text" class="form-control" name="video_image_link_6" id="video_image_link_6" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?></label>
+																			<input type="text" class="form-control" name="video_image_link_6" id="video_image_link_6" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload Image'); ?></label>
-																			<div id="video_images_6"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload Image'); ?></label>
+																			<div id="video_images_6"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -510,19 +513,19 @@
 
 													<div class="video_content_block_d_none" id="video_image_div_7">
 														<div class="card">
-															<div class="card-header"><h4><?php echo $this->lang->line('Image Content 7 :'); ?></h4></div>
+															<div class="card-header"><h4><?php echo lang('Image Content 7 :'); ?></h4></div>
 															<div class="card-body">
 																<div class="row">
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Image Link'); ?></label>
-																			<input type="text" class="form-control" name="video_image_link_7" id="video_image_link_7" placeholder="<?php echo $this->lang->line('Type image link here...'); ?>" />
+																			<label><?php echo lang('Image Link'); ?></label>
+																			<input type="text" class="form-control" name="video_image_link_7" id="video_image_link_7" placeholder="<?php echo lang('Type image link here...'); ?>" />
 																		</div>
 																	</div>
 																	<div class="col-12 col-md-6">
 																		<div class="form-group">
-																			<label><?php echo $this->lang->line('Upload Image'); ?></label>
-																			<div id="video_images_7"><?php echo $this->lang->line('Upload'); ?></div>
+																			<label><?php echo lang('Upload Image'); ?></label>
+																			<div id="video_images_7"><?php echo lang('Upload'); ?></div>
 																		</div>
 																	</div>
 																</div>
@@ -531,7 +534,7 @@
 													</div>
 
 													<div class="clearfix">
-														<p class="btn btn-outline-primary float-right mt-2" id="add_more_video_image"><i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Add More Image'); ?></p>
+														<p class="btn btn-outline-primary float-right mt-2" id="add_more_video_image"><i class="fas fa-plus-circle"></i> <?php echo lang('Add More Image'); ?></p>
 													</div>
 												</div>
 
@@ -545,14 +548,14 @@
 								<div class="row" id="posting_schedule_block">
 									<div class="col-6 padding-20">
 										<div class="form-group">
-											<label><?php echo $this->lang->line("Posting Time") ?>
-												<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("Posting Time") ?>" data-content="<?php echo $this->lang->line("If you schedule a campaign, system will automatically process this campaign at mentioned time and time zone. Schduled campaign may take upto 1 hour longer than your schedule time depending on server's processing.") ?>"><i class='fa fa-info-circle'></i> </a>
+											<label><?php echo lang("Posting Time") ?>
+												<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang("Posting Time") ?>" data-content="<?php echo lang("If you schedule a campaign, system will automatically process this campaign at mentioned time and time zone. Schduled campaign may take upto 1 hour longer than your schedule time depending on server's processing.") ?>"><i class='fa fa-info-circle'></i> </a>
 											</label>
 											<br>
 										  	<label class="custom-switch mt-2">
 												<input type="checkbox" name="schedule_type" value="now" id="schedule_type" class="custom-switch-input" checked>
 												<span class="custom-switch-indicator"></span>
-												<span class="custom-switch-description"><?php echo $this->lang->line('Post Now');?></span>
+												<span class="custom-switch-description"><?php echo lang('Post Now');?></span>
 										  	</label>
 										</div>
 									</div>
@@ -561,28 +564,28 @@
 								<div class="row">
 									<div class="schedule_block_item col-12 col-md-6">
 										<div class="form-group">
-											<label><?php echo $this->lang->line('Schedule time'); ?></label>
-											<input placeholder="<?php echo $this->lang->line('Time'); ?>"  name="schedule_time" id="schedule_time" class="form-control datepicker_x" type="text"/>
+											<label><?php echo lang('Schedule time'); ?></label>
+											<input placeholder="<?php echo lang('Time'); ?>"  name="schedule_time" id="schedule_time" class="form-control datepicker_x" type="text"/>
 										</div>
 									</div>
 
 									<div class="schedule_block_item col-12 col-md-6">
 										<div class="form-group">
-											<label><?php echo $this->lang->line('Time zone'); ?></label>
+											<label><?php echo lang('Time zone'); ?></label>
 											<?php
 											$time_zone[''] = 'Please Select';
-											echo form_dropdown('time_zone',$time_zone,$this->config->item('time_zone'),' class="form-control select2" id="time_zone" required style="width:100%;"'); 
+											echo form_dropdown('time_zone',$time_zone,config('MyConfig')->time_zone ?? '',' class="form-control select2" id="time_zone" required style="width:100%;"');
 											?>
 										</div>
 									</div>
 
 									<div class=" schedule_block_item col-12 col-md-6">
 										<div class="input-group">
-										  	<label class="input-group-addon"><?php echo $this->lang->line('repost this post'); ?></label>
+										  	<label class="input-group-addon"><?php echo lang('repost this post'); ?></label>
 										  	<div class="input-group">
 					                          	<input type="number" class="form-control" name="repeat_times" id="repeat_times" aria-describedby="basic-addon2">
 					                          	<div class="input-group-prepend">
-						                            <div class="input-group-text"><?php echo $this->lang->line('Times'); ?></div>
+						                            <div class="input-group-text"><?php echo lang('Times'); ?></div>
 					                          	</div>
 				                        	</div>
 										</div>								  	
@@ -591,9 +594,9 @@
 									<div class="col-12 col-md-6">
 										<div class="schedule_block_item">
 											<div class="form-group">
-												<label><?php echo $this->lang->line('time interval'); ?></label>
+												<label><?php echo lang('time interval'); ?></label>
 												<?php
-													$time_interval[''] = $this->lang->line('Please Select Periodic Time Schedule');
+													$time_interval[''] = lang('Please Select Periodic Time Schedule');
 													echo form_dropdown('time_interval',$time_interval,set_value('time_interval'),' class="form-control select2" id="time_interval" required style="width:100%;"');
 												?>
 											</div>
@@ -610,8 +613,8 @@
 							</form>
 
 							<div class="card-footer padding-0">
-								<button class="btn btn-lg btn-primary" submit_type="slider_submit" id="submit_post" type="button"><i class="fas fa-paper-plane"></i> <?php echo $this->lang->line("Create Campaign") ?> </button>
-								<a class="btn btn-lg btn-light float-right" onclick='goBack("ultrapost/carousel_slider_post",0)'><i class="fas fa-times"></i> <?php echo $this->lang->line("Cancel") ?> </a>
+								<button class="btn btn-lg btn-primary" submit_type="slider_submit" id="submit_post" type="button"><i class="fas fa-paper-plane"></i> <?php echo lang("Create Campaign") ?> </button>
+								<a class="btn btn-lg btn-light float-right" onclick='goBack("ultrapost/carousel_slider_post",0)'><i class="fas fa-times"></i> <?php echo lang("Cancel") ?> </a>
 							</div>
 						</div>
 			        </div>
@@ -759,7 +762,7 @@
 
         		if(image_link_counter < 2)
         		{
-        			swal('<?php echo $this->lang->line("Warning"); ?>',"<?php echo $this->lang->line('Please provide atleast two images and corresponding information.');?>", 'warning');
+        			swal('<?php echo lang("Warning"); ?>',"<?php echo lang('Please provide atleast two images and corresponding information.');?>", 'warning');
 	        		return;
         		}
         	}
@@ -782,7 +785,7 @@
 
         		if(video_image_counter < 3)
         		{
-        			swal('<?php echo $this->lang->line("Warning"); ?>',"<?php echo $this->lang->line('Please provide atleast three images and corresponding information.');?>", 'warning');
+        			swal('<?php echo lang("Warning"); ?>',"<?php echo lang('Please provide atleast three images and corresponding information.');?>", 'warning');
 	        		return;
         		}
 
@@ -792,7 +795,7 @@
         	var post_to_pages = $("#post_to_pages").val();
         	if(typeof(post_to_pages) =='undefined' || post_to_pages == "")
         	{
-        		swal('<?php echo $this->lang->line("Warning"); ?>',"<?php echo $this->lang->line('Please select pages to publish this post.');?>", 'warning');
+        		swal('<?php echo lang("Warning"); ?>',"<?php echo lang('Please select pages to publish this post.');?>", 'warning');
         		return;
         	}
 
@@ -801,7 +804,7 @@
         	var time_zone = $("#time_zone").val();
         	if(typeof(schedule_type)=='undefined' && (schedule_time=="" || time_zone==""))
         	{
-        		swal('<?php echo $this->lang->line("Warning"); ?>',"<?php echo $this->lang->line('Please select schedule time/time zone.');?>", 'warning');
+        		swal('<?php echo lang("Warning"); ?>',"<?php echo lang('Please select schedule time/time zone.');?>", 'warning');
         		return;
         	}
 
@@ -820,7 +823,7 @@
 		    	processData: false,
 		    	success:function(response){
 		    		$(that).removeClass('btn-progress');
-		    		var report_link="<a href='"+base_url+"ultrapost/carousel_slider_post'> <?php echo $this->lang->line('Click here to see report'); ?></a>";
+		    		var report_link="<a href='"+base_url+"ultrapost/carousel_slider_post'> <?php echo lang('Click here to see report'); ?></a>";
 
 		         	if(response.status=="1")
 			        {
@@ -1187,7 +1190,7 @@
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h4 class="modal-title"><?php echo $this->lang->line('Auto Post Campaign Status'); ?></h4>
+				<h4 class="modal-title"><?php echo lang('Auto Post Campaign Status'); ?></h4>
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 			</div>
 			<div class="modal-body">

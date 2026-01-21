@@ -19,25 +19,35 @@ Version: 1.0
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Ecommerce_product_price_variation\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Ecommerce_product_price_variation extends Home
 {
 	public $addon_data=array();
-    public function __construct()
+
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
+
         // getting addon information in array and storing to public variable
         // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
         //------------------------------------------------------------------------------------------
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
-        $this->addon_data=$this->get_addon_data($addon_path); 
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path = APPPATH . "modules/" . strtolower($controller_name) . "/controllers/" . ucfirst($controller_name) . ".php"; // path of addon controller
+        $this->addon_data = $this->get_addon_data($addon_path); 
 
         $this->member_validity();
 
-        $this->user_id=$this->session->userdata('user_id'); // user_id of logged in user, we may need it
-
-
+        // user_id of logged in user, we may need it
+        $this->user_id = $this->session->userdata('user_id');
     }
 
 
@@ -51,10 +61,12 @@ class Ecommerce_product_price_variation extends Home
     {
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
-        $purchase_code=$this->input->post('purchase_code');
+        // CI4: derive controller name via reflection instead of router
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_controller_name = ucfirst($controller_name); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $purchase_code = $this->input->post('purchase_code', true);
        
-        $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
+        $this->addon_credential_check($purchase_code, strtolower($addon_controller_name)); // returns json status,message if error
                 
         //this addon system support 2-level sidebar entry, to make sidebar entry you must provide 2D array like below
         $sidebar=array();  
@@ -83,7 +95,9 @@ class Ecommerce_product_price_variation extends Home
     {        
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        // CI4: derive controller name via reflection instead of router
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_controller_name = ucfirst($controller_name); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);         
     }
@@ -92,7 +106,9 @@ class Ecommerce_product_price_variation extends Home
     {        
         $this->ajax_check();
  
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        // CI4: derive controller name via reflection instead of router
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_controller_name = ucfirst($controller_name); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
         $sql = array(1=>"DROP TABLE IF EXISTS `ecommerce_attribute_product_price`;"); 
