@@ -4,21 +4,21 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th><?php echo $this->lang->line("Title"); ?></th>
-                <th><?php echo $this->lang->line("Page Name"); ?></th>
-                <th><?php echo $this->lang->line("Created At"); ?></th>
-                <th><?php echo $this->lang->line("Total Form Submitted"); ?></th>
-                <th><?php echo $this->lang->line("Last Form Submitted"); ?></th>
-                <th><?php echo $this->lang->line("Actions"); ?></th>
+                <th><?php echo lang("Title"); ?></th>
+                <th><?php echo lang("Page Name"); ?></th>
+                <th><?php echo lang("Created At"); ?></th>
+                <th><?php echo lang("Total Form Submitted"); ?></th>
+                <th><?php echo lang("Last Form Submitted"); ?></th>
+                <th><?php echo lang("Actions"); ?></th>
             </tr>
         </thead>
     </table>
 </div>
 
 <?php 
-$areyousure=$this->lang->line("are you sure");
+$areyousure=lang("are you sure");
 $builder_load_url = base_url("messenger_bot_connectivity/load_form_builder/{$page_id}");
-$drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary"><i class="fas fa-plus-circle"></i> '.$this->lang->line("New Form").'</a>';
+$drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary"><i class="fas fa-plus-circle"></i> '.lang("New Form").'</a>';
 ?> 
 
 <style>
@@ -47,7 +47,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="padding:30px;">
-            	<h5 class="modal-title"><i class="fas fa-info-circle"></i> <?php echo $this->lang->line("Form Details"); ?></h5>
+            	<h5 class="modal-title"><i class="fas fa-info-circle"></i> <?php echo lang("Form Details"); ?></h5>
               	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 	<span aria-hidden="true">×</span>
               	</button>
@@ -58,19 +58,19 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
                 	<div class="col-12">
                 		<div class="card">
                 			<div class="card-header">
-                				<h4 id="detail-title"><?php echo $this->lang->line("Title"); ?></h4>
+                				<h4 id="detail-title"><?php echo lang("Title"); ?></h4>
                 			</div>
                 			<div class="card-body">
                 				<div class="row">
                 					<div class="col-12 col-md-6">
                 						<div class="section">
-                							<div class="section-title"><?php echo $this->lang->line("Page Name"); ?></div>
+                							<div class="section-title"><?php echo lang("Page Name"); ?></div>
                 							<div id="detail-page-name" class="data-div"></div>
                 						</div>
                 					</div>
 									<div class="col-12 col-md-6">
                 						<div class="section">
-                							<div class="section-title"><?php echo $this->lang->line("Created At"); ?></div>
+                							<div class="section-title"><?php echo lang("Created At"); ?></div>
                 							<div id="detail-created-at" class="data-div"></div>
                 						</div>
                 					</div>
@@ -79,13 +79,13 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
                 				<div class="row">
                 					<div class="col-12 col-md-6">
                 						<div class="section">
-                							<div class="section-title"><?php echo $this->lang->line("Form ID"); ?></div>
+                							<div class="section-title"><?php echo lang("Form ID"); ?></div>
                 							<div id="detail-form-id" class="data-div"></div>
                 						</div>
                 					</div>
 									<div class="col-12 col-md-6">
                 						<div class="section">
-                							<div class="section-title"><?php echo $this->lang->line("Labels"); ?></div>
+                							<div class="section-title"><?php echo lang("Labels"); ?></div>
                 							<div id="detail-assign-label" class="badges data-div"></div>
                 						</div>
                 					</div>
@@ -94,7 +94,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
                 				<div class="row">
                 					<div class="col-12 col-md-6">
                 						<div class="section">
-                							<div class="section-title"><?php echo $this->lang->line("Postback ID"); ?></div>
+                							<div class="section-title"><?php echo lang("Postback ID"); ?></div>
                 							<div id="detail-postback-id" class="data-div"></div>
                 						</div>
                 					</div>
@@ -111,7 +111,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
 			    			<div class="row">
 				    			<div class="col-12 margin-top">
 							  		<div class="card-body pb-0">
-							  			<input type="text" id="searching" name="searching" class="form-control" placeholder="<?php echo $this->lang->line("Search..."); ?>" style='width:200px;'>                                          
+							  			<input type="text" id="searching" name="searching" class="form-control" placeholder="<?php echo lang("Search..."); ?>" style='width:200px;'>                                          
 							  		</div>
 				    			</div>
 			                	<div class="col-12">
@@ -122,12 +122,12 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
 				                				<thead>
 				                					<tr>
 				                						<th>#</th>
-				                						<th><?php echo $this->lang->line("Avatar"); ?></th> 
-				                						<th><?php echo $this->lang->line("First Name"); ?></th>  
-				                						<th><?php echo $this->lang->line("Last Name"); ?></th>  
-				                						<th><?php echo $this->lang->line("Subscriber ID"); ?></th>  
-				                						<th><?php echo $this->lang->line("Submitted At"); ?></th>  
-				                						<th><?php echo $this->lang->line("Actions"); ?></th>  
+				                						<th><?php echo lang("Avatar"); ?></th> 
+				                						<th><?php echo lang("First Name"); ?></th>  
+				                						<th><?php echo lang("Last Name"); ?></th>  
+				                						<th><?php echo lang("Subscriber ID"); ?></th>  
+				                						<th><?php echo lang("Submitted At"); ?></th>  
+				                						<th><?php echo lang("Actions"); ?></th>  
 				                					</tr>
 				                				</thead>
 				                			</table>
@@ -147,7 +147,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
             </div>
 
             <div class="modal-footer bg-whitesmoke br">
-            	<button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->lang->line('Close'); ?></button>
+            	<button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo lang('Close'); ?></button>
             </div>
 
         </div>
@@ -189,7 +189,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
 			    {data: 'actions'}
 			],
 			language: {
-        		url: "<?= base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+        		url: "<?= base_url('assets/modules/datatables/language/'.(($language ?? (isset($controller) && isset($controller->language) ? $controller->language : 'english'))).'.json'); ?>"
   			},
       		columnDefs: [
 				{ "sortable": false, "targets": [0, 6] },
@@ -225,7 +225,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
 
 					if (true === data.error) {
 						swal({
-							title: '<?php echo $this->lang->line('Error!'); ?>',
+							title: '<?php echo lang('Error!'); ?>',
 							text: data.message,
 							icon: 'error'
 						})
@@ -293,7 +293,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
 				      },
 				      language: 
 				      {
-				        url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+				        url: "<?php echo base_url('assets/modules/datatables/language/'.(($language ?? (isset($controller) && isset($controller->language) ? $controller->language : 'english'))).'.json'); ?>"
 				      },
 				      dom: '<"top"f>rt<"bottom"lip><"clear">',
 				      columnDefs: [
@@ -342,8 +342,8 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
 			var form_id = $(this).data('form-id')
 
 			swal({
-				title: '<?php echo $this->lang->line('Are you sure?'); ?>',
-				text: '<?php echo $this->lang->line('Once deleted, you will not be able to recover this form!'); ?>',
+				title: '<?php echo lang('Are you sure?'); ?>',
+				text: '<?php echo lang('Once deleted, you will not be able to recover this form!'); ?>',
 				icon: 'warning',
 				buttons: true,
 				dangerMode: true,
@@ -417,7 +417,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
     <div class="modal-dialog modal-lg" style="min-width: 65%;">
         <div class="modal-content">
             <div class="modal-header" style="padding:30px;">
-            	<h5 class="modal-title"><i class="fas fa-info-circle"></i> <?php echo $this->lang->line("All Submitted Form Data"); ?></h5>
+            <h5 class="modal-title"><i class="fas fa-info-circle"></i> <?php echo lang("All Submitted Form Data"); ?></h5>
               	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 	<span aria-hidden="true">×</span>
               	</button>
@@ -441,7 +441,7 @@ $drop_menu = '<a href="'.$builder_load_url.'" class="float-right btn btn-primary
             </div>
 
             <div class="modal-footer bg-whitesmoke br">
-            	<button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo $this->lang->line('Close'); ?></button>
+           	<button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo lang('Close'); ?></button>
             </div>
 
         </div>
@@ -478,7 +478,7 @@ $(document).ready(function(){
 					swal({
 					  icon: 'error',
 					  text: res.error,
-					  title: '<?php echo $this->lang->line('Error!'); ?>',
+					  title: '<?php echo lang('Error!'); ?>',
 					});
 					return;
 				}
@@ -486,7 +486,7 @@ $(document).ready(function(){
 					swal({
 					  icon: 'info',
 					  text: res.info,
-					  title: '<?php echo $this->lang->line('Info!'); ?>',
+					  title: '<?php echo lang('Info!'); ?>',
 					});
 					return;
 				}				
@@ -503,7 +503,7 @@ $(document).ready(function(){
 				swal({
 					icon: 'error',
 					text: error,
-					title: '<?php echo $this->lang->line('Error!'); ?>',
+					title: '<?php echo lang('Error!'); ?>',
 				});
 			},
 		});

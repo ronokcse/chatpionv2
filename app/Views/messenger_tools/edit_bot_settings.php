@@ -372,7 +372,7 @@
                         <?php endif; ?> 
 
 						            <div class="clearfix"></div>
-                        <textarea class="form-control"  name="text_reply_<?php echo $k; ?>" id="text_reply_<?php echo $k; ?>"><?php if(isset($full_message[$k]["template_type"]) && $full_message[$k]["template_type"] == 'text') echo $full_message[$k]['text'];?></textarea>
+                        <textarea class="form-control"  name="text_reply_<?php echo $k; ?>" id="text_reply_<?php echo $k; ?>"><?php if(isset($full_message[$k]["template_type"]) && $full_message[$k]["template_type"] == 'text' && isset($full_message[$k]['text'])) echo $full_message[$k]['text'];?></textarea>
                       </div>        
                     </div>  
                   </div>

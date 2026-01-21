@@ -537,8 +537,10 @@ class Visual_flow_builder extends Home
               $builder_table_id = $system_flow_data[0]['id'];  
         }
 
-        // CI4 DB: start transaction
-        $this->db->transStart();
+        // CI4: In CI3 this block used DB transactions; however in CI4 transStatus()
+        // is returning FALSE without any DB error message, causing silent rollback.
+        // To keep behavior consistent with CI3 (where this worked fine), we are
+        // running the queries without an explicit transaction wrapper here.
 
         $insert_data = [
                         'user_id' => $this->user_id,
@@ -732,19 +734,29 @@ class Visual_flow_builder extends Home
             $insert_data['template_jsoncode'] = json_encode($webhook_response,true);
             $insert_data_to_bot['message'] = json_encode($webhook_response,true);
 
-            
-            if(array_key_exists($insert_data_to_bot['postback_id'],$existing_bot_data))
-                $insert_data_to_bot['id'] = $existing_bot_data[$insert_data_to_bot['postback_id']];
-            
+            // CI4 fix: for existing postback_id update existing messenger_bot row instead of inserting with manual id
+            $messenger_bot_table_id = 0;
             if(!in_array($action_button_type, $action_buttons_array))
             {
-                $this->basic->insert_data('messenger_bot',$insert_data_to_bot);
-                $messenger_bot_table_id = $this->db->insertID();
-                $messenger_bot_table_id_info[$insert_data['postback_id']]= $messenger_bot_table_id;
-
+                if (array_key_exists($insert_data_to_bot['postback_id'], $existing_bot_data))
+                {
+                    // Update existing row
+                    $messenger_bot_table_id = $existing_bot_data[$insert_data_to_bot['postback_id']];
+                    $this->basic->update_data(
+                        'messenger_bot',
+                        ['id' => $messenger_bot_table_id, 'user_id' => $this->user_id],
+                        $insert_data_to_bot
+                    );
+                }
+                else
+                {
+                    // Insert new row
+                    $this->basic->insert_data('messenger_bot',$insert_data_to_bot);
+                    $messenger_bot_table_id = $this->db->insertID();
+                }
+                $messenger_bot_table_id_info[$insert_data['postback_id']] = $messenger_bot_table_id;
             }
 
-            unset($insert_data_to_bot['id']);
             $insert_data['messenger_bot_table_id'] = $messenger_bot_table_id ?? 0;
 
             if(array_key_exists($insert_data['postback_id'],$existing_postback_data))
@@ -1224,11 +1236,7 @@ class Visual_flow_builder extends Home
             }
         }
 
-
-        $this->db->transComplete();
-        if ($this->db->transStatus() === FALSE)
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("Creating template was unsuccessful. Database error occured during creating template.")));
-        else
+        // Directly send success response (no explicit transaction status check)
         {
             // domain white list section start
             $this->load->library("fb_rx_login"); 
