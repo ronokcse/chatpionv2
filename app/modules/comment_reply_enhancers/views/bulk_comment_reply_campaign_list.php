@@ -1,6 +1,6 @@
 <?php 
-$this->load->view('admin/theme/message'); 
-$this->load->view("include/upload_js"); 
+echo view('admin/theme/message'); 
+echo view("include/upload_js"); 
 ?>
 <style>
 /*.dropdown-toggle::after{content:none !important;}
@@ -19,10 +19,10 @@ $this->load->view("include/upload_js");
   <div class="section-header">
     <h1><i class="fas fa-comments"></i> <?php echo $page_title; ?></h1>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$this->using_media_type); ?>"><?php echo $this->lang->line("Comment Growth Tools"); ?></a></div>
+      <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.($using_media_type ?? 'fb')); ?>"><?php echo lang("Comment Growth Tools"); ?></a></div>
       <div class="breadcrumb-item">
-      	<a href="<?php echo base_url("comment_automation/comment_section_report?media_type=".$this->using_media_type); ?>">
-      		<?php echo $this->lang->line("Report"); ?>
+      	<a href="<?php echo base_url("comment_automation/comment_section_report?media_type=".($using_media_type ?? 'fb')); ?>">
+      		<?php echo lang("Report"); ?>
       	</a>
       </div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
@@ -40,22 +40,22 @@ $this->load->view("include/upload_js");
                   <!-- search by page name -->
                   <div class="input-group-prepend">
                     <select class="select2 form-control" id="page_id" name="page_id">
-                      <option value=""><?php echo $this->lang->line("Page Name"); ?></option>
+                      <option value=""><?php echo lang("Page Name"); ?></option>
                       <?php foreach ($page_info as $key => $value): ?>
-                        <option value="<?php echo $value['id'];?>" <?php if($value['id']==$this->session->userdata('selected_global_page_table_id')) echo 'selected'; ?>><?php echo $value['page_name'];?></option>
+                        <option value="<?php echo $value['id'];?>" <?php if($value['id']==session()->get('selected_global_page_table_id')) echo 'selected'; ?>><?php echo $value['page_name'];?></option>
                       <?php endforeach ?>
                     </select>
                   </div>
 
-  	          	    <input type="text" class="form-control" id="searching" name="searching" autofocus placeholder="<?php echo $this->lang->line('Search...'); ?>" aria-label="" aria-describedby="basic-addon2">
+  	          	    <input type="text" class="form-control" id="searching" name="searching" autofocus placeholder="<?php echo lang('Search...'); ?>" aria-label="" aria-describedby="basic-addon2">
 
   	          	  	<div class="input-group-append">
-  	          	    	<button class="btn btn-primary" id="search_submit" title="<?php echo $this->lang->line('Search'); ?>" type="button"><i class="fas fa-search"></i> <span class="d-none d-sm-inline"><?php echo $this->lang->line('Search'); ?></span></button>
+  	          	    	<button class="btn btn-primary" id="search_submit" title="<?php echo lang('Search'); ?>" type="button"><i class="fas fa-search"></i> <span class="d-none d-sm-inline"><?php echo lang('Search'); ?></span></button>
   	      	 	 	    </div>
           		  </div>
           		</div>
           		<div class="col-md-3 col-12">
-          			<a href="javascript:;" id="post_date_range" class="btn btn-primary btn-lg float-right icon-left btn-icon"><i class="fas fa-calendar"></i> <?php echo $this->lang->line("Choose Date");?></a><input type="hidden" id="post_date_range_val">
+          			<a href="javascript:;" id="post_date_range" class="btn btn-primary btn-lg float-right icon-left btn-icon"><i class="fas fa-calendar"></i> <?php echo lang("Choose Date");?></a><input type="hidden" id="post_date_range_val">
           		</div>
           	</div>
             <div class="table-responsive2">
@@ -63,18 +63,18 @@ $this->load->view("include/upload_js");
                   <thead>
                   	<tr>
         							<th>#</th>      
-        							<th><?php echo $this->lang->line("Campaign ID"); ?></th>
-        							<th><?php echo $this->lang->line("Avatar"); ?></th>
-        							<th><?php echo $this->lang->line("Name"); ?></th>
-        							<th><?php echo $this->lang->line("Page name"); ?></th>	
-        							<th><?php echo $this->lang->line("Post ID"); ?></th>
-        							<th><?php echo $this->lang->line("Reply"); ?></th>
-        							<th><?php echo $this->lang->line("Sent"); ?></th>
-        							<th><?php echo $this->lang->line("Failed"); ?></th>
-        							<th><?php echo $this->lang->line("Actions"); ?></th>
-        							<th style="min-width: 100px"><?php echo $this->lang->line("Status"); ?></th>
-        							<th><?php echo $this->lang->line("Scheduled at"); ?></th>
-        							<th><?php echo $this->lang->line("Last Updated"); ?></th>
+        							<th><?php echo lang("Campaign ID"); ?></th>
+        							<th><?php echo lang("Avatar"); ?></th>
+        							<th><?php echo lang("Name"); ?></th>
+        							<th><?php echo lang("Page name"); ?></th>	
+        							<th><?php echo lang("Post ID"); ?></th>
+        							<th><?php echo lang("Reply"); ?></th>
+        							<th><?php echo lang("Sent"); ?></th>
+        							<th><?php echo lang("Failed"); ?></th>
+        							<th><?php echo lang("Actions"); ?></th>
+        							<th style="min-width: 100px"><?php echo lang("Status"); ?></th>
+        							<th><?php echo lang("Scheduled at"); ?></th>
+        							<th><?php echo lang("Last Updated"); ?></th>
                   	</tr>
                   </thead>
                 <tbody>
@@ -90,10 +90,10 @@ $this->load->view("include/upload_js");
 
 
 <?php
-	$somethingwentwrong = $this->lang->line("something went wrong.");
-	$pleasewait = $this->lang->line("please wait").'...';
-	$areyousure = $this->lang->line("are you sure");
-	$Doyouwanttodeletethisrecordfromdatabase = $this->lang->line("do you want to delete this record from database?");
+	$somethingwentwrong = lang("something went wrong.");
+	$pleasewait = lang("please wait").'...';
+	$areyousure = lang("are you sure");
+	$Doyouwanttodeletethisrecordfromdatabase = lang("do you want to delete this record from database?");
  ?>
 
 <script>
@@ -121,9 +121,9 @@ $("document").ready(function(){
 	setTimeout(function(){ 
 	$('#post_date_range').daterangepicker({
     	ranges: {
-        '<?php echo $this->lang->line("Last 30 Days");?>': [moment().subtract(29, 'days'), moment()],
-        '<?php echo $this->lang->line("This Month");?>'  : [moment().startOf('month'), moment().endOf('month')],
-        '<?php echo $this->lang->line("Last Month");?>'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        '<?php echo lang("Last 30 Days");?>': [moment().subtract(29, 'days'), moment()],
+        '<?php echo lang("This Month");?>'  : [moment().startOf('month'), moment().endOf('month')],
+        '<?php echo lang("Last Month");?>'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
     	},
     	startDate: moment().subtract(29, 'days'),
     	endDate  : moment()
@@ -153,7 +153,7 @@ $("document").ready(function(){
         },
         language: 
         {
-          url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+          url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? (config('MyConfig')->language ?? 'english')).'.json'); ?>"
         },
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         columnDefs: [
@@ -268,7 +268,7 @@ $("document").ready(function(){
             },
             language: 
             {
-              url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+              url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? (config('MyConfig')->language ?? 'english')).'.json'); ?>"
             },
             dom: '<"top"f>rt<"bottom"lip><"clear">',
             columnDefs: [
@@ -324,7 +324,7 @@ $("document").ready(function(){
 	$(document).on('click','.delete_campaign',function(e){
 		e.preventDefault();
 		swal({
-			title: '<?php echo $this->lang->line("Are you sure?"); ?>',
+			title: '<?php echo lang("Are you sure?"); ?>',
 			text: Doyouwanttodeletethisrecordfromdatabase,
 			icon: 'warning',
 			buttons: true,
@@ -341,7 +341,7 @@ $("document").ready(function(){
 					url:"<?php echo base_url('comment_reply_enhancers/delete_bulk_comment_reply_campaign')?>",
 					data:{id:id},
 					success:function(response){ 
-			      iziToast.success({title: '',message: '<?php echo $this->lang->line("Campaign has been deleted successfully."); ?>',position: 'bottomRight'});
+			      iziToast.success({title: '',message: '<?php echo lang("Campaign has been deleted successfully."); ?>',position: 'bottomRight'});
 						table.draw();
 					}
 				});
@@ -351,12 +351,12 @@ $("document").ready(function(){
 
 	$(document).on('click', '.not_editable .not_delete_campaign', function(event) {
 		event.preventDefault();
-		swal("","<?php echo $this->lang->line('Sorry, Processing Campaign Can not be deleted.'); ?>",'error');
+		swal("","<?php echo lang('Sorry, Processing Campaign Can not be deleted.'); ?>",'error');
 	});
 
 	$(document).on('click', '.not_delete_campaign', function(event) {
 		event.preventDefault();
-    swal("","<?php echo $this->lang->line('Sorry, Processing Campaign Can not be deleted.'); ?>",'error');
+    swal("","<?php echo lang('Sorry, Processing Campaign Can not be deleted.'); ?>",'error');
 	});
 
 });
@@ -367,7 +367,7 @@ $("document").ready(function(){
     <div class="modal-dialog modal-mega">
         <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title"><i class="fas fa-comments"></i> <?php echo $this->lang->line("Report");?></h5>
+              <h5 class="modal-title"><i class="fas fa-comments"></i> <?php echo lang("Report");?></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">×</span>
               </button>
@@ -380,7 +380,7 @@ $("document").ready(function(){
                         <div class="card card-statistic-1">
                           <div class="card-icon bg-primary"><i class="fas fa-info-circle"></i></div>
                           <div class="card-wrap">
-                            <div class="card-header"><h4><?php echo $this->lang->line('Campaign Name'); ?></h4></div>
+                            <div class="card-header"><h4><?php echo lang('Campaign Name'); ?></h4></div>
                             <div class="card-body" id="campaign_name"></div>
                           </div>
                         </div>
@@ -393,7 +393,7 @@ $("document").ready(function(){
                           </div>
                           <div class="card-wrap">
                             <div class="card-header">
-                              <h4><?php echo $this->lang->line('Page Name'); ?></h4>
+                              <h4><?php echo lang('Page Name'); ?></h4>
                             </div>
                             <div class="card-body">
                               <a target="_BLANK" href="" id="pageName"></a>
@@ -409,7 +409,7 @@ $("document").ready(function(){
                           </div>
                           <div class="card-wrap">
                             <div class="card-header">
-                              <h4><?php echo $this->lang->line('Post ID'); ?></h4>
+                              <h4><?php echo lang('Post ID'); ?></h4>
                             </div>
                             <div class="card-body">
                               <a target="_BLANK" href="" id="postID"></a>
@@ -421,7 +421,7 @@ $("document").ready(function(){
                     </div>
                   </div>
                   <div class="col-12 col-md-6">
-                    <input type="text" id="searching1" name="searching1" class="form-control" placeholder="<?php echo $this->lang->line("Search..."); ?>" style='width: 200px;'>                                          
+                    <input type="text" id="searching1" name="searching1" class="form-control" placeholder="<?php echo lang("Search..."); ?>" style='width: 200px;'>                                          
                   </div>
 
                   <div class="col-12">
@@ -431,11 +431,11 @@ $("document").ready(function(){
                           <thead>
                             <tr>
                               <th>#</th>
-                              <th><?php echo $this->lang->line("Commenter Name"); ?></th>
-                              <th><?php echo $this->lang->line("Commenter ID"); ?></th>
-                              <th><?php echo $this->lang->line("Comment Time"); ?></th>
-                              <th><?php echo $this->lang->line("Reply Status"); ?></th>
-                              <th><?php echo $this->lang->line("Replied At"); ?></th>
+                              <th><?php echo lang("Commenter Name"); ?></th>
+                              <th><?php echo lang("Commenter ID"); ?></th>
+                              <th><?php echo lang("Comment Time"); ?></th>
+                              <th><?php echo lang("Reply Status"); ?></th>
+                              <th><?php echo lang("Replied At"); ?></th>
                             </tr>
                           </thead>
                       </table>
@@ -445,7 +445,7 @@ $("document").ready(function(){
                   <div class="col-12">
                     <div class="section">
                       <div class="section-title">
-                        <h6><?php echo $this->lang->line('Reply Content'); ?></h6>
+                        <h6><?php echo lang('Reply Content'); ?></h6>
                       </div>
                       <div class="alert alert-light" id="replyContent"></div>
                     </div>
@@ -462,7 +462,7 @@ $("document").ready(function(){
 		<div class="modal-content">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				<h4 class="modal-title"><i class="fa fa-list"></i> <?php echo $this->lang->line("Report"); ?></h4>
+				<h4 class="modal-title"><i class="fa fa-list"></i> <?php echo lang("Report"); ?></h4>
 			</div>
 			<div class="modal-body" id="commenter_list_body">
 

@@ -54,14 +54,14 @@
 <?php if(empty($page_info)){ ?>
 
   <div class="well well_border_left">
-      <h4 class="text-center blue"> <i class="fa fa-check-square"></i> <?php echo $this->lang->line("Enable Post : Page List");?></h4>
+      <h4 class="text-center blue"> <i class="fa fa-check-square"></i> <?php echo lang("Enable Post : Page List");?></h4>
   </div>          
 
 
 <?php }else{ ?>
 
   <div class="well well_border_left">
-      <h4 class="text-center blue"> <i class="fa fa-check-square"></i> <?php echo $this->lang->line("Enable Post : Page List");?></h4><h4>
+      <h4 class="text-center blue"> <i class="fa fa-check-square"></i> <?php echo lang("Enable Post : Page List");?></h4><h4>
     </h4>
   </div>       
 
@@ -83,14 +83,14 @@
             <div class="col-xs-12 col-md-4">
               <img src="<?php echo $profile_picture;?>" alt="" class='custom-top-margin' style='padding:1px;border:1px solid #aaa;' height="90" width="90">
 
-              <a style="margin-top:13px;" href="<?php echo base_url("commenttagmachine/post_list/".$value['id']); ?>" type="button" class="btn btn-outline-secondary btn-sm view_report"><i class="fa fa-eye"></i> <small><?php echo $this->lang->line("View Report") ?></small></a>
+              <a style="margin-top:13px;" href="<?php echo base_url("commenttagmachine/post_list/".$value['id']); ?>" type="button" class="btn btn-outline-secondary btn-sm view_report"><i class="fa fa-eye"></i> <small><?php echo lang("View Report") ?></small></a>
             </div>
             <div class="col-xs-12 col-md-8">
               <br/>
               <div class="info-box">
                 <span class="info-box-icon bg-blue" style="background: <?php echo $THEMECOLORCODE;?> !important;"><i class="fa fa-tag"></i></span>
                 <div class="info-box-content">
-                  <span class="info-box-text"><b><?php echo $this->lang->line("Tag Enabled");?></b></span><hr style="margin-bottom:2px;">
+                  <span class="info-box-text"><b><?php echo lang("Tag Enabled");?></b></span><hr style="margin-bottom:2px;">
                   <span class="info-box-number" style="font-size:30px">
                     <?php 
                       echo number_format($value['enabled_post']);
@@ -101,9 +101,9 @@
 
               <div class="sync_page_style text-center" style="padding-top: 3px;">
                 <span class="info-box-text">
-                  <button table_id="<?php echo $value['id']; ?>" type="button" style='width:50%;' class="pull-left btn-sm btn btn-outline-primary get_post"><i class="fa fa-check-square"></i><?php echo $this->lang->line("Enable from Post List");?></button>
+                  <button table_id="<?php echo $value['id']; ?>" type="button" style='width:50%;' class="pull-left btn-sm btn btn-outline-primary get_post"><i class="fa fa-check-square"></i><?php echo lang("Enable from Post List");?></button>
 
-                  <button page_name="<?php echo $value['page_name']; ?>" page_table_id="<?php echo $value['id']; ?>" type="button" style='width:45%;' class="pull-right btn-sm btn btn-outline-info manual_enable"><i class="fa fa-check-square"></i><?php echo $this->lang->line("enable by post id");?></button>
+                  <button page_name="<?php echo $value['page_name']; ?>" page_table_id="<?php echo $value['id']; ?>" type="button" style='width:45%;' class="pull-right btn-sm btn btn-outline-info manual_enable"><i class="fa fa-check-square"></i><?php echo lang("enable by post id");?></button>
                   
                 </span>
               </div>               
@@ -125,12 +125,12 @@
 
 <?php 
   
-  $Youdidntprovideallinformation = $this->lang->line("you didn't provide all information.");
-  $Pleaseprovidepostid = $this->lang->line("please provide post id.");
-  $Youdidntselectanyoption = $this->lang->line("you didn\'t select any option.");
+  $Youdidntprovideallinformation = lang("you didn't provide all information.");
+  $Pleaseprovidepostid = lang("please provide post id.");
+  $Youdidntselectanyoption = lang("you didn\'t select any option.");
   
-  $AlreadyEnabled = $this->lang->line("already enabled");
-  $ThispostIDisnotfoundindatabaseorthispostIDisnotassociatedwiththepageyouareworking = $this->lang->line("This post ID is not found in database or this post ID is not associated with the page you are working.");
+  $AlreadyEnabled = lang("already enabled");
+  $ThispostIDisnotfoundindatabaseorthispostIDisnotassociatedwiththepageyouareworking = lang("This post ID is not found in database or this post ID is not associated with the page you are working.");
 
 
 
@@ -257,7 +257,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title text-center"><i class="fa fa-calendar"></i> <?php echo $this->lang->line("Latest Posts") ?> <span id="page_name_div"></span></h4>
+                <h4 class="modal-title text-center"><i class="fa fa-calendar"></i> <?php echo lang("Latest Posts") ?> <span id="page_name_div"></span></h4>
             </div>
             <div class="modal-body text-center" id="post_synch_modal_body">                
 
@@ -271,7 +271,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-         <h4 class="modal-title"><?php echo $this->lang->line("please provide a post id of page") ?> (<span id="manual_page_name"></span>)</h4>
+         <h4 class="modal-title"><?php echo lang("please provide a post id of page") ?> (<span id="manual_page_name"></span>)</h4>
       </div>
       <div class="modal-body">
         <div class="row">
@@ -279,19 +279,19 @@
             <div class="col-xs-12 col-md-8 col-md-offset-2">
               <form>
                 <div class="form-group">
-                  <label for="manual_post_id"><?php echo $this->lang->line("post id") ?> :</label>
-                  <input type="text" class="form-control" id="manual_post_id" placeholder="<?php echo $this->lang->line("please give a post id") ?>" value="">
+                  <label for="manual_post_id"><?php echo lang("post id") ?> :</label>
+                  <input type="text" class="form-control" id="manual_post_id" placeholder="<?php echo lang("please give a post id") ?>" value="">
                 </div><br/>
                 <div class="text-center" id="manual_enable_error"></div>
                 <div class="form-group text-center">
-                  <button type="button" class="btn btn-outline-primary" id="enable_auto_tag"><i class="fa fa-check-square"></i> <?php echo $this->lang->line("Enable & Fetch Commenter") ?></button>
+                  <button type="button" class="btn btn-outline-primary" id="enable_auto_tag"><i class="fa fa-check-square"></i> <?php echo lang("Enable & Fetch Commenter") ?></button>
                 </div>
               </form>                        
             </div>                    
           </div> 
       </div>
 <!--       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo $this->lang->line('close');?></button>
+        <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo lang('close');?></button>
       </div> -->
     </div>
   </div>

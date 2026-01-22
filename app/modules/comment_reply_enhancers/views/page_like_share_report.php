@@ -10,17 +10,17 @@
     <div class="section-header-button"> 
     </div>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><?php echo $this->lang->line('Comment Automation'); ?></div>
+      <div class="breadcrumb-item"><?php echo lang('Comment Automation'); ?></div>
       <div class="breadcrumb-item">
-          <a href="<?php echo base_url("comment_automation/comment_section_report?media_type=".$this->using_media_type); ?>">
-            <?php echo $this->lang->line("Report"); ?>
+          <a href="<?php echo base_url("comment_automation/comment_section_report?media_type=".($using_media_type ?? 'fb')); ?>">
+            <?php echo lang("Report"); ?>
           </a>
         </div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <div class="section-body">
 
@@ -30,9 +30,9 @@
           <div class="card-body data-card">
 
             <div class="input-group mb-3" id="searchbox">
-                <input type="text" class="form-control" id="post_id" autofocus placeholder="<?php echo $this->lang->line('Post ID'); ?>" aria-label="" aria-describedby="basic-addon2" style="max-width: 30%">
+                <input type="text" class="form-control" id="post_id" autofocus placeholder="<?php echo lang('Post ID'); ?>" aria-label="" aria-describedby="basic-addon2" style="max-width: 30%">
                 <div class="input-group-append">
-                      <button class="btn btn-primary" id="search_submit" type="button"><i class="fas fa-search"></i> <span class="d-none d-sm-inline"><?php echo $this->lang->line('Search'); ?></span></button>
+                      <button class="btn btn-primary" id="search_submit" type="button"><i class="fas fa-search"></i> <span class="d-none d-sm-inline"><?php echo lang('Search'); ?></span></button>
                 </div>
             </div>
 
@@ -44,14 +44,14 @@
                     <th style="vertical-align:middle;width:20px">
                         <input class="regular-checkbox" id="datatableSelectAllRows" type="checkbox"/><label for="datatableSelectAllRows"></label>        
                     </th>
-                    <th><?php echo $this->lang->line("id")?></th>
-                    <th><?php echo $this->lang->line("Page Name")?></th>
-                    <th><?php echo $this->lang->line("Post ID")?></th>
-                    <th><?php echo $this->lang->line("Auto Like")?></th>
-                    <th><?php echo $this->lang->line("Auto Share")?></th>
-                    <th><?php echo $this->lang->line("Actions")?></th>
-                    <th><?php echo $this->lang->line("Last Share Try")?></th>
-                    <th><?php echo $this->lang->line("Last Like Try")?></th>
+                    <th><?php echo lang("id")?></th>
+                    <th><?php echo lang("Page Name")?></th>
+                    <th><?php echo lang("Post ID")?></th>
+                    <th><?php echo lang("Auto Like")?></th>
+                    <th><?php echo lang("Auto Share")?></th>
+                    <th><?php echo lang("Actions")?></th>
+                    <th><?php echo lang("Last Share Try")?></th>
+                    <th><?php echo lang("Last Like Try")?></th>
                   </tr>
                 </thead>
               </table>
@@ -96,7 +96,7 @@
           },          
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? (config('MyConfig')->language ?? 'english')).'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [
@@ -155,7 +155,7 @@
         <div class="modal-content">
 
             <div class="modal-header">
-              <h5 class="modal-title"><i class="fas fa-list-alt"></i> <?php echo $this->lang->line("Auto Like/Share Report") ?></h5>
+              <h5 class="modal-title"><i class="fas fa-list-alt"></i> <?php echo lang("Auto Like/Share Report") ?></h5>
               <button type="button" class="close" data-dismiss="modal" aria-hidden="true" aria-label="Close">
             	<span aria-hidden="true">×</span>
               </button>

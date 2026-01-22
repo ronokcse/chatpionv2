@@ -15,17 +15,17 @@ else $commnet_hide_delete_addon = 0;
     <div class="section-header-button"> 
     </div>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.$this->using_media_type); ?>"><?php echo $this->lang->line("Comment Growth Tools"); ?></a></div>
+      <div class="breadcrumb-item"><a href="<?php echo base_url('comment_automation/comment_growth_tools/'.($using_media_type ?? 'fb')); ?>"><?php echo lang("Comment Growth Tools"); ?></a></div>
       <div class="breadcrumb-item">
-        <a href="<?php echo base_url("comment_automation/comment_section_report?media_type=".$this->using_media_type); ?>">
-          <?php echo $this->lang->line("Report"); ?>
+        <a href="<?php echo base_url("comment_automation/comment_section_report?media_type=".($using_media_type ?? 'fb')); ?>">
+          <?php echo lang("Report"); ?>
         </a>
       </div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
 
   <div class="section-body">
@@ -38,15 +38,15 @@ else $commnet_hide_delete_addon = 0;
             <div class="input-group mb-3" id="searchbox">
                 <div class="input-group-prepend">
                     <select class="select2 form-control" id="page_id">
-                      <option value=""><?php echo $this->lang->line("Page"); ?></option>
+                      <option value=""><?php echo lang("Page"); ?></option>
                         <?php foreach ($page_info as $key => $value): ?>
-                          <option value="<?php echo $value['id']; ?>" <?php if($value['id']==$this->session->userdata('selected_global_page_table_id')) echo 'selected'; ?>><?php echo $value['page_name']; ?></option>
+                          <option value="<?php echo $value['id']; ?>" <?php if($value['id']==session()->get('selected_global_page_table_id')) echo 'selected'; ?>><?php echo $value['page_name']; ?></option>
                         <?php endforeach ?>
                   </select>
                 </div>
-                <input type="text" class="form-control" id="post_id" autofocus placeholder="<?php echo $this->lang->line('Post ID'); ?>" aria-label="" aria-describedby="basic-addon2" style="max-width: 30%">
+                <input type="text" class="form-control" id="post_id" autofocus placeholder="<?php echo lang('Post ID'); ?>" aria-label="" aria-describedby="basic-addon2" style="max-width: 30%">
                 <div class="input-group-append">
-                      <button class="btn btn-primary" id="search_submit" type="button"><i class="fas fa-search"></i> <span class="d-none d-sm-inline"><?php echo $this->lang->line('Search'); ?></span></button>
+                      <button class="btn btn-primary" id="search_submit" type="button"><i class="fas fa-search"></i> <span class="d-none d-sm-inline"><?php echo lang('Search'); ?></span></button>
                 </div>
             </div>
 
@@ -58,16 +58,16 @@ else $commnet_hide_delete_addon = 0;
                     <th style="vertical-align:middle;width:20px">
                         <input class="regular-checkbox" id="datatableSelectAllRows" type="checkbox"/><label for="datatableSelectAllRows"></label>        
                     </th>
-                    <th><?php echo $this->lang->line("id")?></th>
-                    <th><?php echo $this->lang->line("Page Name")?></th>
-                    <th><?php echo $this->lang->line("Post ID")?></th>
-                    <th><?php echo $this->lang->line("Private Reply")?></th>
-                    <th><?php echo $this->lang->line("Comment Reply")?></th>
-                    <th><?php echo $this->lang->line("Comment Hidden")?></th>
-                    <th><?php echo $this->lang->line("Comment Deleted")?></th>
-                    <th><?php echo $this->lang->line("Actions")?></th>
-                    <th><?php echo $this->lang->line("Last Replied")?></th>
-                    <th><?php echo $this->lang->line("Error")?></th>
+                    <th><?php echo lang("id")?></th>
+                    <th><?php echo lang("Page Name")?></th>
+                    <th><?php echo lang("Post ID")?></th>
+                    <th><?php echo lang("Private Reply")?></th>
+                    <th><?php echo lang("Comment Reply")?></th>
+                    <th><?php echo lang("Comment Hidden")?></th>
+                    <th><?php echo lang("Comment Deleted")?></th>
+                    <th><?php echo lang("Actions")?></th>
+                    <th><?php echo lang("Last Replied")?></th>
+                    <th><?php echo lang("Error")?></th>
                   </tr>
                 </thead>
               </table>
@@ -113,7 +113,7 @@ else $commnet_hide_delete_addon = 0;
           },          
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? (config('MyConfig')->language ?? 'english')).'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [
@@ -181,7 +181,7 @@ else $commnet_hide_delete_addon = 0;
               },
               language: 
               {
-                url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+                url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? (config('MyConfig')->language ?? 'english')).'.json'); ?>"
               },
               dom: '<"top"f>rt<"bottom"lip><"clear">',
               columnDefs: [
@@ -252,14 +252,14 @@ else $commnet_hide_delete_addon = 0;
     <div class="modal-dialog modal-mega">
         <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title"><i class="fas fa-reply-all"></i> <?php echo $this->lang->line("Page Response Report");?>
+              <h5 class="modal-title"><i class="fas fa-reply-all"></i> <?php echo lang("Page Response Report");?>
                 <small>
                 (
                 <?php 
-                $delete_junk_data_after_how_many_days = $this->config->item("delete_junk_data_after_how_many_days");
+                $delete_junk_data_after_how_many_days = (config('MyConfig')->delete_junk_data_after_how_many_days ?? 30);
                 if($delete_junk_data_after_how_many_days=="") $delete_junk_data_after_how_many_days = 30;
                 ?>
-                <?php echo $this->lang->line("Details data shows for last")." : ".$delete_junk_data_after_how_many_days." ".$this->lang->line("days"); ?>
+                <?php echo lang("Details data shows for last")." : ".$delete_junk_data_after_how_many_days." ".lang("days"); ?>
                 )
                 </small>
               </h5>
@@ -272,10 +272,10 @@ else $commnet_hide_delete_addon = 0;
                 <div class="col-12 text-center" id="outside_filter"></div>
                 <br><br>
             <div class="col-12 col-md-9">
-              <input type="text" id="searching" name="searching" class="form-control" placeholder="<?php echo $this->lang->line("Search..."); ?>" style='width:200px;'>                                          
+              <input type="text" id="searching" name="searching" class="form-control" placeholder="<?php echo lang("Search..."); ?>" style='width:200px;'>                                          
             </div>
             <div class="col-12 col-md-3">
-              <a href="" target="_blank" class="btn btn-outline-primary download_lead_list float-right" id="download"><i class="fa fa-cloud-download"></i> <?php echo $this->lang->line("Download lead list"); ?></a>                         
+              <a href="" target="_blank" class="btn btn-outline-primary download_lead_list float-right" id="download"><i class="fa fa-cloud-download"></i> <?php echo lang("Download lead list"); ?></a>                         
             </div>
 
                     <div class="col-12">
@@ -285,15 +285,15 @@ else $commnet_hide_delete_addon = 0;
                             <thead>
                               <tr>
                                 <th>#</th>
-                                <th><?php echo $this->lang->line("Comment"); ?></th> 
-                                <th><?php echo $this->lang->line("name"); ?></th> 
-                                <th><?php echo $this->lang->line("comment time"); ?></th>      
-                                <th><?php echo $this->lang->line("reply time"); ?></th>
-                                <th><?php echo $this->lang->line("comment reply message"); ?></th>
-                                <th><?php echo $this->lang->line("private reply message"); ?></th>
-                                <th><?php echo $this->lang->line("comment reply status"); ?></th>      
-                                <th><?php echo $this->lang->line("private reply status"); ?></th> 
-                                <th><?php echo $this->lang->line("Hide/Delete status"); ?></th> 
+                                <th><?php echo lang("Comment"); ?></th> 
+                                <th><?php echo lang("name"); ?></th> 
+                                <th><?php echo lang("comment time"); ?></th>      
+                                <th><?php echo lang("reply time"); ?></th>
+                                <th><?php echo lang("comment reply message"); ?></th>
+                                <th><?php echo lang("private reply message"); ?></th>
+                                <th><?php echo lang("comment reply status"); ?></th>      
+                                <th><?php echo lang("private reply status"); ?></th> 
+                                <th><?php echo lang("Hide/Delete status"); ?></th> 
                               </tr>
                             </thead>
                         </table>

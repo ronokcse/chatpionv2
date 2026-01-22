@@ -1,16 +1,16 @@
-<?php $this->load->view("include/upload_js"); ?>
+<?php echo view("include/upload_js"); ?>
 
 <section class="section section_custom">
 	<div class="section-header">
-		<h1 class="modal-title text-center"><i class="fa fa-edit"></i> <?php echo $this->lang->line("Edit Bulk Comment Reply Campaign"); ?></h1>
+		<h1 class="modal-title text-center"><i class="fa fa-edit"></i> <?php echo lang("Edit Bulk Comment Reply Campaign"); ?></h1>
 		<div class="section-header-breadcrumb">
 		  <div class="breadcrumb-item">
 		  	<a href="<?php echo base_url("comment_reply_enhancers/post_list"); ?>">
-		  	<?php echo $this->lang->line("Tag Campaign"); ?></a>
+		  	<?php echo lang("Tag Campaign"); ?></a>
 		  </div>
 		  <div class="breadcrumb-item">
 		  	<a href="<?php echo base_url("comment_reply_enhancers/bulk_comment_reply_campaign_list"); ?>">
-		  		<?php echo $this->lang->line("Campaign List"); ?>
+		  		<?php echo lang("Campaign List"); ?>
 		  	</a>
 		  </div>
 		  <div class="breadcrumb-item"><?php echo $page_title; ?></div>
@@ -28,8 +28,8 @@
 							<div class="row">
 								<div class="col-12 col-md-6">
 									<div class="form-group">
-										<label><?php echo $this->lang->line("campaign name") ?> *
-											<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("campaign name"); ?>" data-content="<?php echo $this->lang->line("put a name so that you can identify it later"); ?>"><i class='fa fa-info-circle'></i> </a>
+										<label><?php echo lang("campaign name") ?> *
+											<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang("campaign name"); ?>" data-content="<?php echo lang("put a name so that you can identify it later"); ?>"><i class='fa fa-info-circle'></i> </a>
 										</label>
 										<input value="<?php echo $xdata[0]["campaign_name"];?>" type="text" class="form-control"  name="campaign_name2" id="campaign_name2">
 									</div>
@@ -37,40 +37,40 @@
 
 								<div class="col-12 col-md-6">
 									<div class="form-group">
-										<label><?php echo $this->lang->line("reply same commenter multiple times?") ?>
-											<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("reply same commenter multiple times?") ?>" data-content="<?php echo $this->lang->line("same user may comment multiple time, do you want to reply all of them or not.") ?>"><i class='fa fa-info-circle'></i></a>
+										<label><?php echo lang("reply same commenter multiple times?") ?>
+											<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang("reply same commenter multiple times?") ?>" data-content="<?php echo lang("same user may comment multiple time, do you want to reply all of them or not.") ?>"><i class='fa fa-info-circle'></i></a>
 										</label><br>
 									  	<label class="custom-switch mt-2">
 											<input type="checkbox" name="reply_multiple" value="1" <?php if($xdata[0]["reply_multiple"]=='1') echo 'checked'; ?> id="reply_multiple" class="custom-switch-input">
 											<span class="custom-switch-indicator"></span>
-											<span class="custom-switch-description"><?php echo $this->lang->line('Yes');?></span>
+											<span class="custom-switch-description"><?php echo lang('Yes');?></span>
 									  	</label>
 									</div>
 								</div>
 
 								<div class="col-12">
 									<div class="form-group">
-										<label><?php echo $this->lang->line("Reply Content") ?> *
-											<a href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("Reply Content") ?>" data-content="<?php echo $this->lang->line("Bulk comment reply content."); ?> Spintax example : {Hello|Hi|Hola} to you, {Mr.|Mrs.|Ms.} {{John|Tara|Sara}|Tom|Dave}"><i class='fa fa-info-circle'></i> </a>
+										<label><?php echo lang("Reply Content") ?> *
+											<a href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="<?php echo lang("Reply Content") ?>" data-content="<?php echo lang("Bulk comment reply content."); ?> Spintax example : {Hello|Hi|Hola} to you, {Mr.|Mrs.|Ms.} {{John|Tara|Sara}|Tom|Dave}"><i class='fa fa-info-circle'></i> </a>
 										</label>
 
 										<span class='float-right'>
-											<a data-toggle="tooltip" data-placement="top" title='<?php echo $this->lang->line("You can tag user in your comment reply. Facebook will notify them about mention whenever you tag.") ?>' class='btn-outline btn-sm' id='lead_tag_name'><i class='fas fa-tag'></i> <?php echo $this->lang->line("Tag user") ?></a>
+											<a data-toggle="tooltip" data-placement="top" title='<?php echo lang("You can tag user in your comment reply. Facebook will notify them about mention whenever you tag.") ?>' class='btn-outline btn-sm' id='lead_tag_name'><i class='fas fa-tag'></i> <?php echo lang("Tag user") ?></a>
 										</span>
 										<span class='float-right'>
-											<a data-toggle="tooltip" data-placement="top" title='<?php echo $this->lang->line("You can include #LEAD_USER_LAST_NAME# variable inside your message. The variable will be replaced by real names when we will send it.") ?>' class='btn-outline btn-sm' id='lead_last_name'><i class='fas fa-user'></i> <?php echo $this->lang->line("last name") ?></a>
+											<a data-toggle="tooltip" data-placement="top" title='<?php echo lang("You can include #LEAD_USER_LAST_NAME# variable inside your message. The variable will be replaced by real names when we will send it.") ?>' class='btn-outline btn-sm' id='lead_last_name'><i class='fas fa-user'></i> <?php echo lang("last name") ?></a>
 										</span>
 										<span class='float-right'>
-											<a data-toggle="tooltip" data-placement="top" title='<?php echo $this->lang->line("You can include #LEAD_USER_FIRST_NAME# variable inside your message. The variable will be replaced by real names when we will send it.") ?>' class='btn-outline btn-sm' id='lead_first_name'><i class='fas fa-user'></i> <?php echo $this->lang->line("first name") ?></a>
+											<a data-toggle="tooltip" data-placement="top" title='<?php echo lang("You can include #LEAD_USER_FIRST_NAME# variable inside your message. The variable will be replaced by real names when we will send it.") ?>' class='btn-outline btn-sm' id='lead_first_name'><i class='fas fa-user'></i> <?php echo lang("first name") ?></a>
 										</span>
-										<textarea class="form-control" name="message2" id="message2" placeholder="<?php echo $this->lang->line("Bulk comment reply content.");?> Spintax example : {Hello|Hi|Hola} to you, {Mr.|Mrs.|Ms.} {{John|Tara|Sara}|Tom|Dave}" style="height:130px !important;"><?php echo $xdata[0]["reply_content"];?></textarea>
+										<textarea class="form-control" name="message2" id="message2" placeholder="<?php echo lang("Bulk comment reply content.");?> Spintax example : {Hello|Hi|Hola} to you, {Mr.|Mrs.|Ms.} {{John|Tara|Sara}|Tom|Dave}" style="height:130px !important;"><?php echo $xdata[0]["reply_content"];?></textarea>
 									</div>
 								</div>
 
 								<div class="col-12 col-md-6">
 									<div class="form-group">
-										<label><?php echo $this->lang->line("delay between two replies [seconds]") ?> *
-											<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("delay between two replies [seconds]") ?>" data-content="<?php echo $this->lang->line("Too frequent replies can be suspicious to Facebook. It is safe to use some seconds of delay. Zero means random delay."); ?>"><i class='fa fa-info-circle'></i> </a>
+										<label><?php echo lang("delay between two replies [seconds]") ?> *
+											<a href="#" data-placement="bottom"  data-toggle="popover" data-trigger="focus" title="<?php echo lang("delay between two replies [seconds]") ?>" data-content="<?php echo lang("Too frequent replies can be suspicious to Facebook. It is safe to use some seconds of delay. Zero means random delay."); ?>"><i class='fa fa-info-circle'></i> </a>
 										</label>
 										<input value="<?php echo $xdata[0]["delay_time"];?>" class="form-control" name="delay_time" id="delay_time" type="number" min="0" value="0">
 									</div>
@@ -80,11 +80,11 @@
 									<div class="row">
 										<div class="col-12 col-md-6">
 											<div class="form-group">
-												<label><?php echo $this->lang->line("image/video upload") ?>
-													<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("image/video upload") ?>" data-content="<?php echo $this->lang->line("upload image or video to embed with your comment reply.") ?>"><i class='fa fa-info-circle'></i></a>
+												<label><?php echo lang("image/video upload") ?>
+													<a href="#" data-placement="bottom" data-toggle="popover" data-trigger="focus" title="<?php echo lang("image/video upload") ?>" data-content="<?php echo lang("upload image or video to embed with your comment reply.") ?>"><i class='fa fa-info-circle'></i></a>
 												</label>
 												<div class="form-group">      
-							                        <div id="image_video_upload2"><?php echo $this->lang->line("upload") ?></div>	     
+							                        <div id="image_video_upload2"><?php echo lang("upload") ?></div>	     
 												</div>
 												<input type="hidden" value="<?php echo $xdata[0]["uploaded_image_video"];?>" name="uploaded_image_video2" id="uploaded_image_video2">
 											</div>
@@ -101,11 +101,11 @@
 											<?php
 												if(!in_array($ext,$video_array))
 												{
-													echo '<a href="#" title="'.$this->lang->line('See image').'" id="img_preview" img-src="'.base_url("upload/comment_reply_enhancers/").$xdata[0]["uploaded_image_video"].'" class="btn btn-primary" ><i class="fas fa-image"></i></a>';
+													echo '<a href="#" title="'.lang('See image').'" id="img_preview" img-src="'.base_url("upload/comment_reply_enhancers/").$xdata[0]["uploaded_image_video"].'" class="btn btn-primary" ><i class="fas fa-image"></i></a>';
 												}
 												else
 												{
-													echo '<a href="#" title="'.$this->lang->line('See Video').'" id="vid_preview" vid-src="'.base_url("upload/comment_reply_enhancers/").$xdata[0]["uploaded_image_video"].'" class="btn btn-primary" ><i class="fas fa-video"></i></a>';
+													echo '<a href="#" title="'.lang('See Video').'" id="vid_preview" vid-src="'.base_url("upload/comment_reply_enhancers/").$xdata[0]["uploaded_image_video"].'" class="btn btn-primary" ><i class="fas fa-video"></i></a>';
 												}
 												echo '</div>';
 											} ?>
@@ -117,17 +117,17 @@
 
 								<div class="col-12 col-md-6">
 									<div class="form-group schedule_block_item2">
-										<label><?php echo $this->lang->line("schedule time") ?>  <a href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("schedule time") ?>" data-content="<?php echo $this->lang->line("Select date and time when you want to process this campaign.") ?>"><i class='fa fa-info-circle'></i> </a></label>
-										<input value="<?php echo $xdata[0]["schedule_time"];?>" placeholder="<?php echo $this->lang->line("time");?>"  name="schedule_time2" id="schedule_time2" class="form-control datetimepicker" type="text"/>
+										<label><?php echo lang("schedule time") ?>  <a href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="<?php echo lang("schedule time") ?>" data-content="<?php echo lang("Select date and time when you want to process this campaign.") ?>"><i class='fa fa-info-circle'></i> </a></label>
+										<input value="<?php echo $xdata[0]["schedule_time"];?>" placeholder="<?php echo lang("time");?>"  name="schedule_time2" id="schedule_time2" class="form-control datetimepicker" type="text"/>
 									</div>
 								</div>
 								<div class="col-12 col-md-6">
 									<div class="form-group schedule_block_item2">
-										<label><?php echo $this->lang->line("time zone") ?>
-											 <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("time zone") ?>" data-content="<?php echo $this->lang->line("server will consider your time zone when it process the campaign.") ?>"><i class='fa fa-info-circle'></i> </a>
+										<label><?php echo lang("time zone") ?>
+											 <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang("time zone") ?>" data-content="<?php echo lang("server will consider your time zone when it process the campaign.") ?>"><i class='fa fa-info-circle'></i> </a>
 										</label>
 										<?php
-										$time_zone[''] = $this->lang->line("please select");
+										$time_zone[''] = lang("please select");
 										echo form_dropdown('time_zone2',$time_zone,$xdata[0]["time_zone"],' class="form-control select2" id="time_zone2" required style="width:100%;"'); 
 										?>
 									</div>
@@ -137,8 +137,8 @@
 
 						<div class="clearfix"></div>
 						<div class="card-footer padding-0" style="margin-top:20px;">
-							<button class="btn btn-lg btn-primary" id="submit_post2" name="submit_post2" type="button"><i class="fas fa-edit"></i> <?php echo $this->lang->line("Update Campaign") ?> </button>
-							<a class="btn btn-lg btn-light float-right" onclick='goBack("comment_reply_enhancers/bulk_comment_reply_campaign_list",0)'><i class="fas fa-times"></i> <?php echo $this->lang->line("Cancel") ?> </a>
+							<button class="btn btn-lg btn-primary" id="submit_post2" name="submit_post2" type="button"><i class="fas fa-edit"></i> <?php echo lang("Update Campaign") ?> </button>
+							<a class="btn btn-lg btn-light float-right" onclick='goBack("comment_reply_enhancers/bulk_comment_reply_campaign_list",0)'><i class="fas fa-times"></i> <?php echo lang("Cancel") ?> </a>
 						</div>
 					</div>
 				</div>
@@ -150,18 +150,18 @@
 
 
 <?php
-	$somethingwentwrong = $this->lang->line("something went wrong.");
-	$pleasewait = $this->lang->line("please wait").'...';
-	$areyousure = $this->lang->line("are you sure");
-	$startcommenternames = $this->lang->line("Start typing commenter names you want to excude from tag list");
-	$list_of_commenters = $this->lang->line("List of commenters which this campaign will tag");
-	$campaign_name_is_required=$this->lang->line("Campaign name is required.");
-	$tag_content_is_required=$this->lang->line("Tag content is required.");
-	$you_have_not_selected_commenters=$this->lang->line("You have not selected commenters.");
-	$no_subscribed_commenter_found=$this->lang->line("No subscribed commenter found.");
-	$reply_content_is_required=$this->lang->line("Reply content is required.");
-	$pleaseselectscheduletimetimezone = $this->lang->line("Please select schedule time/time zone.");
-	$item_per_range=$this->config->item('item_per_range');
+	$somethingwentwrong = lang("something went wrong.");
+	$pleasewait = lang("please wait").'...';
+	$areyousure = lang("are you sure");
+	$startcommenternames = lang("Start typing commenter names you want to excude from tag list");
+	$list_of_commenters = lang("List of commenters which this campaign will tag");
+	$campaign_name_is_required=lang("Campaign name is required.");
+	$tag_content_is_required=lang("Tag content is required.");
+	$you_have_not_selected_commenters=lang("You have not selected commenters.");
+	$no_subscribed_commenter_found=lang("No subscribed commenter found.");
+	$reply_content_is_required=lang("Reply content is required.");
+	$pleaseselectscheduletimetimezone = lang("Please select schedule time/time zone.");
+	$item_per_range=(config('MyConfig')->item_per_range ?? 10);
     if($item_per_range=='') $item_per_range=50;
     $tag_machine_enabled_post_list_id=$xdata[0]["tag_machine_enabled_post_list_id"];
  ?>
@@ -201,13 +201,13 @@ $("document").ready(function(){
     	
     	if(campaign_name=="")
     	{
-    		swal('<?php echo $this->lang->line("Warning"); ?>',"<?php echo $this->lang->line('Campaign name is required.');?>", 'warning');
+    		swal('<?php echo lang("Warning"); ?>',"<?php echo lang('Campaign name is required.');?>", 'warning');
     		return;
     	}
 
     	if(message=="")
     	{
-    		swal('<?php echo $this->lang->line("Warning"); ?>',"<?php echo $this->lang->line('Reply content is required.');?>", 'warning');
+    		swal('<?php echo lang("Warning"); ?>',"<?php echo lang('Reply content is required.');?>", 'warning');
     		return;
     	}
 
@@ -217,7 +217,7 @@ $("document").ready(function(){
     	var pleaseselectscheduletimetimezone = "<?php echo $pleaseselectscheduletimetimezone; ?>";
     	if(schedule_type=='later' && (schedule_time=="" || time_zone==""))
     	{
-    		swal('<?php echo $this->lang->line("Warning"); ?>',"<?php echo $this->lang->line('Please select schedule time/time zone.');?>", 'warning');
+    		swal('<?php echo lang("Warning"); ?>',"<?php echo lang('Please select schedule time/time zone.');?>", 'warning');
     		return;
     	}
 
@@ -241,7 +241,7 @@ $("document").ready(function(){
       			{
       				var span = document.createElement("span");
       				span.innerHTML = response.message;
-      				swal({ title:'<?php echo $this->lang->line("Campagin has been updated successfully."); ?>', content:span,icon:'success'});
+      				swal({ title:'<?php echo lang("Campagin has been updated successfully."); ?>', content:span,icon:'success'});
       			}
       			else
       			{
