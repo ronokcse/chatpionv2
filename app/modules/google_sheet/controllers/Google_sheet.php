@@ -19,31 +19,45 @@ Version: 1.1
 Description: 
 */
 
+namespace App\Modules\Google_sheet\Controllers;
 
-require_once("application/controllers/Home.php"); // loading home controller
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Google_sheet extends Home
 {
 	public $addon_data=array();
-    public function __construct()
+    
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
         // getting addon information in array and storing to public variable
         // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
         //------------------------------------------------------------------------------------------
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        $addon_controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path=APPPATH."modules/".strtolower($addon_controller_name)."/controllers/".ucfirst($addon_controller_name).".php"; // path of addon controller
         $this->addon_data=$this->get_addon_data($addon_path); 
         $this->member_validity();
-        $this->user_id=$this->session->userdata('user_id'); // user_id of logged in user, we may need it
-        if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(351, $this->module_access)) redirect('home/login_page', 'location');
+        $this->user_id=session()->get('user_id'); // user_id of logged in user, we may need it
+        if (session()->get('logged_in')!= 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
+        if (session()->get('user_type') != 'Admin' && !in_array(351, $this->module_access)) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
     }
 
 
     public function index()
   	{
-        $this->db->where('user_id', $this->user_id);
-        $account_details = $this->db->get('google_accounts')->result(); // Fetch results as an array of objects
+        $account_details = $this->db->table('google_accounts')
+            ->where('user_id', $this->user_id)
+            ->get()
+            ->getResult(); // Fetch results as an array of objects
         $count_account = count($account_details); 
         // Prepare data for the view
         $data['count_account'] = $count_account; // Set the count in the data array
@@ -64,7 +78,7 @@ class Google_sheet extends Home
     {
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         $purchase_code=$this->input->post('purchase_code');
        
         $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
@@ -124,7 +138,7 @@ class Google_sheet extends Home
     {        
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);         
     }
@@ -133,7 +147,7 @@ class Google_sheet extends Home
     {        
         $this->ajax_check();
  
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
         $sql = array(); 
@@ -146,8 +160,8 @@ class Google_sheet extends Home
         if ($status == "3") {
             $text = $this->lang->line('sorry, your limit is exceeded for this module.');
             exit();
-            $this->session->set_userdata('limit_cross', $text);
-            redirect('google_sheet/index', 'location');
+            session()->set('limit_cross', $text);
+            return redirect()->to(base_url('google_sheet/index'));
             exit();
         }
         $login_config=$this->basic->get_data("login_config",array("where"=>array("status"=>"1")));
@@ -184,19 +198,20 @@ class Google_sheet extends Home
             $response = $this->sheet->get_access_token_information($auth_code);
             
             if (!empty($response)) {
-                $email_exists = $this->db->select('id')
+                $email_exists = $this->db->table('google_accounts')
+                    ->select('id')
                     ->where(['email' => $response['email'], 'user_id' => $this->user_id])
-                    ->get('google_accounts')
-                    ->row();
+                    ->get()
+                    ->getRow();
                 if (!$email_exists) {
                     // If the email does not exist, insert the new data
                     $response['user_id'] = $this->user_id;
                     $response['created_at'] = date("Y-m-d H:i:s");
-                    $this->db->insert('google_accounts', $response);
-                    $insert_id = $this->db->insert_id();
+                    $this->db->table('google_accounts')->insert($response);
+                    $insert_id = db()->insertID();
                 } else {
                     $insert_id = $email_exists->id ?? '';
-                    $this->db->where('id', $insert_id)->update('google_accounts', $response);
+                    $this->db->table('google_accounts')->where('id', $insert_id)->update($response);
                 }
         
                 $requestForSync = ['id_from_connect_account' => $insert_id];
@@ -205,9 +220,9 @@ class Google_sheet extends Home
                     return $this->custom_error_page('', '', $error_message);
                 }
         
-                $this->session->set_flashdata('google_sheet_auth_connect', '1');
+                session()->setFlashdata('google_sheet_auth_connect', '1');
                 $this->_insert_usage_log($module_id = 351, $request = 1);
-                return redirect('google_sheet');
+                return redirect()->to(base_url('google_sheet'));
             }
         }
     }
@@ -216,10 +231,11 @@ class Google_sheet extends Home
     public function google_sheet_sync($requestForSync = [])
     {
         $id = $requestForSync['id_from_connect_account'] ?? $this->input->post('id');
-        $google_sheet_account_data = $this->db->select(['access_token', 'refresh_token', 'email'])
+        $google_sheet_account_data = $this->db->table('google_accounts')
+            ->select('access_token, refresh_token, email')
             ->where(['id' => $id, 'user_id' => $this->user_id])
-            ->get('google_accounts')
-            ->row();
+            ->get()
+            ->getRow();
         $access_token = $google_sheet_account_data->access_token ?? '';
         $refresh_token = $google_sheet_account_data->refresh_token ?? '';
         $user_auth_email = $google_sheet_account_data->email ?? '';
@@ -231,9 +247,7 @@ class Google_sheet extends Home
 		}
     
         if (empty($google_client_id) || empty($google_client_secret)) {
-            return $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['error' => true, 'message' => 'Google client ID and client secret are required.']));
+            return $this->response->setJSON(['error' => true, 'message' => 'Google client ID and client secret are required.']);
         }
     
         // Set Google client details
@@ -252,9 +266,7 @@ class Google_sheet extends Home
             if ($this->input->post('id_from_connect_account')) {
                 return $errorMessage;
             } else {
-                return $this->output
-                    ->set_content_type('application/json')
-                    ->set_output(json_encode(['error' => true, 'message' => $errorMessage]));
+                return $this->response->setJSON(['error' => true, 'message' => $errorMessage]);
             }
         } else {
             $sheets = $google_sheet_list['sheets'] ?? [];
@@ -292,9 +304,7 @@ class Google_sheet extends Home
             if (isset($requestForSync['id_from_connect_account'])) {
                 return "";
             } else {
-                return $this->output
-                    ->set_content_type('application/json')
-                    ->set_output(json_encode(['error' => false, 'message' => 'Data has been synced successfully.']));
+                return $this->response->setJSON(['error' => false, 'message' => 'Data has been synced successfully.']);
             }
         }
     }
@@ -304,19 +314,16 @@ class Google_sheet extends Home
         $id = $this->input->post('id'); // Get the 'id' from POST request
 
         // Execute the delete query
-        $deleted = $this->db->where('user_id', $this->user_id)
+        $deleted = $this->db->table('google_accounts')
+                            ->where('user_id', $this->user_id)
                             ->where('id', $id)
-                            ->delete('google_accounts');
+                            ->delete();
         // Check if deletion was successful and send response
         if ($deleted) {
             $this->_delete_usage_log($module_id = 351, $request = 1);
-            return $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode(['error' => false, 'message' => 'Data has been deleted successfully.']));
+            return $this->response->setJSON(['error' => false, 'message' => 'Data has been deleted successfully.']);
         } else {
-            return $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode(['error' => true, 'message' => 'No data found or deletion failed.']));
+            return $this->response->setJSON(['error' => true, 'message' => 'No data found or deletion failed.']);
         }
     }
 
@@ -396,21 +403,20 @@ class Google_sheet extends Home
         if (!empty($headers_name)) {
             foreach ($headers_name as $head) {
                 if (!preg_match('/^[a-zA-Z0-9_]+$/', $head)) {
-                    return $this->output
-                                ->set_content_type('application/json')
-                                ->set_output(json_encode([
+                    return $this->response->setJSON([
                                     'error' => true,
                                     'message' => sprintf($this->lang->line("Google Sheet header names only allow alpha-numeric characters and underscores. Invalid header name found (%s)."), $head)
-                                ]));
+                                ]);
                 }
             }
         }
 
         // Retrieve Google account data
-        $google_sheet_account_data = $this->db->select('access_token, refresh_token, email')
+        $google_sheet_account_data = $this->db->table('google_accounts')
+            ->select('access_token, refresh_token, email')
             ->where(['id' => $sheet_account_id, 'user_id' => $this->user_id])
-            ->get('google_accounts')
-            ->row();
+            ->get()
+            ->getRow();
         $access_token = $google_sheet_account_data->access_token ?? '';
         $refresh_token = $google_sheet_account_data->refresh_token ?? '';
         $login_config=$this->basic->get_data("login_config",array("where"=>array("status"=>"1")));
@@ -420,10 +426,10 @@ class Google_sheet extends Home
 			$google_client_secret=$login_config[0]["google_client_secret"];
 		}
         else{
-            return $this->output->set_content_type('application/json')->set_output(json_encode([
+            return $this->response->setJSON([
                 'error' => true,
                 'message' => $this->lang->line('Google client Id And Client Secret is required')
-            ]));
+            ]);
         }
         // Load Google Sheets library
         $this->load->library('sheet');
@@ -449,21 +455,17 @@ class Google_sheet extends Home
             ];
 
             // Insert into database
-            $this->db->insert('google_sheets', $insert_data);
+            $this->db->table('google_sheets')->insert($insert_data);
 
-            return $this->output
-                        ->set_content_type('application/json')
-                        ->set_output(json_encode([
+            return $this->response->setJSON([
                             'error' => false,
                             'message' => $this->lang->line('Data has been saved successfully.')
-                        ]));
+                        ]);
         } else {
-            return $this->output
-                        ->set_content_type('application/json')
-                        ->set_output(json_encode([
+            return $this->response->setJSON([
                             'error' => true,
                             'message' => $this->lang->line('Something Went Wrong.')
-                        ]));
+                        ]);
         }
     }
     public function delete_sheet()
@@ -483,15 +485,17 @@ class Google_sheet extends Home
         // Handle soft delete (delete from both CodeIgniter and Google Sheets)
         if ($soft_delete == 2) {
             // Retrieve Google account data
-            $google_sheet_account_data = $this->db->select(['access_token', 'refresh_token', 'email'])
+            $google_sheet_account_data = $this->db->table('google_accounts')
+                ->select('access_token, refresh_token, email')
                 ->where(['id' => $sheet_account_id, 'user_id' => $this->user_id])
-                ->get('google_accounts')
-                ->row();
+                ->get()
+                ->getRow();
 
-            $sheet_data = $this->db->select('sheet_id')
+            $sheet_data = $this->db->table('google_sheets')
+                ->select('sheet_id')
                 ->where(['id' => $id, 'user_id' => $this->user_id])
-                ->get('google_sheets')
-                ->row();
+                ->get()
+                ->getRow();
 
             // Check if sheet data exists
             if (!$sheet_data || !$google_sheet_account_data) {
@@ -511,10 +515,10 @@ class Google_sheet extends Home
                 $google_client_secret=$login_config[0]["google_client_secret"];
             }
             else{
-                return $this->output->set_content_type('application/json')->set_output(json_encode([
+                return $this->response->setJSON([
                     'error' => true,
                     'message' => $this->lang->line('Google client Id And Client Secret is required')
-                ]));
+                ]);
             }
             
 
@@ -530,7 +534,7 @@ class Google_sheet extends Home
         }
 
         // Delete the sheet from local database
-        $this->db->where('id', $id)->delete('google_sheets');
+        $this->db->table('google_sheets')->where('id', $id)->delete();
         echo json_encode(['success' => true, 'message' => $this->lang->line('Sheet deleted successfully.')]);
     }
 
@@ -544,30 +548,32 @@ class Google_sheet extends Home
 
         // check already exist or not
 
-        $google_sheet_exist = $this->db->where([
-            'google_account_id' => $sheet_account_id,
-            'user_id' => $this->user_id,
-            'sheet_id' => $sheet_existing_id,
-        ])
-        ->get('google_sheets')
-        ->row();
+        $google_sheet_exist = $this->db->table('google_sheets')
+            ->where([
+                'google_account_id' => $sheet_account_id,
+                'user_id' => $this->user_id,
+                'sheet_id' => $sheet_existing_id,
+            ])
+            ->get()
+            ->getRow();
         
         
         if(!empty($google_sheet_exist)){
-            return $this->output->set_content_type('application/json')->set_output(json_encode([
+            return $this->response->setJSON([
                 'error' => true,
                 'message' => $this->lang->line('This Email is already been Exists')
-            ]));
+            ]);
         }
 
         // Fetch Google Sheet account data
-        $google_sheet_account_data = $this->db->where([
+        $google_sheet_account_data = $this->db->table('google_accounts')
+            ->where([
                 'google_accounts.id' => $sheet_account_id,
                 'google_accounts.user_id' => $this->user_id
             ])
-            ->select(['access_token', 'refresh_token', 'google_accounts.email'])
-            ->get('google_accounts')
-            ->row();
+            ->select('access_token, refresh_token, google_accounts.email')
+            ->get()
+            ->getRow();
 
         $access_token = $google_sheet_account_data->access_token ?? '';
         $refresh_token = $google_sheet_account_data->refresh_token ?? '';
@@ -578,10 +584,10 @@ class Google_sheet extends Home
 			$google_client_secret=$login_config[0]["google_client_secret"];
 		}
         else{
-            return $this->output->set_content_type('application/json')->set_output(json_encode([
+            return $this->response->setJSON([
                 'error' => true,
                 'message' => $this->lang->line('Google client Id And Client Secret is required')
-            ]));
+            ]);
         }
 
 
@@ -599,16 +605,16 @@ class Google_sheet extends Home
             $google_sheet_errors = json_decode($google_sheet_details['error']);
             $error_message = $google_sheet_errors->error->errors[0]->message;
             if(isset($error_message)){
-                return $this->output->set_content_type('application/json')->set_output(json_encode([
+                return $this->response->setJSON([
                     'error' => true,
                     'message' =>$error_message
-                ]));
+                ]);
             }
             else{
-                return $this->output->set_content_type('application/json')->set_output(json_encode([
+                return $this->response->setJSON([
                     'error' => true,
                     'message' => $this->lang->line('There was an error accessing the Google Sheet')
-                ]));
+                ]);
             }
            
         }
@@ -628,18 +634,18 @@ class Google_sheet extends Home
                 'sheet_names' => $sheet_tab_name,
                 'created_at' => date("Y-m-d H:i:s"),
             ];
-            $this->db->insert('google_sheets', $insert_data);
-            return $this->output->set_content_type('application/json')->set_output(json_encode([
+            $this->db->table('google_sheets')->insert($insert_data);
+            return $this->response->setJSON([
                 'error' => false,
                 'message' => $this->lang->line('Sheet has been added successfully.')
-            ]));
+            ]);
         }
 
         // Handle errors
-        return $this->output->set_content_type('application/json')->set_output(json_encode([
+        return $this->response->setJSON([
             'error' => true,
             'message' => $this->lang->line('Something Went Wrong.')
-        ]));
+        ]);
     }
     
 

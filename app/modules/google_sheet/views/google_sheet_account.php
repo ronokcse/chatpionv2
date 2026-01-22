@@ -70,32 +70,32 @@
 <section class="section">
 
   <div class="section-header">
-    <h1><i class="fab fa-google"></i> <?php echo $this->lang->line("Google Accounts") ?></h1>
+    <h1><i class="fab fa-google"></i> <?php echo lang("Google Accounts") ?></h1>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item"><a href="<?php echo base_url('integration') ?>"><?php echo $this->lang->line("Integration"); ?></a></div>
+      <div class="breadcrumb-item"><a href="<?php echo base_url('integration') ?>"><?php echo lang("Integration"); ?></a></div>
       <div class="breadcrumb-item"><?php echo $page_title; ?></div>
     </div>
   </div>
 
   <?php
-  if ($this->session->flashdata('google_sheet_auth_connect') == '1') {
-    echo "<div class='alert alert-success'><h4 class='alert-heading'>" . $this->lang->line('Successful') . "</h4><p>" . $this->lang->line('Account Successfully Imported') . "</p></div>";
+  if (session()->getFlashdata('google_sheet_auth_connect') == '1') {
+    echo "<div class='alert alert-success'><h4 class='alert-heading'>" . lang('Successful') . "</h4><p>" . lang('Account Successfully Imported') . "</p></div>";
     unset($_SESSION['google_sheet_auth_connect']);
   }
-  if ($this->session->userdata('limit_cross') != '') {
-    echo "<div class='alert alert-danger text-center'><i class='fas fa-times'></i> " . $this->session->userdata('limit_cross') . "</div><br/>";
-    $this->session->unset_userdata('limit_cross');
+  if (session()->get('limit_cross') != '') {
+    echo "<div class='alert alert-danger text-center'><i class='fas fa-times'></i> " . session()->get('limit_cross') . "</div><br/>";
+    session()->remove('limit_cross');
   }
-  $is_demo = $this->is_demo;
-  if ($is_demo && $this->session->userdata("user_type") == "Admin") {
+  $is_demo = $is_demo ?? false;
+  if ($is_demo && session()->get("user_type") == "Admin") {
     echo '<div class="alert alert-warning text-center">Account import has been disabled in admin account because you will not be able to unlink the Google account you import as admin. If you want to test with your own accout then <a href="' . base_url('home/sign_up') . '" target="_BLANK">sign up</a> to create your own demo account then import your Google account there.</div>';
   }
   ?>
 
   <div class="section-body">
     <div class="float-right">
-      <p data-toggle="tooltip" data-placement="bottom" title="<?php echo $this->lang->line("You must be logged in your Google account to connect it."); ?>">
-        <a href="<?php echo base_url("google_sheet/connect_action") ?>" target="_blank" class="btn bg-white btn-lg text-dark" style="border: 1px solid #ccc !important;"><img class="" width="20px" src="<?php echo base_url('assets/img/google.png'); ?>"><b class="pl-2"><?php echo $this->lang->line('Sign in with') . " " . $this->lang->line("Google"); ?></b></a>
+      <p data-toggle="tooltip" data-placement="bottom" title="<?php echo lang("You must be logged in your Google account to connect it."); ?>">
+        <a href="<?php echo base_url("google_sheet/connect_action") ?>" target="_blank" class="btn bg-white btn-lg text-dark" style="border: 1px solid #ccc !important;"><img class="" width="20px" src="<?php echo base_url('assets/img/google.png'); ?>"><b class="pl-2"><?php echo lang('Sign in with') . " " . lang("Google"); ?></b></a>
       </p>
     </div>
 
@@ -120,7 +120,7 @@
                   <a href="#"
                     class="px-2 pt-2 btn btn-sm btn-outline-primary btn-circle sync_google_sheet"
                     data-flag='0' data-id="<?php echo $account->id; ?>"
-                    title="<?php echo $this->lang->line('Sync : Sync your account data.'); ?>"
+                    title="<?php echo lang('Sync : Sync your account data.'); ?>"
                     data-toggle="tooltip"
                     data-placement="top"
                     data-custom-class="custom-tooltip">
@@ -130,7 +130,7 @@
                     class="px-2 pt-2 btn btn-sm btn-dark btn-circle unlink_google_sheet_account"
                     data-flag="0"
                     data-id="<?php echo $account->id; ?>"
-                    title="<?php echo $this->lang->line('Unlink : Unlink the google sheet account from :appname but You can always resync to retrieve it.'); ?>"
+                    title="<?php echo lang('Unlink : Unlink the google sheet account from :appname but You can always resync to retrieve it.'); ?>"
                     data-toggle="tooltip"
                     data-placement="top"
                     data-custom-class="custom-tooltip">
@@ -148,7 +148,7 @@
         <div class="card-body">
           <div class="empty-state">
             <img class="img-fluid" style="height: 200px" src="<?php echo base_url('assets/img/drawkit/drawkit-nature-man-colour.svg'); ?>" alt="image">
-            <h2 class="mt-0"><?php echo $this->lang->line("You haven not connected any account yet.") ?><p><a href="<?php echo base_url("google_sheet/connect_action") ?>" target="_blank"><?php echo $this->lang->line("Sign in to connect your account."); ?></a></p>
+            <h2 class="mt-0"><?php echo lang("You haven not connected any account yet.") ?><p><a href="<?php echo base_url("google_sheet/connect_action") ?>" target="_blank"><?php echo lang("Sign in to connect your account."); ?></a></p>
             </h2>
           </div>
         </div>
@@ -158,27 +158,27 @@
 
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
   <?php if($count_account > 0){ ?>
     <div class="page-title mt-4">
       <div class="row">
         <div class="col-12 col-md-6 order-md-1 order-last">
           <h3>
-            <?php echo $this->lang->line('Google Sheets'); ?>
+            <?php echo lang('Google Sheets'); ?>
             <span id="subtitle"></span>
             <!-- Neeeds module access there -->
             <a href="#" id="create_google_sheet" class="btn btn-outline-primary">
               <i class="fas fa-plus-circle"></i>
-              <?php echo $this->lang->line('Create New Sheet'); ?>
+              <?php echo lang('Create New Sheet'); ?>
             </a>
             <a href="#" id="add_existing_sheet" class="btn btn-outline-primary">
               <i class="fas fa-plus-circle"></i>
-              <?php echo $this->lang->line('Add Existing Sheet'); ?>
+              <?php echo lang('Add Existing Sheet'); ?>
             </a>
 
           </h3>
           <p class="text-subtitle text-muted">
-            <?php echo $this->lang->line('List of Google Sheets'); ?>
+            <?php echo lang('List of Google Sheets'); ?>
           </p>
         </div>
       </div>
@@ -198,14 +198,14 @@
                     <div class="input-group-prepend">'; ?>
                 </div>
 
-                <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $this->session->userdata('csrf_token_session'); ?>">
+                <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo session()->get('csrf_token_session'); ?>">
 
 
                 <?php
                 echo
-                '<input type="text" class="form-control" id="search_value" autofocus name="search_value" placeholder="' . $this->lang->line("Search...") . '" style="max-width:30%;">
+                '<input type="text" class="form-control" id="search_value" autofocus name="search_value" placeholder="' . lang("Search...") . '" style="max-width:30%;">
                     <div class="input-group-append">
-                      <button class="btn btn-primary" type="button" id="search_action"><i class="fas fa-search"></i> <span class="d-none d-sm-inline">' . $this->lang->line("Search") . '</span></button>
+                      <button class="btn btn-primary" type="button" id="search_action"><i class="fas fa-search"></i> <span class="d-none d-sm-inline">' . lang("Search") . '</span></button>
                     </div>
                   </div>'; ?>
               </div>
@@ -217,12 +217,12 @@
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th><?php echo $this->lang->line('ID'); ?></th>
-                    <th><?php echo $this->lang->line('Sheet Title'); ?></th>
-                    <th><?php echo $this->lang->line('Sheet Id'); ?></th>
-                    <th><?php echo $this->lang->line('Actions'); ?></th>
-                    <th><?php echo $this->lang->line('Created at'); ?></th>
-                    <th><?php echo $this->lang->line('Modified at'); ?></th>
+                    <th><?php echo lang('ID'); ?></th>
+                    <th><?php echo lang('Sheet Title'); ?></th>
+                    <th><?php echo lang('Sheet Id'); ?></th>
+                    <th><?php echo lang('Actions'); ?></th>
+                    <th><?php echo lang('Created at'); ?></th>
+                    <th><?php echo lang('Modified at'); ?></th>
                   </tr>
                 </thead>
               </table>
@@ -240,14 +240,14 @@
   <div class="modal-dialog" style="min-width: 30%;">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fa fa-pencil"></i> <?php echo $this->lang->line('Create Google Sheet'); ?></h5>
+        <h5 class="modal-title"><i class="fa fa-pencil"></i> <?php echo lang('Create Google Sheet'); ?></h5>
         <input type="hidden" id="hidden_sheet_account_id">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       </div>
       <div class="modal-body">
         <div class="row">
           <div class="col-12 mb-3">
-            <label for="account-select"><?php echo $this->lang->line('Select Account'); ?> *</label>
+            <label for="account-select"><?php echo lang('Select Account'); ?> *</label>
             <select name="email" class="form-control select2" style="width:100% !important" id="account-select2" autocomplete="off">
 
               <?php foreach ($account_list as $id => $email): ?>
@@ -257,11 +257,11 @@
             <span id="account_select_err" class="text-danger"></span>
           </div>
           <div class="col-12 mb-3">
-            <label><?php echo $this->lang->line('Sheet Title'); ?> *</label>
+            <label><?php echo lang('Sheet Title'); ?> *</label>
             <input type="text" name="sheet_title" id="sheet_title" class="form-control">
           </div>
           <div class="col-12 mb-3">
-            <button type="button" id="add_header" class="btn btn-outline-success"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line('Add Header'); ?></button>
+            <button type="button" id="add_header" class="btn btn-outline-success"><i class="fa fa-plus-circle"></i> <?php echo lang('Add Header'); ?></button>
           </div>
 
           <!-- Container for dynamically added headers -->
@@ -271,8 +271,8 @@
 
       <div id="result_status"></div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"><i class="fas fa-times"></i> <?php echo $this->lang->line('Close'); ?></button>
-        <button id="save_google_sheet" type="button" class="btn btn-outline-primary"><i class="fas fa-save"></i> <?php echo $this->lang->line('Save'); ?></button>
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"><i class="fas fa-times"></i> <?php echo lang('Close'); ?></button>
+        <button id="save_google_sheet" type="button" class="btn btn-outline-primary"><i class="fas fa-save"></i> <?php echo lang('Save'); ?></button>
       </div>
     </div>
   </div>
@@ -283,14 +283,14 @@
   <div class="modal-dialog modal-md">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line('Add Existing Sheet'); ?></h5>
+        <h5 class="modal-title"><i class="fa fa-plus-circle"></i> <?php echo lang('Add Existing Sheet'); ?></h5>
         <input type="hidden" id="hidden_sheet_account_id2">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       </div>
       <div class="modal-body">
         <div class="row">
           <div class="col-12 mb-2">
-            <label for="account-select"><?php echo $this->lang->line('Select Account'); ?> *</label>
+            <label for="account-select"><?php echo lang('Select Account'); ?> *</label>
             <select name="email" class="form-control select2" style="width:100% !important" id="account-select3" autocomplete="off">
               <?php foreach ($account_list as $id => $email): ?>
                 <option value="<?php echo $id; ?>"><?php echo $email; ?></option>
@@ -299,14 +299,14 @@
             <span id="account_select_err" class="text-danger"></span>
           </div>
           <div class="col-12">
-            <label><?php echo $this->lang->line('Sheet ID'); ?> *</label>
+            <label><?php echo lang('Sheet ID'); ?> *</label>
             <input type="text" name="sheet_id" id="sheet_existing_id" class="form-control">
           </div>
         </div>
       </div>
       <div class="modal-footer d-flex align-items-center justify-content-start">
         <button type="button" id="save_existing_google_sheet" class="btn btn-outline-primary">
-          <i class="fas fa-save"></i> <span><?php echo $this->lang->line('Save'); ?></span>
+          <i class="fas fa-save"></i> <span><?php echo lang('Save'); ?></span>
         </button>
       </div>
     </div>
@@ -314,7 +314,7 @@
 </div>
 
 
-<?php $csrf_token = $this->session->userdata('csrf_token_session'); ?>
+<?php $csrf_token = session()->get('csrf_token_session'); ?>
 
 <script>
   var base_url = "<?php echo site_url(); ?>";
@@ -341,7 +341,7 @@
         }
       },
       language: {
-        url: "<?php echo base_url('assets/modules/datatables/language/' . $this->language . '.json'); ?>"
+        url: "<?php echo base_url('assets/modules/datatables/language/' . ($language ?? (config('MyConfig')->language ?? 'english')) . '.json'); ?>"
       },
       dom: '<"top">rt<"bottom"lip><"clear">',
       columns: [{
@@ -369,15 +369,15 @@
             var view_url = "https://docs.google.com/spreadsheets/d/" + row.sheet_id + "/edit";
             var edit_url = base_url + 'team_member/edit_role/' + row.id;
             var delete_url = '#';
-            var unlink_confirm_message = "<?php echo htmlspecialchars($this->lang->line('Unlinking the sheet will only remove its data from system. You can always resync to     retrieve it. However, unlinking will cause the loss of data linked with this sheet.')); ?>";
-            var delete_confirm_message = "<?php echo htmlspecialchars($this->lang->line('Do you really want to delete this sheet? This action cannot be undone and will cause the loss of data linked with this sheet.',)); ?>";
+            var unlink_confirm_message = "<?php echo htmlspecialchars(lang('Unlinking the sheet will only remove its data from system. You can always resync to     retrieve it. However, unlinking will cause the loss of data linked with this sheet.')); ?>";
+            var delete_confirm_message = "<?php echo htmlspecialchars(lang('Do you really want to delete this sheet? This action cannot be undone and will cause the loss of data linked with this sheet.',)); ?>";
             var actions = "";
             actions += "<a class='btn btn-circle btn-outline-primary' href='" + view_url + "' target='_blank' title='View'><i class='fas fa-eye'></i></a>";
 
-            actions += "<a href='" + delete_url + "' data-sheet_account_id='" + row.google_account_id + "' data-id='" + row.id + "' data-table-name='table12' data-soft-delete='1' data-lang-confirm-yes='<?php echo htmlspecialchars($this->lang->line('Unlink')); ?>' data-lang-confirm-message='" + unlink_confirm_message + "' class='btn btn-circle btn-outline-warning delete_google_sheet' title='<?php echo htmlspecialchars($this->lang->line('Unlink: Unlink from system but stays in Google Sheets end')); ?>'>" +
+            actions += "<a href='" + delete_url + "' data-sheet_account_id='" + row.google_account_id + "' data-id='" + row.id + "' data-table-name='table12' data-soft-delete='1' data-lang-confirm-yes='<?php echo htmlspecialchars(lang('Unlink')); ?>' data-lang-confirm-message='" + unlink_confirm_message + "' class='btn btn-circle btn-outline-warning delete_google_sheet' title='<?php echo htmlspecialchars(lang('Unlink: Unlink from system but stays in Google Sheets end')); ?>'>" +
               "<i class='fa fa-unlink'></i></a>";
 
-            actions += "&nbsp;&nbsp;&nbsp;&nbsp;<a href='" + delete_url + "' data-sheet_account_id='" + row.google_account_id + "' data-id='" + row.id + "' data-table-name='table12' data-soft-delete='2' class='btn btn-circle btn-outline-danger delete_google_sheet' data-lang-confirm-message='" + delete_confirm_message + "' title='<?php echo htmlspecialchars($this->lang->line('Delete: Unlink from system and from Google Sheets end as well.')); ?>'>" +
+            actions += "&nbsp;&nbsp;&nbsp;&nbsp;<a href='" + delete_url + "' data-sheet_account_id='" + row.google_account_id + "' data-id='" + row.id + "' data-table-name='table12' data-soft-delete='2' class='btn btn-circle btn-outline-danger delete_google_sheet' data-lang-confirm-message='" + delete_confirm_message + "' title='<?php echo htmlspecialchars(lang('Delete: Unlink from system and from Google Sheets end as well.')); ?>'>" +
               "<i class='fa fa-trash'></i></a>";
 
             // Return the actions wrapped in a div
@@ -457,7 +457,7 @@
           button.removeClass("btn-progress");
           button.removeClass("btn-primary");
           button.addClass("btn-outline-primary");
-          Swal.fire('<?php echo $this->lang->line("Error") ?>', 'An unexpected error occurred.', 'error');
+          Swal.fire('<?php echo lang("Error") ?>', 'An unexpected error occurred.', 'error');
         }
       });
     });
@@ -471,17 +471,17 @@
       button.addClass("btn-progress");
       var id = button.data('id');
       swal({
-        title: '<?php echo $this->lang->line("Confirm") ?>',
-        text: '<?php echo $this->lang->line("Do you really want to delete this record? This action cannot be undone and will delete any other related data if needed.") ?>',
+        title: '<?php echo lang("Confirm") ?>',
+        text: '<?php echo lang("Do you really want to delete this record? This action cannot be undone and will delete any other related data if needed.") ?>',
         icon: 'warning',
         buttons: {
           cancel: {
-            text: '<?php echo $this->lang->line("Cancel") ?>',
+            text: '<?php echo lang("Cancel") ?>',
             visible: true,
             closeModal: true,
           },
           confirm: {
-            text: '<?php echo $this->lang->line("Confirm") ?>',
+            text: '<?php echo lang("Confirm") ?>',
             closeModal: false
           }
         },
@@ -498,7 +498,7 @@
               button.removeClass("disabled");
               button.removeClass("btn-progress");
               if (response.error) {
-                swal('<?php echo $this->lang->line("Error") ?>', response.message, 'error');
+                swal('<?php echo lang("Error") ?>', response.message, 'error');
                 return false;
 
               } else {
@@ -507,7 +507,7 @@
                   message: response.message,
                   position: 'bottomRight'
                 });
-                swal('<?php echo $this->lang->line("Success") ?>', response.message, 'success')
+                swal('<?php echo lang("Success") ?>', response.message, 'success')
                   .then((value) => {
                     window.location.reload();
                   });
@@ -544,7 +544,7 @@
       }
 
       if (missing_input) {
-        swal('<?php echo $this->lang->line("Warning"); ?>', '<?php echo $this->lang->line("Please fill the required fields."); ?>', 'warning');
+        swal('<?php echo lang("Warning"); ?>', '<?php echo lang("Please fill the required fields."); ?>', 'warning');
         return false;
       }
 
@@ -575,10 +575,10 @@
           button.removeClass("btn-primary");
           button.addClass("btn-outline-primary");
           if (response.error) {
-            swal('<?php echo $this->lang->line("Error") ?>', response.message, 'error');
+            swal('<?php echo lang("Error") ?>', response.message, 'error');
             return false;
           } else {
-            swal('<?php echo $this->lang->line("Success") ?>', response.message, 'success').then((result) => {
+            swal('<?php echo lang("Success") ?>', response.message, 'success').then((result) => {
               $('#sheet_title').val('');
               $("#create_google_sheet_modal").modal('hide');
               $('#account-select2').val(null).trigger('change');
@@ -594,7 +594,7 @@
           button.removeClass("btn-progress");
           button.removeClass("btn-primary");
           button.addClass("btn-outline-primary");
-          swal('<?php echo $this->lang->line("Error") ?>', 'An unexpected error occurred.', 'error');
+          swal('<?php echo lang("Error") ?>', 'An unexpected error occurred.', 'error');
         }
       });
 
@@ -616,7 +616,7 @@
         missing_input = true;
       }
       if (missing_input) {
-        swal('<?php echo $this->lang->line("Warning"); ?>', '<?php echo $this->lang->line("Please fill the required fields."); ?>', 'warning');
+        swal('<?php echo lang("Warning"); ?>', '<?php echo lang("Please fill the required fields."); ?>', 'warning');
         return false;
       }
 
@@ -638,10 +638,10 @@
           button.removeClass("btn-primary");
           button.addClass("btn-outline-primary");
           if (response.error) {
-            swal('<?php echo $this->lang->line("Error") ?>', response.message, 'error');
+            swal('<?php echo lang("Error") ?>', response.message, 'error');
             return false;
           } else {
-            swal('<?php echo $this->lang->line("Success") ?>', response.message, 'success').then((result) => {
+            swal('<?php echo lang("Success") ?>', response.message, 'success').then((result) => {
               $('#sheet_existing_id').val('');
               $("#add_existing_sheet_modal").modal('hide');
               $('#account-select2').val(null).trigger('change');
@@ -656,7 +656,7 @@
           button.removeClass("btn-progress");
           button.removeClass("btn-primary");
           button.addClass("btn-outline-primary");
-          swal('<?php echo $this->lang->line("Error") ?>', 'An unexpected error occurred.', 'error');
+          swal('<?php echo lang("Error") ?>', 'An unexpected error occurred.', 'error');
         }
       });
 
@@ -671,7 +671,7 @@
       var sheet_account_id = $(this).data('sheet_account_id');
       var soft_delete = $(this).data('soft-delete'); // 1 for unlink and 2 for parmanent delete
       swal({
-          title: '<?php echo $this->lang->line("Warning"); ?>',
+          title: '<?php echo lang("Warning"); ?>',
           text: data_lang_confirm_message,
           icon: 'warning',
           buttons: true,
@@ -712,10 +712,10 @@
                 $(this).removeClass("btn-progress");
 
                 if (response.error) {
-                  swal('<?php echo $this->lang->line("Error"); ?>', response.message, 'error');
+                  swal('<?php echo lang("Error"); ?>', response.message, 'error');
                   return false;
                 } else {
-                  swal('<?php echo $this->lang->line("Success"); ?>', response.message, 'success').then((value) => {
+                  swal('<?php echo lang("Success"); ?>', response.message, 'success').then((value) => {
                     table.draw();
                   });
                 }
