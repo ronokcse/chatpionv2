@@ -11,26 +11,36 @@ Version: 1.0
 Description:
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Menu_manager\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Menu_manager extends Home
 {
     public $editor_allowed_tags;
-    public function __construct()
+    
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
-        $function_name=$this->uri->segment(2);
-        if ($this->session->userdata('logged_in') != 1) {
-            redirect('home/login_page', 'location');
+        parent::initController($request, $response, $logger);
+        $function_name=$this->request->getUri()->getSegment(2);
+        if (session()->get('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
         
         // team user can not access
-        if($this->is_manager==1)
-        redirect('home/login_page', 'location');
+        if($this->is_manager==1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
-        if($this->session->userdata('user_type') != 'Admin' && $function_name!='custom_page')
+        if(session()->get('user_type') != 'Admin' && $function_name!='custom_page')
         {
-            redirect('home/login_page', 'location');
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
         $this->editor_allowed_tags = '<h1><h2><h3><h4><h5><h6><a><b><strong><p><i><div><span><ul><li><ol><blockquote><code><table><tr><td><th><img><iframe>';
     }
@@ -187,7 +197,7 @@ class Menu_manager extends Home
         );
 
         if($this->basic->insert_data('custom_page_builder', $data)) {
-            $insertedId = $this->db->insert_id();
+            $insertedId = $this->db->insertID();
             $this->basic->update_data("custom_page_builder",['id'=>$insertedId],['url'=>$insertedId]);
             echo json_encode(['status'=>"1"]);
         } else {
@@ -228,7 +238,7 @@ class Menu_manager extends Home
 
             $this->db->query($final_sql);
 
-            if($this->db->affected_rows() > 0) {
+            if($this->db->affectedRows() > 0) {
                 echo "1";
             } else {
                 echo "0";
@@ -239,7 +249,7 @@ class Menu_manager extends Home
     public function edit_page($id=0)
     {
         if($id == "" || $id == 0) {
-            redirect("home/error_404","location");
+            return redirect()->to(base_url("home/error_404"));
         }
 
         $data['body'] = "update_page";
@@ -296,13 +306,13 @@ class Menu_manager extends Home
     public function custom_page($id=0)
     {
         if($id=="" || $id==0) {
-            redirect("home/error_404","location");
+            return redirect()->to(base_url("home/error_404"));
         }
 
         $data['body'] = 'view_single_page';
         $pagedata = $this->basic->get_data("custom_page_builder",['where'=>['id'=>$id]]);
         if(!isset($pagedata[0])) {
-            redirect("home/error_404","location");
+            return redirect()->to(base_url("home/error_404"));
         }
         $data['page_title'] = $pagedata[0]['page_name'];
         $data['page_data'] = $pagedata[0];
@@ -348,7 +358,7 @@ class Menu_manager extends Home
             $all_menu[$i]["is_menu_manager"] = $value["is_menu_manager"];
             $all_menu[$i]["page_list"]       = $value["custom_page_id"];
             $all_menu[$i]["is_extended"]     = "0";
-            $all_menu[$i]["license_type"]     = $this->session->userdata('license_type');
+            $all_menu[$i]["license_type"]     = session()->get('license_type');
             if(in_array($value['url'], $admin_double_level2)) {
                 $all_menu[$i]["is_extended"]     = "1";
             }
@@ -372,7 +382,7 @@ class Menu_manager extends Home
                         $all_menu[$i]["children"][$j]["only_admin"]    = $value1["only_admin"];
                         $all_menu[$i]["children"][$j]["only_member"]   = $value1["only_member"];
                         $all_menu[$i]["children"][$j]["is_extended"]   = '0';
-                        $all_menu[$i]["children"][$j]["license_type"]   = $this->session->userdata('license_type');
+                        $all_menu[$i]["children"][$j]["license_type"]   = session()->get('license_type');
                         if(in_array($value1['url'], $admin_double_level2)) {
                             $all_menu[$i]["children"][$j]["is_extended"] = "1";
                         }
@@ -397,7 +407,7 @@ class Menu_manager extends Home
         $menus_value = $_POST['values'];
         $datas       = json_decode($menus_value,true);
         // echo "<pre>"; print_r($datas); exit;
-        $this->db->trans_begin();
+        $this->db->transBegin();
 
         $this->basic->delete_data('menu', ['id >'=>0]);
         $this->basic->delete_data('menu_child_1', ['id >'=>0]);
@@ -457,7 +467,7 @@ class Menu_manager extends Home
             }
 
             $this->basic->insert_data('menu',$data);
-            $parent_id = $this->db->insert_id();
+            $parent_id = $this->db->insertID();
             
             if (isset($menu['children'])) {
 
@@ -524,13 +534,13 @@ class Menu_manager extends Home
             $i++;
         }
 
-        if ($this->db->trans_status() === FALSE)
+        if ($this->db->transStatus() === FALSE)
         {
-            $this->db->trans_rollback();
+            $this->db->transRollback();
         }
         else
         {
-            $this->db->trans_commit();
+            $this->db->transCommit();
         }
 
         echo true;
@@ -646,7 +656,7 @@ class Menu_manager extends Home
             }
         }
         
-        $this->db->trans_start();
+        $this->db->transBegin();
 
         foreach ($sql as $key => $query) 
         {
@@ -654,7 +664,7 @@ class Menu_manager extends Home
             {
                 $this->db->query($query);
             }
-            catch(Exception $e)
+            catch(\Exception $e)
             {
             }                    
         }
@@ -664,9 +674,9 @@ class Menu_manager extends Home
             $this->basic->delete_data('menu_child_1',['url'=>'comment_reply_enhancers/post_list']);
         }
 
-        $this->db->trans_complete();
+        $this->db->transComplete();
 
-        if ($this->db->trans_status() === FALSE) 
+        if ($this->db->transStatus() === FALSE) 
         {
             echo json_encode(array('status'=>'0','message'=>$this->lang->line('Database error. Something went wrong.')));
             exit();

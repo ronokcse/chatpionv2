@@ -31,7 +31,7 @@
                     error:function(data){
                       var span = document.createElement("span");
                       span.innerHTML = data.responseText;
-                      swal({ title:'<?php echo $this->lang->line("Error!"); ?>', content:span,icon:'error'});
+                      swal({ title:'<?php echo lang("Error!"); ?>', content:span,icon:'error'});
                     }
 
                 });
@@ -43,8 +43,8 @@
         $('.reset_menu').on('click', function (e) {
             e.preventDefault();
             swal({
-                title: '<?php echo $this->lang->line("Warning"); ?>',
-                text: '<?php echo $this->lang->line("Are you sure about reseting your menus to default state?"); ?>',
+                title: '<?php echo lang("Warning"); ?>',
+                text: '<?php echo lang("Are you sure about reseting your menus to default state?"); ?>',
                 icon: 'warning',
                 buttons: true,
                 dangerMode: true,
@@ -64,19 +64,19 @@
                             {
                                 $(this).removeClass('btn-progress');
                                 
-                                swal('<?php echo $this->lang->line("Success"); ?>', response.message, 'success').then((value) => {
+                                swal('<?php echo lang("Success"); ?>', response.message, 'success').then((value) => {
                                       location.reload();
                                     });
                             }
                             else
                             {
-                                swal('<?php echo $this->lang->line("Error"); ?>', response.message, 'error');
+                                swal('<?php echo lang("Error"); ?>', response.message, 'error');
                             }
                         },
                         error:function(response){
                             var span = document.createElement("span");
                             span.innerHTML = response.responseText;
-                            swal({ title:'<?php echo $this->lang->line("Error!"); ?>', content:span,icon:'error'});
+                            swal({ title:'<?php echo lang("Error!"); ?>', content:span,icon:'error'});
                         }
                     });
                 } 
@@ -121,12 +121,12 @@
 
             if(menu_manager == '0') {
                 if(name_field == '') {  
-                    var error = $("#error_msg").html("<B><?php echo $this->lang->line('Menu Name is Required'); ?></B>");
+                    var error = $("#error_msg").html("<B><?php echo lang('Menu Name is Required'); ?></B>");
                     return error;
                 }
 
                 if(icon_pick == 'empty') {  //if name field is empty
-                    var error = $("#error_msg4").html("<B><?php echo $this->lang->line('Menu Icon must not be empty icon'); ?></B>");
+                    var error = $("#error_msg4").html("<B><?php echo lang('Menu Icon must not be empty icon'); ?></B>");
                     return error;
                 }
             }
@@ -140,7 +140,7 @@
                 var page_list    = $('#page_list').val();               
 
                 if(name_field == '') {  
-                    var error = $("#error_msg").html("<B><?php echo $this->lang->line('Menu Name is Required'); ?></B>");
+                    var error = $("#error_msg").html("<B><?php echo lang('Menu Name is Required'); ?></B>");
                     return error;
                 } 
 
@@ -185,7 +185,7 @@
             var header_text    = $('#header_text').val();
 
             if(name_field == '') {  //if name field is empty
-                var error = $("#error_msg").html("<B><?php echo $this->lang->line('Menu Name is Required'); ?></B>");
+                var error = $("#error_msg").html("<B><?php echo lang('Menu Name is Required'); ?></B>");
                 return error;
             }
 

@@ -11,11 +11,11 @@
         <h1><i class="fas fa-pager"></i> <?php echo $page_title; ?></h1>
         <div class="section-header-button">
             <a class="btn btn-primary" href="<?php echo base_url('menu_manager/create_page'); ?>">
-                <i class="fas fa-plus-circle"></i> <?php echo $this->lang->line("New Page"); ?>
+                <i class="fas fa-plus-circle"></i> <?php echo lang("New Page"); ?>
             </a> 
         </div>
         <div class="section-header-breadcrumb">
-            <div class="breadcrumb-item"><a href="<?php echo base_url("menu_manager/index"); ?>"><?php echo $this->lang->line("Menu Manager"); ?></a></div>
+            <div class="breadcrumb-item"><a href="<?php echo base_url("menu_manager/index"); ?>"><?php echo lang("Menu Manager"); ?></a></div>
             <div class="breadcrumb-item"><?php echo $page_title; ?></div>
         </div>
     </div>
@@ -28,12 +28,12 @@
                         <div class="row">
                             <div class="col-md-6 col-12">
                                 <div class="input-group float-left" id="searchbox">
-                                    <input type="text" class="form-control" id="searching_page" name="searching_page" autofocus placeholder="<?php echo $this->lang->line('Search...'); ?>" aria-label="" aria-describedby="basic-addon2">
+                                    <input type="text" class="form-control" id="searching_page" name="searching_page" autofocus placeholder="<?php echo lang('Search...'); ?>" aria-label="" aria-describedby="basic-addon2">
                                 </div>
                             </div>
                             <div class="col-md-6 col-12">
-                              <a href="javascript:;" id="page_date_range" class="btn btn-primary btn-lg icon-left float-right btn-icon"><i class="fas fa-calendar"></i> <?php echo $this->lang->line("Choose Date");?></a><input type="hidden" id="page_date_range_val">
-                              <a href="#" class="btn btn-danger btn-lg float-right mr-2 delete_selected_page" data-toggle="tooltip" title="<?php echo $this->lang->line("Delete Selected"); ?>"><i class="fas fa-trash-alt"></i> <?php echo $this->lang->line("Delete"); ?></a>
+                              <a href="javascript:;" id="page_date_range" class="btn btn-primary btn-lg icon-left float-right btn-icon"><i class="fas fa-calendar"></i> <?php echo lang("Choose Date");?></a><input type="hidden" id="page_date_range_val">
+                              <a href="#" class="btn btn-danger btn-lg float-right mr-2 delete_selected_page" data-toggle="tooltip" title="<?php echo lang("Delete Selected"); ?>"><i class="fas fa-trash-alt"></i> <?php echo lang("Delete"); ?></a>
                             </div>
                         </div>
                         <div class="row">
@@ -47,12 +47,12 @@
                                                     <input class="regular-checkbox" id="datatableSelectAllRows" type="checkbox"/>
                                                     <label for="datatableSelectAllRows"></label>        
                                                 </th>      
-                                                <th><?php echo $this->lang->line("ID"); ?></th>      
-                                                <th><?php echo $this->lang->line("Page Name"); ?></th>
-                                                <th><?php echo $this->lang->line("Slug"); ?></th>
-                                                <th><?php echo $this->lang->line("URL"); ?></th>
-                                                <th><?php echo $this->lang->line("Created"); ?></th>
-                                                <th><?php echo $this->lang->line('Actions'); ?></th>
+                                                <th><?php echo lang("ID"); ?></th>      
+                                                <th><?php echo lang("Page Name"); ?></th>
+                                                <th><?php echo lang("Slug"); ?></th>
+                                                <th><?php echo lang("URL"); ?></th>
+                                                <th><?php echo lang("Created"); ?></th>
+                                                <th><?php echo lang('Actions'); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -73,15 +73,15 @@
     $(document).ready(function($) {
 
         var base_url = '<?php echo base_url(); ?>';
-        var Doyouwanttodeletealltheserecordsfromdatabase = "<?php echo $this->lang->line('Do you want to detete all the records from the database?'); ?>";
-        var Doyouwanttodeletethisrecordfromdatabase = "<?php echo $this->lang->line('Do you want to detete this record?'); ?>";
+        var Doyouwanttodeletealltheserecordsfromdatabase = "<?php echo lang('Do you want to detete all the records from the database?'); ?>";
+        var Doyouwanttodeletethisrecordfromdatabase = "<?php echo lang('Do you want to detete this record?'); ?>";
 
         setTimeout(function(){ 
           $('#page_date_range').daterangepicker({
             ranges: {
-              '<?php echo $this->lang->line("Last 30 Days");?>': [moment().subtract(29, 'days'), moment()],
-              '<?php echo $this->lang->line("This Month");?>'  : [moment().startOf('month'), moment().endOf('month')],
-              '<?php echo $this->lang->line("Last Month");?>'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+              '<?php echo lang("Last 30 Days");?>': [moment().subtract(29, 'days'), moment()],
+              '<?php echo lang("This Month");?>'  : [moment().startOf('month'), moment().endOf('month')],
+              '<?php echo lang("Last Month");?>'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
             },
             startDate: moment().subtract(29, 'days'),
             endDate  : moment()
@@ -122,7 +122,7 @@
             },
             language: 
             {
-              url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+              url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? (config('MyConfig')->language ?? 'english')).'.json'); ?>"
             },
             dom: '<"top"f>rt<"bottom"lip><"clear">',
             columnDefs: [
@@ -170,7 +170,7 @@
         $(document).on('click','.delete_page',function(e){
             e.preventDefault();
             swal({
-                title: '<?php echo $this->lang->line("Are you sure?"); ?>',
+                title: '<?php echo lang("Are you sure?"); ?>',
                 text: Doyouwanttodeletethisrecordfromdatabase,
                 icon: 'warning',
                 buttons: true,
@@ -190,10 +190,10 @@
                         { 
                             if(response == '1')
                             {
-                                iziToast.success({title: '',message: '<?php echo $this->lang->line('Page has been deleted successfully.'); ?>',position: 'bottomRight',timeout: 3000});
+                                iziToast.success({title: '',message: '<?php echo lang('Page has been deleted successfully.'); ?>',position: 'bottomRight',timeout: 3000});
                             } else
                             {
-                                iziToast.error({title: '',message: '<?php echo $this->lang->line('Something went wrong, please try once again.'); ?>',position: 'bottomRight',timeout: 3000});
+                                iziToast.error({title: '',message: '<?php echo lang('Something went wrong, please try once again.'); ?>',position: 'bottomRight',timeout: 3000});
                             }
                             table.draw();
                         }
@@ -214,13 +214,13 @@
           
           if(page_ids.length==0) {
 
-              swal('<?php echo $this->lang->line("Warning")?>', '<?php echo $this->lang->line("You didn`t select any Page to delete.") ?>', 'warning');
+              swal('<?php echo lang("Warning")?>', '<?php echo lang("You didn`t select any Page to delete.") ?>', 'warning');
               return false;
 
           }
           else {
 
-            swal({title: '<?php echo $this->lang->line("Are you sure?"); ?>',text: Doyouwanttodeletealltheserecordsfromdatabase,icon: 'warning',buttons: true,dangerMode: true,})
+            swal({title: '<?php echo lang("Are you sure?"); ?>',text: Doyouwanttodeletealltheserecordsfromdatabase,icon: 'warning',buttons: true,dangerMode: true,})
             .then((willDelete) => {
 
                 if (willDelete) {
@@ -236,11 +236,11 @@
 
                           if(response == '1') {
 
-                            iziToast.success({title: '',message: '<?php echo $this->lang->line('Selected Contacts has been deleted Successfully.'); ?>',position: 'bottomRight'});
+                            iziToast.success({title: '',message: '<?php echo lang('Selected Contacts has been deleted Successfully.'); ?>',position: 'bottomRight'});
 
                           } else {
 
-                            iziToast.error({title: '',message: '<?php echo $this->lang->line('Something went wrong, please try once again.'); ?>',position: 'bottomRight'});
+                            iziToast.error({title: '',message: '<?php echo lang('Something went wrong, please try once again.'); ?>',position: 'bottomRight'});
 
                           }
 

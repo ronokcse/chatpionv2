@@ -2,8 +2,8 @@
     <div class="section-header">
         <h1><i class="fas fa-edit"></i> <?php echo $page_title; ?></h1>
         <div class="section-header-breadcrumb">
-            <div class="breadcrumb-item"><a href="<?php echo base_url("menu_manager/index"); ?>"><?php echo $this->lang->line("Menu Manager"); ?></a></div>
-            <div class="breadcrumb-item"><a href="<?php echo base_url("menu_manager/get_page_lists"); ?>"><?php echo $this->lang->line("Page Manager"); ?></a></div>
+            <div class="breadcrumb-item"><a href="<?php echo base_url("menu_manager/index"); ?>"><?php echo lang("Menu Manager"); ?></a></div>
+            <div class="breadcrumb-item"><a href="<?php echo base_url("menu_manager/get_page_lists"); ?>"><?php echo lang("Page Manager"); ?></a></div>
             <div class="breadcrumb-item"><?php echo $page_title; ?></div> 
         </div>
     </div>
@@ -18,24 +18,24 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label><?php echo $this->lang->line('Page Name'); ?></label>
+                                        <label><?php echo lang('Page Name'); ?></label>
                                         <input type="text" class="form-control" id="page_name" name="page_name" value="<?php echo $page_data[0]['page_name']; ?>">
-                                        <div class="invalid-feedback"><?php echo $this->lang->line("Page Name is Required"); ?></div>
+                                        <div class="invalid-feedback"><?php echo lang("Page Name is Required"); ?></div>
                                     </div>
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label><?php echo $this->lang->line('Page Description'); ?></label>
-                                        <textarea type="text" class="form-control" id="page_description" name="page_description" placeholder="<?php echo $this->lang->line("Type your page description here..."); ?>"><?php echo $page_data[0]['page_description']; ?></textarea>
-                                        <div class="invalid-feedback"><?php echo $this->lang->line("Page Description is required"); ?></div>
+                                        <label><?php echo lang('Page Description'); ?></label>
+                                        <textarea type="text" class="form-control" id="page_description" name="page_description" placeholder="<?php echo lang("Type your page description here..."); ?>"><?php echo $page_data[0]['page_description']; ?></textarea>
+                                        <div class="invalid-feedback"><?php echo lang("Page Description is required"); ?></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="card-footer bg-whitesmoke">
-                            <button type="button" class="btn btn-lg btn-primary" id="update_page"><i class="fas fa-edit"></i> <?php echo $this->lang->line("Update Page") ?></button>
-                            <a class="btn btn-lg btn-light float-right" onclick='goBack("menu_manager/get_page_lists",0)'><i class="fas fa-times"></i> <?php echo $this->lang->line("Cancel") ?> </a>
+                            <button type="button" class="btn btn-lg btn-primary" id="update_page"><i class="fas fa-edit"></i> <?php echo lang("Update Page") ?></button>
+                            <a class="btn btn-lg btn-light float-right" onclick='goBack("menu_manager/get_page_lists",0)'><i class="fas fa-times"></i> <?php echo lang("Cancel") ?> </a>
                         </div>
                     </div>
                 </form>
@@ -89,17 +89,17 @@ $(document).ready(function($) {
                 if(response.error) {
                     var span = document.createElement("span");
                     span.innerHTML = response.error;
-                    swal({ title:'<?php echo $this->lang->line("Warning"); ?>', content:span,icon:'warning'});
+                    swal({ title:'<?php echo lang("Warning"); ?>', content:span,icon:'warning'});
                 }
 
                 if(response.status =="1") {
                     var span = document.createElement("span");
-                    span.innerHTML = '<?php echo $this->lang->line("Page has been updated successfully.") ?>';
-                    swal({ title:'<?php echo $this->lang->line("Page Created"); ?>', content:span,icon:'success'}).then((value) => {window.location.href=report_link;});
+                    span.innerHTML = '<?php echo lang("Page has been updated successfully.") ?>';
+                    swal({ title:'<?php echo lang("Page Created"); ?>', content:span,icon:'success'}).then((value) => {window.location.href=report_link;});
                 } else if(response.status =='0') {
                     var span = document.createElement("span");
-                    span.innerHTML = '<?php echo $this->lang->line("Something went wrong,please try again.") ?>';
-                    swal({ title:'<?php echo $this->lang->line("Error"); ?>', content:span,icon:'error'}).then((value) => {window.location.href=report_link;});
+                    span.innerHTML = '<?php echo lang("Something went wrong,please try again.") ?>';
+                    swal({ title:'<?php echo lang("Error"); ?>', content:span,icon:'error'}).then((value) => {window.location.href=report_link;});
                 }
             }
         })

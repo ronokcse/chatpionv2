@@ -15,9 +15,9 @@
                         <i class="fas fa-pager"></i>
                     </div>
                     <div class="card-body">
-                        <h4><?php echo $this->lang->line("Page Manager"); ?></h4>
-                        <p><?php echo $this->lang->line("Create, edit, delete custom pages"); ?></p>
-                        <a href="<?php echo base_url("menu_manager/get_page_lists"); ?>" class="card-cta"><?php echo $this->lang->line("Actions"); ?> <i class="fas fa-chevron-right"></i></a>
+                        <h4><?php echo lang("Page Manager"); ?></h4>
+                        <p><?php echo lang("Create, edit, delete custom pages"); ?></p>
+                        <a href="<?php echo base_url("menu_manager/get_page_lists"); ?>" class="card-cta"><?php echo lang("Actions"); ?> <i class="fas fa-chevron-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -28,9 +28,9 @@
                         <i class="fas fa-link"></i>
                     </div>
                     <div class="card-body">
-                        <h4><?php echo $this->lang->line("Link Manager"); ?></h4>
-                        <p><?php echo $this->lang->line("Create menu links, manage menu links"); ?></p>
-                        <a href="<?php echo base_url("menu_manager/get_menu_lists"); ?>" class="card-cta"><?php echo $this->lang->line("Actions"); ?> <i class="fas fa-chevron-right"></i></a>
+                        <h4><?php echo lang("Link Manager"); ?></h4>
+                        <p><?php echo lang("Create menu links, manage menu links"); ?></p>
+                        <a href="<?php echo base_url("menu_manager/get_menu_lists"); ?>" class="card-cta"><?php echo lang("Actions"); ?> <i class="fas fa-chevron-right"></i></a>
                     </div>
                 </div>
             </div>
