@@ -2,21 +2,23 @@
     .space{height: 10px;}
     .select2{width: 100% !important;}
 </style>
-<?php $is_broadcaster_exist=$this->is_broadcaster_exist_deprecated; ?>
-<?php $is_ultrapost_exist=$this->is_ultrapost_exist; ?>
+<?php 
+$is_broadcaster_exist = $is_broadcaster_exist_deprecated ?? false; 
+$is_ultrapost_exist = $is_ultrapost_exist ?? false; 
+?>
 <section class="section section_custom">
     <div class="section-header">
         <h1><i class="fab fa-youtube"></i> <?php echo $page_title; ?></h1>
         <div class="section-header-button">
-            <a class="btn btn-primary" id="add_feed" data-toggle="modal" href='#add_feed_modal'><i class="fas fa-plus-circle"></i> <?php echo $this->lang->line('Add new youtube channel');?></a>
+            <a class="btn btn-primary" id="add_feed" data-toggle="modal" href='#add_feed_modal'><i class="fas fa-plus-circle"></i> <?php echo lang('Add new youtube channel');?></a>
         </div>
         <div class="section-header-breadcrumb">
-            <div class="breadcrumb-item"><a href="<?php echo base_url('ultrapost'); ?>"><?php echo $this->lang->line("Facebook Poster"); ?></a></div>
+            <div class="breadcrumb-item"><a href="<?php echo base_url('ultrapost'); ?>"><?php echo lang("Facebook Poster"); ?></a></div>
             <div class="breadcrumb-item"><?php echo $page_title; ?></div>
         </div>
     </div>
     <div class="section-body">
-        <div class='text-center text-primary' style='padding:12px;border:.5px solid #dee2e6;background: #fff;'><?php echo $this->lang->line("Youtube video auto-posting will be publised as a Link post on selected social media. It will post new videos if there is any in your Youtube Channel after setting it up in the system. It will not post any existing videos during setup the campaign.") ?></div>
+        <div class='text-center text-primary' style='padding:12px;border:.5px solid #dee2e6;background: #fff;'><?php echo lang("Youtube video auto-posting will be publised as a Link post on selected social media. It will post new videos if there is any in your Youtube Channel after setting it up in the system. It will not post any existing videos during setup the campaign.") ?></div>
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -26,17 +28,17 @@
                             <table class='table table-bordered table-condensed' id='mytable'>";
                               echo "<thead>";
                                 echo "<tr>";
-                                  echo "<th>".$this->lang->line("SN")."</th>";
-                                  echo "<th>".$this->lang->line("Feed Name")."</th>";
-                                  // echo "<th class='text-center'>".$this->lang->line("Feed Type")."</th>";
-                                  echo "<th class='text-center'>".$this->lang->line("Status")."</th>";
-                                  echo "<th class='text-center'>".$this->lang->line("Actions")."</th>";
-                                  echo "<th class='text-center'>".$this->lang->line("Last Updated")."</th>";
-                                  echo "<th class='text-center'>".$this->lang->line("Last Feed")."</th>";
+                                  echo "<th>".lang("SN")."</th>";
+                                  echo "<th>".lang("Feed Name")."</th>";
+                                  // echo "<th class='text-center'>".lang("Feed Type")."</th>";
+                                  echo "<th class='text-center'>".lang("Status")."</th>";
+                                  echo "<th class='text-center'>".lang("Actions")."</th>";
+                                  echo "<th class='text-center'>".lang("Last Updated")."</th>";
+                                  echo "<th class='text-center'>".lang("Last Feed")."</th>";
                                   if($is_broadcaster_exist)
-                                  echo "<th class='text-center'>".$this->lang->line("Broadcast as Page")."</th>";
-                                  if($this->is_ultrapost_exist)
-                                  echo "<th>".$this->lang->line("Post as Pages")."</th>";                
+                                  echo "<th class='text-center'>".lang("Broadcast as Page")."</th>";
+                                  if($is_ultrapost_exist)
+                                  echo "<th>".lang("Post as Pages")."</th>";                
                               echo "</tr></thead>";
                             
                               echo "<tbody>";
@@ -58,9 +60,9 @@
                                   if($page_name!="") $page_name="<a target='_BLANK' href='".base_url("messenger_broadcaster/quick_bulk_broadcast_report")."'>".$page_name."</a>";
                             
                                   $status='';
-                                  if($value['status']=='1') $status='<span class="text-success"><i class="fa fa-check-circle"></i> '.$this->lang->line("Active").'</span>';
-                                  else if($value['status']=='0') $status='<span class="text-danger"><i class="fa fa-times-circle"></i> '.$this->lang->line("Inactive").'</span>';
-                                  else $status='<span class="text-warning"><i class="fas fa-ban"></i> '.$this->lang->line("Disabled").'</span>';
+                                  if($value['status']=='1') $status='<span class="text-success"><i class="fa fa-check-circle"></i> '.lang("Active").'</span>';
+                                  else if($value['status']=='0') $status='<span class="text-danger"><i class="fa fa-times-circle"></i> '.lang("Inactive").'</span>';
+                                  else $status='<span class="text-warning"><i class="fas fa-ban"></i> '.lang("Disabled").'</span>';
                             
                                   echo "<tr>";
                                     echo "<td nowrap>".$i."</td>";
@@ -75,18 +77,18 @@
                             
                                       <div class="dropdown-menu mini_dropdown text-center" style="width:250px !important">
                             
-                                        <a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.$this->lang->line("Settings").'" class="btn btn-circle btn-outline-primary campaign_settings"><i class="fas fa-cog"></i></a>';
+                                        <a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.lang("Settings").'" class="btn btn-circle btn-outline-primary campaign_settings"><i class="fas fa-cog"></i></a>';
                             
                                          if($value['status']=='1')
-                                         echo  '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.$this->lang->line("Disable").'" class="btn btn-circle btn-outline-warning disable_settings"><i class="fas fa-ban"></i></a>';
-                                         else echo  '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.$this->lang->line("Enable").'" class="btn btn-circle btn-outline-success enable_settings"><i class="fas fa-check-circle"></i></a>';
+                                         echo  '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.lang("Disable").'" class="btn btn-circle btn-outline-warning disable_settings"><i class="fas fa-ban"></i></a>';
+                                         else echo  '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.lang("Enable").'" class="btn btn-circle btn-outline-success enable_settings"><i class="fas fa-check-circle"></i></a>';
                             
                                          if($value['cron_status']=='1')
-                                         echo  '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.$this->lang->line("Force Process").'" class="btn btn-circle btn-outline-warning force_process"><i class="fas fa-play"></i></a>';
+                                         echo  '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.lang("Force Process").'" class="btn btn-circle btn-outline-warning force_process"><i class="fas fa-play"></i></a>';
                             
-                                         echo '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.$this->lang->line("Delete").'" class="btn btn-circle btn-outline-danger delete_settings"><i class="fas fa-trash-alt"></i></a>';
+                                         echo '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.lang("Delete").'" class="btn btn-circle btn-outline-danger delete_settings"><i class="fas fa-trash-alt"></i></a>';
                             
-                                         echo '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.$this->lang->line("Error").'" class="btn btn-circle btn-outline-secondary error_log"><i class="fas fa-bug"></i></a>';
+                                         echo '<a href="" data-id="'.$value['id'].'" data-toggle="tooltip" title="'.lang("Error").'" class="btn btn-circle btn-outline-secondary error_log"><i class="fas fa-bug"></i></a>';
                             
                                       echo '
                                       </div>
@@ -98,7 +100,7 @@
                                      if($is_broadcaster_exist)
                                      echo "<td class='text-center' nowrap>".$page_name."</td>";
                             
-                                    if($this->is_ultrapost_exist)
+                                    if($is_ultrapost_exist)
                                      echo "<td nowrap>".$page_names."</td>";
                             
                                      
@@ -114,15 +116,15 @@
     </div>
 </section>
 <?php
-    $somethingwentwrong = $this->lang->line("something went wrong, please try again.");  
-    $doyoureallywanttodeletethisbot = $this->lang->line("Do you really want to delete this settings?");
-    $doyoureallywanttodisablethisbot = $this->lang->line("Do you really want to disable this settings?");
-    $doyoureallywanttoenablethisbot = $this->lang->line("Do you really want to enable this settings? This operation may take few time.");
-    $areyousure=$this->lang->line("are you sure"); 
+    $somethingwentwrong = lang("something went wrong, please try again.");  
+    $doyoureallywanttodeletethisbot = lang("Do you really want to delete this settings?");
+    $doyoureallywanttodisablethisbot = lang("Do you really want to disable this settings?");
+    $doyoureallywanttoenablethisbot = lang("Do you really want to enable this settings? This operation may take few time.");
+    $areyousure=lang("are you sure"); 
     ?>
 <script type="text/javascript">
     $("document").ready(function(){
-      var user_id = "<?php echo $this->session->userdata('user_id'); ?>";
+      var user_id = "<?php echo session()->get('user_id'); ?>";
       var base_url="<?php echo site_url(); ?>";
       var areyousure="<?php echo $areyousure;?>";
       var is_broadcaster_exist="<?php echo $is_broadcaster_exist;?>";
@@ -138,7 +140,7 @@
       var table = $("#mytable").DataTable({
           language: 
           {
-            url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+            url: "<?php echo base_url('assets/modules/datatables/language/'.(($language ?? (config('MyConfig')->language ?? 'english'))).'.json'); ?>"
           },
           dom: '<"top"f>rt<"bottom"lip><"clear">',
           columnDefs: [
@@ -220,7 +222,7 @@
     
         if(post_to_pages=='' && broadcast_pages=='')
         {
-          swal('<?php echo $this->lang->line("Error"); ?>', "<?php echo $this->lang->line('Please select pages to publish the feed');?>" , 'error');
+          swal('<?php echo lang("Error"); ?>', "<?php echo lang('Please select pages to publish the feed');?>" , 'error');
           return;
         }
     
@@ -233,13 +235,13 @@
           var rep_diff=rep2-rep1;
     
           if(posting_start_time== '' ||  posting_end_time== ''){
-            swal('<?php echo $this->lang->line("Error"); ?>', "<?php echo $this->lang->line('Please select post between times');?>" , 'error');
+            swal('<?php echo lang("Error"); ?>', "<?php echo lang('Please select post between times');?>" , 'error');
             return false;
           }
     
           if(rep1 >= rep2 || rep_diff<1.0)
           {
-            swal('<?php echo $this->lang->line("Error"); ?>', "<?php echo $this->lang->line('Post between start time must be less than end time and need to have minimum one hour time span');?>" , 'error');
+            swal('<?php echo lang("Error"); ?>', "<?php echo lang('Post between start time must be less than end time and need to have minimum one hour time span');?>" , 'error');
             return false;
           }
         }
@@ -253,13 +255,13 @@
           var rep_diff=rep2-rep1;
     
           if(broadcast_start_time== '' ||  broadcast_end_time== ''){
-            swal('<?php echo $this->lang->line("Error"); ?>', "<?php echo $this->lang->line('Please select broadcast between times');?>" , 'error');
+            swal('<?php echo lang("Error"); ?>', "<?php echo lang('Please select broadcast between times');?>" , 'error');
             return false;
           }
     
           if(rep1 >= rep2 || rep_diff<1.0)
           {
-            swal('<?php echo $this->lang->line("Error"); ?>', "<?php echo $this->lang->line('Broadcast between start time must be less than end time and need to have minimum one hour time span');?>" , 'error');
+            swal('<?php echo lang("Error"); ?>', "<?php echo lang('Broadcast between start time must be less than end time and need to have minimum one hour time span');?>" , 'error');
             return false;
           }
         }
@@ -282,8 +284,8 @@
             { 
               
               if(response.status=='1') 
-              swal('<?php echo $this->lang->line("Success"); ?>', response.message , 'success');
-              else swal('<?php echo $this->lang->line("Error"); ?>', response.message , 'error');
+              swal('<?php echo lang("Success"); ?>', response.message , 'success');
+              else swal('<?php echo lang("Error"); ?>', response.message , 'error');
               
               // $("#submit_response").html('');
               $("#save_settings").removeClass("btn-progress");
@@ -300,8 +302,8 @@
         var media_type = 'youtube';
     
         swal({
-          title: '<?php echo $this->lang->line("Enable Campaign"); ?>',
-          text: '<?php echo $this->lang->line("Do you really want to enable this campaign?"); ?>',
+          title: '<?php echo lang("Enable Campaign"); ?>',
+          text: '<?php echo lang("Do you really want to enable this campaign?"); ?>',
           icon: 'warning',
           buttons: true,
           dangerMode: true,
@@ -319,11 +321,11 @@
                    if(response.status=='0') 
                    {
                      $("#enable"+id).removeClass('disabled');
-                     iziToast.error({title: '<?php echo $this->lang->line("Error"); ?>',message: response.message,position: 'bottomRight'});
+                     iziToast.error({title: '<?php echo lang("Error"); ?>',message: response.message,position: 'bottomRight'});
                    }
                    else 
                    {
-                      iziToast.success({title: '<?php echo $this->lang->line("Success"); ?>',message: '<?php echo $this->lang->line("Campaign has been enabled successfully."); ?>',position: 'bottomRight'});
+                      iziToast.success({title: '<?php echo lang("Success"); ?>',message: '<?php echo lang("Campaign has been enabled successfully."); ?>',position: 'bottomRight'});
                       setTimeout(function(){ location.reload(); }, 1000);
                       
                    }
@@ -340,8 +342,8 @@
         var id=$(this).attr('data-id');
     
         swal({
-          title: '<?php echo $this->lang->line("Disable Campaign"); ?>',
-          text: '<?php echo $this->lang->line("Do you really want to disable this campaign?"); ?>',
+          title: '<?php echo lang("Disable Campaign"); ?>',
+          text: '<?php echo lang("Do you really want to disable this campaign?"); ?>',
           icon: 'warning',
           buttons: true,
           dangerMode: true,
@@ -355,7 +357,7 @@
                  data: {id:id},
                  success:function(response)
                  {  
-                   iziToast.success({title: '<?php echo $this->lang->line("Success"); ?>',message: '<?php echo $this->lang->line("Campaign has been disabled successfully."); ?>',position: 'bottomRight'});
+                   iziToast.success({title: '<?php echo lang("Success"); ?>',message: '<?php echo lang("Campaign has been disabled successfully."); ?>',position: 'bottomRight'});
                    setTimeout(function(){ location.reload(); }, 1000);
                  }
              });
@@ -370,8 +372,8 @@
         var id=$(this).attr('data-id');
     
         swal({
-          title: '<?php echo $this->lang->line("Delete Campaign"); ?>',
-          text: '<?php echo $this->lang->line("Do you really want to force process this campaign? This can be helpful if your Youtube channel video posting tools have stopped for some unknown reasons and not responding."); ?>',
+          title: '<?php echo lang("Delete Campaign"); ?>',
+          text: '<?php echo lang("Do you really want to force process this campaign? This can be helpful if your Youtube channel video posting tools have stopped for some unknown reasons and not responding."); ?>',
           icon: 'warning',
           buttons: true,
           dangerMode: true,
@@ -385,7 +387,7 @@
                  data: {id:id},
                  success:function(response)
                  {  
-                   iziToast.success({title: '<?php echo $this->lang->line("Success"); ?>',message: '<?php echo $this->lang->line("Campaign has been processed by force successfully."); ?>',position: 'bottomRight'});
+                   iziToast.success({title: '<?php echo lang("Success"); ?>',message: '<?php echo lang("Campaign has been processed by force successfully."); ?>',position: 'bottomRight'});
                    setTimeout(function(){ location.reload(); }, 1000);
                  }
              });
@@ -400,8 +402,8 @@
         var id=$(this).attr('data-id');
     
         swal({
-          title: '<?php echo $this->lang->line("Delete Campaign"); ?>',
-          text: '<?php echo $this->lang->line("Do you really want to delete this campaign?"); ?>',
+          title: '<?php echo lang("Delete Campaign"); ?>',
+          text: '<?php echo lang("Do you really want to delete this campaign?"); ?>',
           icon: 'warning',
           buttons: true,
           dangerMode: true,
@@ -415,7 +417,7 @@
                 data: {id:id},
                 success:function(response)
                 {  
-                  iziToast.success({title: '<?php echo $this->lang->line("Success"); ?>',message: '<?php echo $this->lang->line("Campaign has been deleted successfully."); ?>',position: 'bottomRight'});
+                  iziToast.success({title: '<?php echo lang("Success"); ?>',message: '<?php echo lang("Campaign has been deleted successfully."); ?>',position: 'bottomRight'});
                   setTimeout(function(){ location.reload(); }, 1000);
                 }
             });
@@ -432,17 +434,17 @@
 
         if(feed_type=='')
         {
-          swal('<?php echo $this->lang->line("Error"); ?>', "<?php echo $this->lang->line('Please select feed type');?>" , 'error');
+          swal('<?php echo lang("Error"); ?>', "<?php echo lang('Please select feed type');?>" , 'error');
           return;
         }
         if(feed_name=='')
         {
-          swal('<?php echo $this->lang->line("Error"); ?>', "<?php echo $this->lang->line('Please select feed type name');?>" , 'error');
+          swal('<?php echo lang("Error"); ?>', "<?php echo lang('Please select feed type name');?>" , 'error');
           return;
         }
         if(youtube_channel_id=='')
         {
-          swal('<?php echo $this->lang->line("Error"); ?>', "<?php echo $this->lang->line('Youtube channel id can not be empty');?>" , 'error');
+          swal('<?php echo lang("Error"); ?>', "<?php echo lang('Youtube channel id can not be empty');?>" , 'error');
           return;
         }
         $("#add_feed_submit").addClass('btn-progress');
@@ -460,11 +462,11 @@
             {  
               if(response.status=='1') 
               {
-                 swal('<?php echo $this->lang->line("Success"); ?>', response.message , 'success');
+                 swal('<?php echo lang("Success"); ?>', response.message , 'success');
               }
               else 
               {
-                swal('<?php echo $this->lang->line("Error"); ?>', response.message , 'error');
+                swal('<?php echo lang("Error"); ?>', response.message , 'error');
               }
               // $("#loader").addClass('hidden');
               $("#add_feed_submit").removeClass('btn-progress');
@@ -503,8 +505,8 @@
         e.preventDefault();      
         var id=$(this).attr('data-id');
         swal({
-          title: '<?php echo $this->lang->line("Clear Log"); ?>',
-          text: '<?php echo $this->lang->line("Do you really want to clear log?"); ?>',
+          title: '<?php echo lang("Clear Log"); ?>',
+          text: '<?php echo lang("Do you really want to clear log?"); ?>',
           icon: 'warning',
           buttons: true,
           dangerMode: true,
@@ -519,7 +521,7 @@
                 success:function(response)
                 {  
                   $("#error_modal").modal('toggle');
-                  swal('<?php echo $this->lang->line("Clear Log"); ?>', "<?php echo $this->lang->line('Log has been cleared successfully.');?>" , 'success');
+                  swal('<?php echo lang("Clear Log"); ?>', "<?php echo lang('Log has been cleared successfully.');?>" , 'success');
                 }
             });
           } 
@@ -532,7 +534,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-bug"></i> <?php echo $this->lang->line("Error Log") ?></span></h5>
+                <h5 class="modal-title"><i class="fas fa-bug"></i> <?php echo lang("Error Log") ?></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
@@ -540,7 +542,7 @@
                 <div id="error_modal_container"></div>
             </div>
             <div class="modal-footer" style="padding-left: 30px;padding-right: 30px;">
-                <button type="button" class="btn-lg btn btn-default float-right" data-dismiss="modal" id="close_settings"><i class="fas fa-times"></i> <?php echo $this->lang->line("Close");?></button>
+                <button type="button" class="btn-lg btn btn-default float-right" data-dismiss="modal" id="close_settings"><i class="fas fa-times"></i> <?php echo lang("Close");?></button>
             </div>
         </div>
     </div>
@@ -549,14 +551,14 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-cog"></i> <?php echo $this->lang->line("Campaign Settings") ?> <span id="put_feed_name"></span></h5>
+                <h5 class="modal-title"><i class="fas fa-cog"></i> <?php echo lang("Campaign Settings") ?> <span id="put_feed_name"></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body" id="feed_setting_container">
             </div>
             <div class="modal-footer" style="padding-left: 30px;padding-right: 30px;">
-                <button type="button" class="btn-lg btn btn-default" data-dismiss="modal" id="close_settings"><i class="fas fa-times"></i> <?php echo $this->lang->line("Close");?></button>
-                <button type="button" class="btn-lg btn btn-primary" id="save_settings" style="margin-left: 0;"><i class="fas fa-paper-plane"></i> <?php echo $this->lang->line("Create Campaign");?></button>
+                <button type="button" class="btn-lg btn btn-default" data-dismiss="modal" id="close_settings"><i class="fas fa-times"></i> <?php echo lang("Close");?></button>
+                <button type="button" class="btn-lg btn btn-primary" id="save_settings" style="margin-left: 0;"><i class="fas fa-paper-plane"></i> <?php echo lang("Create Campaign");?></button>
             </div>
         </div>
     </div>
@@ -565,7 +567,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fab fa-youtube"></i> <?php echo $this->lang->line("Youtube video auto-posting") ?></h5>
+                <h5 class="modal-title"><i class="fab fa-youtube"></i> <?php echo lang("Youtube video auto-posting") ?></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <form action="#" id="add_feed_form">
@@ -576,7 +578,7 @@
                     <div class='hidden'>
                         <!-- hidden temporarily, will be needed in future -->
                         <label class="margin-bottom-label" style="color: rgb(0, 0, 0);">
-                        <?php echo $this->lang->line("Feed Type") ?> *
+                        <?php echo lang("Feed Type") ?> *
                         </label>
                         <div class="space"></div>
                         <?php 
@@ -593,21 +595,21 @@
                         <div class="space"></div>
                     </div>
                     <label class="margin-bottom-label" style="color: rgb(0, 0, 0);">
-                    <?php echo $this->lang->line("Feed Name") ?> *
+                    <?php echo lang("Feed Name") ?> *
                     </label>
                     <input type="text" name="feed_name" id="feed_name" class="form-control">
                     <div class="space"></div>
                     <div class="space"></div>
                     <label class="margin-bottom-label" style="color: rgb(0, 0, 0);">
-                    <?php echo $this->lang->line("Youtube channel id") ?> *
+                    <?php echo lang("Youtube channel id") ?> *
                     </label>
                     <input type="text" name="youtube_channel_id" id="youtube_channel_id" class="form-control">
                     <div class="space"></div>
                     <div class="space"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-lg btn btn-primary" id="add_feed_submit"><i class='fa fa-plus-circle'></i> <?php echo $this->lang->line('Add Feed');?></button>
-                    <button type="button" class="btn-lg btn btn-default" data-dismiss="modal"><i class='fas fa-times'></i> <?php echo $this->lang->line('Close');?></button>
+                    <button type="button" class="btn-lg btn btn-primary" id="add_feed_submit"><i class='fa fa-plus-circle'></i> <?php echo lang('Add Feed');?></button>
+                    <button type="button" class="btn-lg btn btn-default" data-dismiss="modal"><i class='fas fa-times'></i> <?php echo lang('Close');?></button>
                 </div>
             </form>
         </div>

@@ -25,7 +25,12 @@ Version: 1.2
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Auto_feed_post\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Auto_feed_post extends Home
 {
@@ -34,17 +39,21 @@ class Auto_feed_post extends Home
     public $addon_data = array();
     protected $module_path;
 
-    public function __construct()
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
-        if ($this->session->userdata('logged_in')!= 1) {
-            redirect('home/login', 'location');         
+        if (session()->get('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
         
         $this->member_validity();       
 
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        $addon_path=APPPATH."modules/".strtolower((new \ReflectionClass($this))->getShortName())."/controllers/".ucfirst((new \ReflectionClass($this))->getShortName()).".php"; // path of addon controller
         $this->addon_data=$this->get_addon_data($addon_path);
         // Sets module path
         $this->module_path = APPPATH . '/modules/';
@@ -57,10 +66,11 @@ class Auto_feed_post extends Home
 
     public function youtube_settings()
     {   
-        if($this->session->userdata('user_type') != 'Admin' 
+        if(session()->get('user_type') != 'Admin' 
             && ! in_array('276', $this->module_access)
         ) {
-            redirect('home/login', 'location');
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
 
         $this->is_ultrapost_exist=$this->ultrapost_exist();
@@ -83,16 +93,19 @@ class Auto_feed_post extends Home
         $data['page_info'] = isset($page_info[0]) ? $page_info[0] : array();  
         $data['settings_data'] = $settings_data;
         $data["feed_types"]=$this->basic->get_enum_values("autoposting","feed_type");
+        $data['is_broadcaster_exist_deprecated'] = $this->is_broadcaster_exist_deprecated;
+        $data['is_ultrapost_exist'] = $this->is_ultrapost_exist;
        
         $this->_viewcontroller($data);
     }
 
     public function wordpress_settings()
     {
-        if($this->session->userdata('user_type') != 'Admin' 
+        if(session()->get('user_type') != 'Admin' 
             && ! in_array('269', $this->module_access)
         ) {
-            redirect('home/login', 'location');
+            header('Location: ' . base_url('home/login_page'));
+            exit();
         }
 
         $this->is_ultrapost_exist=$this->ultrapost_exist();
@@ -125,6 +138,8 @@ class Auto_feed_post extends Home
         $data['settings_data'] = $settings_data;
         $data['wordpress_blogs'] = $wordpress_blogs;
         $data["feed_types"]=$this->basic->get_enum_values("autoposting","feed_type");
+        $data['is_broadcaster_exist_deprecated'] = $this->is_broadcaster_exist_deprecated;
+        $data['is_ultrapost_exist'] = $this->is_ultrapost_exist;
        
         $this->_viewcontroller($data);
     }  
@@ -151,7 +166,7 @@ class Auto_feed_post extends Home
             // Sets module ID
             $module_id = 276;
 
-            if($this->session->userdata('user_type') != 'Admin' 
+            if(session()->get('user_type') != 'Admin' 
                 && ! in_array('276', $this->module_access)
             ) {
                 echo json_encode([
@@ -186,7 +201,7 @@ class Auto_feed_post extends Home
             // Sets module ID
             $module_id = 269;            
 
-            if($this->session->userdata('user_type') != 'Admin' 
+            if(session()->get('user_type') != 'Admin' 
                 && ! in_array('269', $this->module_access)
             ) {
                 echo json_encode([
@@ -346,7 +361,7 @@ class Auto_feed_post extends Home
             $xposting_start_time=isset($get_data[0]['posting_start_time'])?$get_data[0]['posting_start_time']:"";
             $xposting_end_time=isset($get_data[0]['posting_end_time'])?$get_data[0]['posting_end_time']:"";
 
-            if($xposting_timezone=="") $xposting_timezone=$this->config->item("time_zone");
+            if($xposting_timezone=="") $xposting_timezone=config('MyConfig')->time_zone ?? '';
             if($xposting_start_time=="") $xposting_start_time="00:00";
             if($xposting_end_time=="") $xposting_end_time="23:59";
         }
@@ -360,7 +375,7 @@ class Auto_feed_post extends Home
             $xbroadcast_notification_type=isset($get_data[0]['broadcast_notification_type'])?$get_data[0]['broadcast_notification_type']:"";
             $xbroadcast_display_unsubscribe=isset($get_data[0]['broadcast_display_unsubscribe'])?$get_data[0]['broadcast_display_unsubscribe']:"";
 
-            if($xbroadcast_timezone=="") $xbroadcast_timezone=$this->config->item("time_zone");
+            if($xbroadcast_timezone=="") $xbroadcast_timezone=config('MyConfig')->time_zone ?? '';
             if($xbroadcast_start_time=="") $xbroadcast_start_time="00:00";
             if($xbroadcast_end_time=="") $xbroadcast_end_time="23:59";
             if($xbroadcast_notification_type=="") $xnotification_type="REGULAR";
@@ -726,7 +741,7 @@ class Auto_feed_post extends Home
         );
 
         if($this->basic->update_data("autoposting",array("id"=>$id,"user_id"=>$this->user_id),$update_data))
-        $this->session->set_flashdata('auto_success',1);
+        session()->setFlashdata('auto_success',1);
         else $this->session->set_flashdata('auto_success',0);       
 
         echo json_encode(array('status'=>'1'));     
@@ -739,11 +754,11 @@ class Auto_feed_post extends Home
 
         if($this->basic->update_data("autoposting",array("id"=>$id,"user_id"=>$this->user_id),array("status"=>"0")))
         {
-            $this->session->set_flashdata('auto_success',1);
+            session()->setFlashdata('auto_success',1);
         }
         else
         {
-            $this->session->set_flashdata('auto_success',0);
+            session()->setFlashdata('auto_success',0);
         }
     }
 
@@ -754,11 +769,11 @@ class Auto_feed_post extends Home
 
         if($this->basic->update_data("autoposting",array("id"=>$id,"user_id"=>$this->user_id),array("cron_status"=>"0")))
         {
-            $this->session->set_flashdata('auto_success',1);
+            session()->setFlashdata('auto_success',1);
         }
         else
         {
-            $this->session->set_flashdata('auto_success',0);
+            session()->setFlashdata('auto_success',0);
         }
     }
 
@@ -769,12 +784,12 @@ class Auto_feed_post extends Home
 
         if($this->basic->delete_data("autoposting",array("id"=>$id,"user_id"=>$this->user_id)))
         {
-            $this->session->set_flashdata('auto_success',1);
+            session()->setFlashdata('auto_success',1);
             $this->_delete_usage_log(256,1);
         }
         else
         {
-            $this->session->set_flashdata('auto_success',0);
+            session()->setFlashdata('auto_success',0);
         }
     }
 
@@ -1143,7 +1158,7 @@ class Auto_feed_post extends Home
     {
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         $purchase_code=$this->input->post('purchase_code');
         $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
                   
@@ -1160,7 +1175,7 @@ class Auto_feed_post extends Home
     {        
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);         
     }
@@ -1169,7 +1184,7 @@ class Auto_feed_post extends Home
     {        
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
         $sql=array();  

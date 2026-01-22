@@ -21,17 +21,22 @@ class Autoposting extends Home
         $function_name=$this->uri->segment(2);
         if($function_name!="autoposting_campaign_create")
         {
-            if ($this->session->userdata('logged_in') != 1)
-            redirect('home/login_page', 'location');   
+            if (session()->get('logged_in') != 1) {
+                header('Location: ' . base_url('home/login_page'));
+                exit();
+            }
 
-            if($this->session->userdata('user_type') != 'Admin' && !in_array(256,$this->module_access))
-            redirect('home/login_page', 'location'); 
+            if(session()->get('user_type') != 'Admin' && !in_array(256,$this->module_access)) {
+                header('Location: ' . base_url('home/login_page'));
+                exit();
+            } 
 
             $this->member_validity();
         }
-        // if($this->session->userdata("facebook_rx_fb_user_info")==0)
+        // if(session()->get("facebook_rx_fb_user_info")==0)
         // redirect('facebook_rx_account_import/index','refresh'); 
 
+        // CI4: Load RSS feed library (using parent's load compatibility)
         $this->load->library('rss_feed');    
     } 
 
@@ -62,6 +67,8 @@ class Autoposting extends Home
         $data['page_info'] = isset($page_info[0]) ? $page_info[0] : array();  
         $data['settings_data'] = $settings_data;
         $data["feed_types"]=$this->basic->get_enum_values("autoposting","feed_type");
+        $data['is_broadcaster_exist_deprecated'] = $this->is_broadcaster_exist_deprecated;
+        $data['is_ultrapost_exist'] = $this->is_ultrapost_exist;
        
         $this->_viewcontroller($data); 
     }    
@@ -216,7 +223,7 @@ class Autoposting extends Home
             $xposting_start_time=isset($get_data[0]['posting_start_time'])?$get_data[0]['posting_start_time']:"";
             $xposting_end_time=isset($get_data[0]['posting_end_time'])?$get_data[0]['posting_end_time']:"";
 
-            if($xposting_timezone=="") $xposting_timezone=$this->config->item("time_zone");
+            if($xposting_timezone=="") $xposting_timezone=config('MyConfig')->time_zone ?? '';
             if($xposting_start_time=="") $xposting_start_time="00:00";
             if($xposting_end_time=="") $xposting_end_time="23:59";
         }
@@ -230,7 +237,7 @@ class Autoposting extends Home
             $xbroadcast_notification_type=isset($get_data[0]['broadcast_notification_type'])?$get_data[0]['broadcast_notification_type']:"";
             $xbroadcast_display_unsubscribe=isset($get_data[0]['broadcast_display_unsubscribe'])?$get_data[0]['broadcast_display_unsubscribe']:"";
 
-            if($xbroadcast_timezone=="") $xbroadcast_timezone=$this->config->item("time_zone");
+            if($xbroadcast_timezone=="") $xbroadcast_timezone=config('MyConfig')->time_zone ?? '';
             if($xbroadcast_start_time=="") $xbroadcast_start_time="00:00";
             if($xbroadcast_end_time=="") $xbroadcast_end_time="23:59";
             if($xbroadcast_notification_type=="") $xnotification_type="REGULAR";
@@ -564,8 +571,8 @@ class Autoposting extends Home
         );
 
         if($this->basic->update_data("autoposting",array("id"=>$id,"user_id"=>$this->user_id),$update_data))
-        $this->session->set_flashdata('auto_success',1);
-        else $this->session->set_flashdata('auto_success',0);       
+        session()->setFlashdata('auto_success',1);
+        else session()->setFlashdata('auto_success',0);       
 
         echo json_encode(array('status'=>'1'));     
     }
@@ -577,11 +584,11 @@ class Autoposting extends Home
 
         if($this->basic->update_data("autoposting",array("id"=>$id,"user_id"=>$this->user_id),array("status"=>"0")))
         {
-            $this->session->set_flashdata('auto_success',1);
+            session()->setFlashdata('auto_success',1);
         }
         else
         {
-            $this->session->set_flashdata('auto_success',0);
+            session()->setFlashdata('auto_success',0);
         }
     }
 
@@ -592,11 +599,11 @@ class Autoposting extends Home
 
         if($this->basic->update_data("autoposting",array("id"=>$id,"user_id"=>$this->user_id),array("cron_status"=>"0")))
         {
-            $this->session->set_flashdata('auto_success',1);
+            session()->setFlashdata('auto_success',1);
         }
         else
         {
-            $this->session->set_flashdata('auto_success',0);
+            session()->setFlashdata('auto_success',0);
         }
     }
 
@@ -607,12 +614,12 @@ class Autoposting extends Home
 
         if($this->basic->delete_data("autoposting",array("id"=>$id,"user_id"=>$this->user_id)))
         {
-            $this->session->set_flashdata('auto_success',1);
+            session()->setFlashdata('auto_success',1);
             $this->_delete_usage_log(256,1);
         }
         else
         {
-            $this->session->set_flashdata('auto_success',0);
+            session()->setFlashdata('auto_success',0);
         }
     }
 

@@ -3,8 +3,10 @@
   .select2{width: 100% !important;}
 </style>
 
-<?php $is_broadcaster_exist=$this->is_broadcaster_exist_deprecated; ?>
-<?php $is_ultrapost_exist=$this->is_ultrapost_exist; ?>
+<?php 
+$is_broadcaster_exist = $is_broadcaster_exist_deprecated ?? false; 
+$is_ultrapost_exist = $is_ultrapost_exist ?? false; 
+?>
 
 
 <section class="section section_custom">
@@ -39,7 +41,7 @@
                   echo "<th class='text-center'>".lang('Last Feed')."</th>";
                   if($is_broadcaster_exist)
                   echo "<th class='text-center'>".lang('Broadcast as Page')."</th>";
-                  if($this->is_ultrapost_exist)
+                  if($is_ultrapost_exist)
                   echo "<th>".lang('Post as Pages')."</th>";                
               echo "</tr></thead>";
 
@@ -102,7 +104,7 @@
                      if($is_broadcaster_exist)
                      echo "<td class='text-center' nowrap>".$page_name."</td>";
 
-                    if($this->is_ultrapost_exist)
+                    if($is_ultrapost_exist)
                      echo "<td nowrap>".$page_names."</td>";
 
                      
@@ -149,7 +151,7 @@
     var table = $("#mytable").DataTable({
         language: 
         {
-          url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+          url: "<?php echo base_url('assets/modules/datatables/language/'.(($language ?? (config('MyConfig')->language ?? 'english'))).'.json'); ?>"
         },
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         columnDefs: [
@@ -294,9 +296,15 @@
           success:function(response)
           { 
             
-            if(response.status=='1') 
-            swal('<?php echo lang('Success'); ?>', response.message , 'success');
-            else swal('<?php echo lang('Error'); ?>', response.message , 'error');
+            if(response.status=='1') {
+              swal('<?php echo lang('Success'); ?>', response.message , 'success')
+                .then(function(){
+                  $("#settings_modal").modal('hide');
+                });
+            }
+            else {
+              swal('<?php echo lang('Error'); ?>', response.message , 'error');
+            }
             
             // $("#submit_response").html('');
             $("#save_settings").removeClass("btn-progress");
