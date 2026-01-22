@@ -19,32 +19,46 @@ Version: 1.0
 Description: 
 */
 
+namespace App\Modules\Google_contacts\Controllers;
 
-require_once("application/controllers/Home.php"); // loading home controller
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Google_contacts extends Home
 {
     public $addon_data=array();
-    public function __construct()
+    
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
         // if($this->basic->is_exist("add_ons",array("project_id"=>72)))
-        parent::__construct();
+        parent::initController($request, $response, $logger);
         // getting addon information in array and storing to public variable
         // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
         //------------------------------------------------------------------------------------------
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        $addon_controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path=APPPATH."modules/".strtolower($addon_controller_name)."/controllers/".ucfirst($addon_controller_name).".php"; // path of addon controller
         $this->addon_data=$this->get_addon_data($addon_path); 
         $this->member_validity();
-        $this->user_id=$this->session->userdata('user_id'); // user_id of logged in user, we may need it
-        if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
-        if ($this->session->userdata('user_type') != 'Admin' && !in_array(353, $this->module_access)) redirect('home/login_page', 'location');
+        $this->user_id=session()->get('user_id'); // user_id of logged in user, we may need it
+        if (session()->get('logged_in')!= 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
+        if (session()->get('user_type') != 'Admin' && !in_array(353, $this->module_access)) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
     }
 
 
     public function index()
     {
-        $this->db->where('user_id', $this->user_id);
-        $account_details = $this->db->get('google_contacts_account')->result(); // Fetch results as an array of objects
+        $account_details = $this->db->table('google_contacts_account')
+            ->where('user_id', $this->user_id)
+            ->get()
+            ->getResult(); // Fetch results as an array of objects
         $count_account = count($account_details); 
         // Prepare data for the view
         $data['count_account'] = $count_account; // Set the count in the data array
@@ -65,7 +79,7 @@ class Google_contacts extends Home
     {
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         $purchase_code=$this->input->post('purchase_code');
        
         $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
@@ -125,7 +139,7 @@ class Google_contacts extends Home
     {        
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);         
     }
@@ -134,7 +148,7 @@ class Google_contacts extends Home
     {        
         $this->ajax_check();
  
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
         $sql=array
@@ -154,8 +168,8 @@ class Google_contacts extends Home
         if ($status == "3") {
             $text = $this->lang->line('Sorry, your limit is exceeded for this module.');
             exit();
-            $this->session->set_userdata('limit_cross', $text);
-            redirect('google_sheet/index', 'location');
+            session()->set('limit_cross', $text);
+            return redirect()->to(base_url('google_sheet/index'));
             exit();
         }
 
@@ -192,19 +206,20 @@ class Google_contacts extends Home
             $this->sheet->google_client_secret = $google_client_secret;
             $response = $this->sheet->get_access_token_information_for_contacts($auth_code);
             if (!empty($response)) {
-                $email_exists = $this->db->select('id')
+                $email_exists = $this->db->table('google_contacts_account')
+                    ->select('id')
                     ->where(['email' => $response['email'], 'user_id' => $this->user_id])
-                    ->get('google_contacts_account')
-                    ->row();
+                    ->get()
+                    ->getRow();
                 if (!$email_exists) {
                     // If the email does not exist, insert the new data
                     $response['user_id'] = $this->user_id;
                     $response['created_at'] = date("Y-m-d H:i:s");
-                    $this->db->insert('google_contacts_account', $response);
-                    $insert_id = $this->db->insert_id();
+                    $this->db->table('google_contacts_account')->insert($response);
+                    $insert_id = db()->insertID();
                 } else {
                     $insert_id = $email_exists->id ?? '';
-                    $this->db->where('id', $insert_id)->update('google_contacts_account', $response);
+                    $this->db->table('google_contacts_account')->where('id', $insert_id)->update($response);
                 }
         
                 $requestForSync = ['id_from_connect_account' => $insert_id];
@@ -213,9 +228,9 @@ class Google_contacts extends Home
                     return $this->custom_error_page('', '', $error_message);
                 }
         
-                $this->session->set_flashdata('google_contact_auth_connect', '1');
+                session()->setFlashdata('google_contact_auth_connect', '1');
                 $this->_insert_usage_log($module_id = 353, $request = 1);
-                return redirect('google_contacts');
+                return redirect()->to(base_url('google_contacts'));
             }
         }
     }
@@ -225,10 +240,11 @@ class Google_contacts extends Home
         check_module_action_access($module_id=353,$actions=2,$response_type='json3');
 
         $id = $requestForSync['id_from_connect_account'] ?? $this->input->post('id');
-        $google_contacts_account_data = $this->db->select(['access_token', 'refresh_token', 'email'])
+        $google_contacts_account_data = $this->db->table('google_contacts_account')
+            ->select('access_token, refresh_token, email')
             ->where(['id' => $id, 'user_id' => $this->user_id])
-            ->get('google_contacts_account')
-            ->row();
+            ->get()
+            ->getRow();
         $access_token = $google_contacts_account_data->access_token ?? '';
         $refresh_token = $google_contacts_account_data->refresh_token ?? '';
         $user_auth_email = $google_contacts_account_data->email ?? '';
@@ -241,9 +257,7 @@ class Google_contacts extends Home
         }
     
         if (empty($google_client_id) || empty($google_client_secret)) {
-            return $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['error' => true, 'message' => 'Google client ID and client secret are required.']));
+            return $this->response->setJSON(['error' => true, 'message' => 'Google client ID and client secret are required.']);
         }
     
         // Set Google client details
@@ -262,9 +276,7 @@ class Google_contacts extends Home
             if ($this->input->post('id_from_connect_account')) {
                 return $errorMessage;
             } else {
-                return $this->output
-                    ->set_content_type('application/json')
-                    ->set_output(json_encode(['error' => true, 'message' => $errorMessage]));
+                return $this->response->setJSON(['error' => true, 'message' => $errorMessage]);
             }
         } else {
             $contacts = $google_contact_list['contacts'] ?? [];
@@ -308,9 +320,7 @@ class Google_contacts extends Home
             if (isset($requestForSync['id_from_connect_account'])) {
                 return "";
             } else {
-                return $this->output
-                    ->set_content_type('application/json')
-                    ->set_output(json_encode(['error' => false, 'message' => 'Data has been synced successfully.']));
+                return $this->response->setJSON(['error' => false, 'message' => 'Data has been synced successfully.']);
             }
         }
     }
@@ -322,19 +332,16 @@ class Google_contacts extends Home
         $id = $this->input->post('id'); // Get the 'id' from POST request
 
         // Execute the delete query
-        $deleted = $this->db->where('user_id', $this->user_id)
+        $deleted = $this->db->table('google_contacts_account')
+                            ->where('user_id', $this->user_id)
                             ->where('id', $id)
-                            ->delete('google_contacts_account');
+                            ->delete();
         // Check if deletion was successful and send response
         if ($deleted) {
             $this->_delete_usage_log($module_id = 353, $request = 1);
-            return $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode(['error' => false, 'message' => 'Data has been deleted successfully.']));
+            return $this->response->setJSON(['error' => false, 'message' => 'Data has been deleted successfully.']);
         } else {
-            return $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode(['error' => true, 'message' => 'No data found or deletion failed.']));
+            return $this->response->setJSON(['error' => true, 'message' => 'No data found or deletion failed.']);
         }
     }
 
@@ -409,10 +416,11 @@ class Google_contacts extends Home
         $contact_phone_number = $this->input->post('contact_phone_number') ?? '';
         $contact_email = $this->input->post('contact_email') ?? '';
 
-        $google_contacts_account_data = $this->db->select(['access_token', 'refresh_token', 'email'])
+        $google_contacts_account_data = $this->db->table('google_contacts_account')
+            ->select('access_token, refresh_token, email')
             ->where(['id' => $sheet_account_id, 'user_id' => $this->user_id])
-            ->get('google_contacts_account')
-            ->row();
+            ->get()
+            ->getRow();
         $access_token = $google_contacts_account_data->access_token ?? '';
         $refresh_token = $google_contacts_account_data->refresh_token ?? '';
         $user_auth_email = $google_contacts_account_data->email ?? '';
@@ -425,9 +433,7 @@ class Google_contacts extends Home
         }
     
         if (empty($google_client_id) || empty($google_client_secret)) {
-            return $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['error' => true, 'message' => 'Google client ID and client secret are required.']));
+            return $this->response->setJSON(['error' => true, 'message' => 'Google client ID and client secret are required.']);
         }
         // Load Google Sheets library
         $this->load->library('sheet');
@@ -448,22 +454,18 @@ class Google_contacts extends Home
             ];
 
             // Insert into database
-            $this->db->insert('google_contacts', $insert_data);
+            $this->db->table('google_contacts')->insert($insert_data);
 
-            return $this->output
-                        ->set_content_type('application/json')
-                        ->set_output(json_encode([
-                            'error' => false,
-                            'message' => $this->lang->line('Data has been saved successfully.')
-                        ]));
+            return $this->response->setJSON([
+                'error' => false,
+                'message' => $this->lang->line('Data has been saved successfully.')
+            ]);
         } 
         else{
-            return $this->output
-                    ->set_content_type('application/json')
-                    ->set_output(json_encode([
-                        'error' => true,
-                        'message' => $contact_details['message']
-                    ]));
+            return $this->response->setJSON([
+                'error' => true,
+                'message' => $contact_details['message']
+            ]);
         }
 
        
@@ -479,14 +481,16 @@ class Google_contacts extends Home
         // Handle soft delete (delete from both CodeIgniter and Google Sheets)
         if ($soft_delete == 2) {
             // Retrieve Google account data
-            $google_contacts_account_data = $this->db->select(['access_token', 'refresh_token', 'email'])
+            $google_contacts_account_data = $this->db->table('google_contacts_account')
+                ->select('access_token, refresh_token, email')
                 ->where(['id' => $contact_account_id, 'user_id' => $this->user_id])
-                ->get('google_contacts_account')
-                ->row();
-            $contact_data = $this->db->select('resource_name')
+                ->get()
+                ->getRow();
+            $contact_data = $this->db->table('google_contacts')
+                ->select('resource_name')
                 ->where(['id' => $id, 'user_id' => $this->user_id])
-                ->get('google_contacts')
-                ->row();
+                ->get()
+                ->getRow();
 
             // Check if sheet data exists
             if (empty($contact_data) || !$google_contacts_account_data) {
@@ -505,10 +509,10 @@ class Google_contacts extends Home
                 $google_client_secret=$login_config[0]["google_client_secret"];
             }
             else{
-                return $this->output->set_content_type('application/json')->set_output(json_encode([
+                return $this->response->setJSON([
                     'error' => true,
                     'message' => $this->lang->line('Google client Id And Client Secret is required')
-                ]));
+                ]);
             }
             
 
@@ -522,7 +526,7 @@ class Google_contacts extends Home
             $this->sheet->delete_google_contact($resource_name, $contact_account_id);
         }
         // Delete the sheet from local database
-        $this->db->where('id', $id)->delete('google_contacts');
+        $this->db->table('google_contacts')->where('id', $id)->delete();
         echo json_encode(['error' => false, 'message' => $this->lang->line('Contact deleted successfully.')]);
     }
 

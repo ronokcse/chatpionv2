@@ -19,23 +19,30 @@ Version: 1.0
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Flowbuilder_condition\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Flowbuilder_condition extends Home
 {
 	public $addon_data=array();
-    public function __construct()
+    
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
         // getting addon information in array and storing to public variable
         // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
         //------------------------------------------------------------------------------------------
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        $addon_controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path=APPPATH."modules/".strtolower($addon_controller_name)."/controllers/".ucfirst($addon_controller_name).".php"; // path of addon controller
         $this->addon_data=$this->get_addon_data($addon_path); 
 
         $this->member_validity();
 
-        $this->user_id=$this->session->userdata('user_id'); // user_id of logged in user, we may need it
+        $this->user_id=session()->get('user_id'); // user_id of logged in user, we may need it
 
 
     }
@@ -51,7 +58,7 @@ class Flowbuilder_condition extends Home
     {
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         $purchase_code=$this->input->post('purchase_code');
        
         $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
@@ -71,7 +78,7 @@ class Flowbuilder_condition extends Home
     {        
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);         
     }
@@ -80,7 +87,7 @@ class Flowbuilder_condition extends Home
     {        
         $this->ajax_check();
  
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
         $sql = array(); 

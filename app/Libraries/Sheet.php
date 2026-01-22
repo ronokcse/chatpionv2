@@ -99,7 +99,7 @@ class Sheet
             if (isset($newToken['access_token'])) {
                 $this->access_token = $newToken['access_token'];
                 if ($id) {
-                    $this->CI->db->where('id', $id)->update('google_accounts', ['access_token' => $this->access_token]);
+                    $this->CI->db->table('google_accounts')->where('id', $id)->update(['access_token' => $this->access_token]);
                 }
                 $client->setAccessToken($this->access_token);
             }
@@ -114,7 +114,7 @@ class Sheet
             if (isset($newToken['access_token'])) {
                 $this->access_token = $newToken['access_token'];
                 if ($id) {
-                    $this->CI->db->where('id', $id)->update('google_contacts_account', ['access_token' => $this->access_token]);
+                    $this->CI->db->table('google_contacts_account')->where('id', $id)->update(['access_token' => $this->access_token]);
                 }
                 $client->setAccessToken($this->access_token);
             }

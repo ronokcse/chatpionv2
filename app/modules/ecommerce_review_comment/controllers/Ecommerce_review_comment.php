@@ -12,25 +12,32 @@ Version: 1.0
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Ecommerce_review_comment\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Ecommerce_review_comment extends Home
 {
 	public $addon_data=array();
     public $login_to_continue;
-    public function __construct()
+    
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
         // getting addon information in array and storing to public variable
         // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
         //------------------------------------------------------------------------------------------
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        $addon_controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path=APPPATH."modules/".strtolower($addon_controller_name)."/controllers/".ucfirst($addon_controller_name).".php"; // path of addon controller
         $this->addon_data=$this->get_addon_data($addon_path);
         $this->login_to_continue = $this->lang->line("Please login to continue.");
-        $function_name=$this->uri->segment(2);
+        $function_name=$this->request->getUri()->getSegment(2);
         if($function_name!="activate" && $function_name!="deactivate" && $function_name!="delete") 
         if(!$this->basic->is_exist("add_ons",array("project_id"=>48))) exit();
-        $this->load->helper("ecommerce");
+        helper("ecommerce");
     }
 
 
@@ -83,7 +90,7 @@ class Ecommerce_review_comment extends Home
         $product_name = strip_tags($this->input->post("product_name",true));
         $need_to_login = false;
 
-        if($this->session->userdata("logged_in")=='1')
+        if(session()->get("logged_in")=='1')
         {
             $check_admin = $this->basic->count_row("ecommerce_store",array("where"=>array("id"=>$store_id,"user_id"=>$this->user_id)),"id");
             if($check_admin[0]['total_rows']==0) $need_to_login = true;
@@ -91,7 +98,7 @@ class Ecommerce_review_comment extends Home
         else
         {
             $where_subs = array();
-            $subscriber_id=$this->session->userdata($store_id."ecom_session_subscriber_id");
+            $subscriber_id=session()->get($store_id."ecom_session_subscriber_id");
             if($subscriber_id!="") $where_subs = array("subscriber_type"=>"system","subscribe_id"=>$subscriber_id,"store_id"=>$store_id);
             else
             {
@@ -141,7 +148,7 @@ class Ecommerce_review_comment extends Home
         $html='';
         if($this->basic->insert_data("ecommerce_product_comment",$insert_data))
         {            
-            $insert_id = $this->db->insert_id();
+            $insert_id = db()->insertID();
             $direct_link = base_url("ecommerce/comment/".$insert_id);           
 
             if($this->user_id!="")
@@ -181,7 +188,7 @@ class Ecommerce_review_comment extends Home
                     'icon' => 'fas fa-shopping-cart'
                 );
                 $this->basic->insert_data("announcement",$announcement_insert);
-                $anouncement_id = $this->db->insert_id();
+                $anouncement_id = db()->insertID();
             }
 
             $hide_link = "";
@@ -232,7 +239,7 @@ class Ecommerce_review_comment extends Home
     public function new_review()
     {
         $this->ajax_check();
-        $this->load->helper("ecommerce");
+        helper("ecommerce");
         $insert_id = $this->input->post("insert_id",true);
         $cart_id = $this->input->post("cart_id",true);
         $product_id = $this->input->post("product_id",true);
@@ -244,7 +251,7 @@ class Ecommerce_review_comment extends Home
         $need_to_login =false;
         
         $where_subs = array();
-        $subscriber_id=$this->session->userdata($store_id."ecom_session_subscriber_id");
+        $subscriber_id=session()->get($store_id."ecom_session_subscriber_id");
         if($subscriber_id!="") $where_subs = array("subscriber_type"=>"system","subscribe_id"=>$subscriber_id,"store_id"=>$store_id);
         else
         {
@@ -296,7 +303,7 @@ class Ecommerce_review_comment extends Home
         else
         {
             $this->basic->insert_data("ecommerce_product_review",$insert_data);
-            $insert_id = $this->db->insert_id();
+            $insert_id = db()->insertID();
         }
 
 
@@ -484,7 +491,7 @@ class Ecommerce_review_comment extends Home
     {
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         $purchase_code=$this->input->post('purchase_code');
        
         $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
@@ -543,7 +550,7 @@ class Ecommerce_review_comment extends Home
     {        
         $this->ajax_check();
    
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);         
     }
@@ -552,7 +559,7 @@ class Ecommerce_review_comment extends Home
     {        
         $this->ajax_check();
  
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
         $sql = array
