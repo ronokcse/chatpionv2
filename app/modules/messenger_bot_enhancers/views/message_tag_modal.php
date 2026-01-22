@@ -2,7 +2,7 @@
   <div class="modal-dialog modal-full">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fa fa-tag"></i> <?php echo $this->lang->line('Message Tags'); ?></h5>
+        <h5 class="modal-title"><i class="fa fa-tag"></i> <?php echo lang('Message Tags'); ?></h5>
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
       </div>
       <div class="modal-body">

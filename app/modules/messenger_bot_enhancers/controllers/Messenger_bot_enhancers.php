@@ -55,8 +55,12 @@ Version: 2.1
 Description: 
 */
 
+namespace App\Modules\Messenger_bot_enhancers\Controllers;
 
-require_once("application/controllers/Home.php"); // loading home controller
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Messenger_bot_enhancers extends Home
 {
@@ -68,30 +72,34 @@ class Messenger_bot_enhancers extends Home
   public $facebook_rx_config_id=0;
   public $user_info_session=0;
     
-  public function __construct()
+  public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
   {
-      parent::__construct();
+      parent::initController($request, $response, $logger);
 
-      $function_name=$this->uri->segment(2);
+      $function_name=$this->request->getUri()->getSegment(2);
       if($function_name!="messenger_checkbox_plugin.js" && $function_name!="send_to_messenger_plugin.js" && $function_name!="mme_link.js" && $function_name!="rss_autoposting_quick_broadcast_cron_call") 
       {
-        if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');         
+        if (session()->get('logged_in')!= 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
         $this->member_validity();
       }
 
-      // if(file_exists(APPPATH.'modules/'.strtolower($this->router->fetch_class()).'/config/messenger_bot_enhancers_config.php'))
+      // if(file_exists(APPPATH.'modules/'.strtolower((new \ReflectionClass($this))->getShortName()).'/config/messenger_bot_enhancers_config.php'))
       // $this->load->config("messenger_bot_enhancers_config");
 
       // getting addon information in array and storing to public variable
       // addon_name,unique_name,module_id,addon_uri,author,author_uri,version,description,controller_name,installed
       //------------------------------------------------------------------------------------------
-      $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+      $addon_controller_name = (new \ReflectionClass($this))->getShortName();
+      $addon_path=APPPATH."modules/".strtolower($addon_controller_name)."/controllers/".ucfirst($addon_controller_name).".php"; // path of addon controller
       $addondata=$this->get_addon_data($addon_path); 
       $this->addon_data=$addondata;
       // Engagement variables
       $this->page_table_name="facebook_rx_fb_page_info";
       $this->user_info_id="facebook_rx_fb_user_info_id";
-      $this->user_info_session=$this->session->userdata("facebook_rx_fb_user_info");
+      $this->user_info_session=session()->get("facebook_rx_fb_user_info");
       $this->fb_user_info_table_name="facebook_rx_fb_user_info";
       $this->fb_rx_config_table_name="facebook_rx_config";
       $this->facebook_rx_config_id="facebook_rx_config_id";
@@ -106,7 +114,7 @@ class Messenger_bot_enhancers extends Home
     public function estimate_reach()
     {
         $this->ajax_check();
-        $auto_id=$this->input->post('auto_id');
+        $auto_id=$this->request->getPost('auto_id');
 
         $table_name = "facebook_rx_fb_page_info";
         $where['where'] = array('user_id' => $this->user_id,"id"=>$auto_id);
@@ -115,7 +123,7 @@ class Messenger_bot_enhancers extends Home
         $access_token=isset($page_info[0]['page_access_token']) ? $page_info[0]['page_access_token'] : "";
         if($access_token=='')
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("something went wrong, please try again.")));
+            echo json_encode(array('status'=>'0','message'=>lang("something went wrong, please try again.")));
             exit();
         }
         $this->load->library('fb_rx_login');
@@ -123,7 +131,7 @@ class Messenger_bot_enhancers extends Home
         $reach_estimation_id=isset($start_reach_estimation['reach_estimation_id']) ? $start_reach_estimation['reach_estimation_id'] : "";
         if($reach_estimation_id=='')
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("something went wrong, please try again.")));
+            echo json_encode(array('status'=>'0','message'=>lang("something went wrong, please try again.")));
             exit();
         }
         sleep(20);
@@ -137,7 +145,7 @@ class Messenger_bot_enhancers extends Home
     public function check_review_status()
     {
         $this->ajax_check();
-        $auto_id=$this->input->post('auto_id'); // database id
+        $auto_id=$this->request->getPost('auto_id'); // database id
 
         $table_name = "facebook_rx_fb_page_info";
         $where['where'] = array('user_id' => $this->user_id,"id"=>$auto_id);
@@ -147,7 +155,7 @@ class Messenger_bot_enhancers extends Home
         $access_token=isset($page_info[0]['page_access_token']) ? $page_info[0]['page_access_token'] : "";
         if($access_token=='')
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("something went wrong, please try again.")));
+            echo json_encode(array('status'=>'0','message'=>lang("something went wrong, please try again.")));
             exit();
         }
         $this->load->library('fb_rx_login');
@@ -158,7 +166,7 @@ class Messenger_bot_enhancers extends Home
 
         /*
         $existing_labels=$this->fb_rx_login->retrieve_label($access_token);
-        if(isset($existing_labels['error']['message'])) $error=$this->lang->line("During the review status check process system also tries to create default unsubscribe label and retrieve the existing labels as well. We got this error : ")." ".$existing_labels["error"]["message"];
+        if(isset($existing_labels['error']['message'])) $error=lang("During the review status check process system also tries to create default unsubscribe label and retrieve the existing labels as well. We got this error : ")." ".$existing_labels["error"]["message"];
 
         $user_id=$this->user_id;
         $group_name="Unsubscribe";
@@ -191,7 +199,7 @@ class Messenger_bot_enhancers extends Home
             $errormessage=isset($response["error"]["error_user_msg"])?$response["error"]["error_user_msg"]:$response["error"]["message"];
             
             if($label_id=="") 
-            $error=$this->lang->line("During the review status check process system also tries to create default unsubscribe label and retrieve the existing labels as well. We got this error : ")." ".$errormessage;
+            $error=lang("During the review status check process system also tries to create default unsubscribe label and retrieve the existing labels as well. We got this error : ")." ".$errormessage;
             else $this->basic->insert_data("messenger_bot_broadcast_contact_group",array("page_id"=>$auto_id,"group_name"=>$group_name,"user_id"=>$this->user_id,"label_id"=>$label_id,"deleted"=>"0","unsubscribe"=>"1"));
         }
 
@@ -203,7 +211,7 @@ class Messenger_bot_enhancers extends Home
             $errormessage=isset($response["error"]["error_user_msg"])?$response["error"]["error_user_msg"]:$response["error"]["message"];
             
             if($label_id=="") 
-            $error=$this->lang->line("During the review status check process system also tries to create default unsubscribe label and retrieve the existing labels as well. We got this error : ")." ".$errormessage;
+            $error=lang("During the review status check process system also tries to create default unsubscribe label and retrieve the existing labels as well. We got this error : ")." ".$errormessage;
             else $this->basic->insert_data("messenger_bot_broadcast_contact_group",array("page_id"=>$auto_id,"group_name"=>$group_name2,"user_id"=>$this->user_id,"label_id"=>$label_id,"deleted"=>"0","unsubscribe"=>"0","invisible"=>"1"));
         }
         */
@@ -224,15 +232,15 @@ class Messenger_bot_enhancers extends Home
         check_module_access($module_id=211);
 
         $data['body'] = "messenger_broadcaster/subscriber_bulk_broadcast_report";
-        $data['page_title'] = $this->lang->line("Subscriber Broadcast");
-        $page_list = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),"bot_enabled"=>"1")),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
+        $data['page_title'] = lang("Subscriber Broadcast");
+        $page_list = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),"bot_enabled"=>"1")),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
         $page_info = [];
         foreach($page_list as $value)
         {
             if(!empty($this->team_allowed_pages) && !in_array($value['id'], $this->team_allowed_pages)) continue;
             $page_info[$value['id']] = $value['page_name'];
         }      
-        // $page_info[''] = $this->lang->line("Page");
+        // $page_info[''] = lang("Page");
         $data['page_list'] = $page_info;
         $this->_viewcontroller($data);
     }
@@ -242,10 +250,10 @@ class Messenger_bot_enhancers extends Home
     { 
         $this->ajax_check();
 
-        $search_value = $this->input->post("search_value",TRUE);
-        $page_id = $this->input->post("search_page_id",TRUE);
-        $status = $this->input->post("search_status",TRUE);
-        $campaign_date_range = $this->input->post("campaign_date_range",TRUE);
+        $search_value = $this->request->getPost("search_value");
+        $page_id = $this->request->getPost("search_page_id");
+        $status = $this->request->getPost("search_status");
+        $campaign_date_range = $this->request->getPost("campaign_date_range");
 
         $display_columns = 
         array(
@@ -294,11 +302,11 @@ class Messenger_bot_enhancers extends Home
             $where_custom .= " AND created_at >= '{$from_date}' AND created_at <='{$to_date}'";
         }
         $table="messenger_bot_broadcast_serial";
-        // CI4 fix: pass filters directly (don't rely on prior db->where state)
+        // CI4 fix: include all conditions in the custom string
+        if($page_id!="") $where_custom .= " AND page_id = '".$this->db->escapeLikeString($page_id)."'";
+        if($status!="") $where_custom .= " AND posting_status = '".$this->db->escapeLikeString($status)."'";
+        $where_custom .= " AND broadcast_type != 'OTN'";
         $where = ['where' => $where_custom];
-        if($page_id!="") $where['where']['page_id'] = $page_id;
-        if($status!="") $where['where']['posting_status'] = $status;
-        $where['where']['broadcast_type !='] = "OTN";
         
         $info=$this->basic->get_data($table,$where,$select='',$join='',$limit,$start,$order_by,$group_by='');
         $total_rows_array=$this->basic->count_row($table,$where,$count=$table.".id",$join,$group_by='');
@@ -312,7 +320,7 @@ class Messenger_bot_enhancers extends Home
 
             if($info[$key]['schedule_time'] != "0000-00-00 00:00:00")
             $scheduled_at = date("M j, y H:i",strtotime($info[$key]['schedule_time']));
-            else $scheduled_at = '<span class="text-muted"><i class="fas fa-exclamation-circle"></i> '.$this->lang->line("Not Scheduled")."<span>";
+            else $scheduled_at = '<span class="text-muted"><i class="fas fa-exclamation-circle"></i> '.lang("Not Scheduled")."<span>";
             $info[$key]['schedule_time'] =  "<div style='min-width:110px;'>".$scheduled_at."</div>";
 
             if($info[$key]['created_at'] != "0000-00-00 00:00:00")
@@ -323,49 +331,49 @@ class Messenger_bot_enhancers extends Home
             $info[$key]['page_name']="<a target='_BLANK' href='https://facebook.com/".$info[$key]['fb_page_id']."'>".$info[$key]['page_name']."</a>";
 
             if($posting_status=='1')
-            $info[$key]['delete'] =  "<a class='btn btn-circle btn-light pointer text-muted'  data-toggle='tooltip' title='".$this->lang->line("Campaign in processing can not be deleted. You can pause campaign and then delete it.")."'><i class='fas fa-trash-alt'></i></a>";
-            else  $info[$key]['delete'] =  "<a class='btn btn-circle btn-outline-danger delete'  id='".$info[$key]['id']."' data-toggle='tooltip' title='".$this->lang->line("Delete Campaign")."' href=''><i class='fas fa-trash-alt'></i></a>";
+            $info[$key]['delete'] =  "<a class='btn btn-circle btn-light pointer text-muted'  data-toggle='tooltip' title='".lang("Campaign in processing can not be deleted. You can pause campaign and then delete it.")."'><i class='fas fa-trash-alt'></i></a>";
+            else  $info[$key]['delete'] =  "<a class='btn btn-circle btn-outline-danger delete'  id='".$info[$key]['id']."' data-toggle='tooltip' title='".lang("Delete Campaign")."' href=''><i class='fas fa-trash-alt'></i></a>";
          
             $is_try_again=$info[$key]["is_try_again"];
             $force_porcess_str="";
-            if($this->config->item("broadcaster_number_of_message_to_be_sent_in_try")=="" || $this->config->item("broadcaster_number_of_message_to_be_sent_in_try")=="0")
+            if((config('MyConfig')->broadcaster_number_of_message_to_be_sent_in_try ?? '')=="" || (config('MyConfig')->broadcaster_number_of_message_to_be_sent_in_try ?? '')=="0")
             {
                 $force_porcess_str="";
             }
             else
             {
                 $action_count++;
-                if($posting_status=='3')$force_porcess_str .= "<a href='' class='btn btn-circle btn-outline-success play_campaign_info' data-toggle='tooltip' title='".$this->lang->line("Resume Campaign")."' table_id='".$info[$key]['id']."'><i class='fas fa-play'></i></a>";
-                else if($posting_status!='4')  $force_porcess_str .= "<a href='' class='btn btn-circle btn-outline-dark pause_campaign_info' data-toggle='tooltip' title='".$this->lang->line("Pause Campaign")."' table_id='".$info[$key]['id']."'><i class='fas fa-pause'></i></a>";
+                if($posting_status=='3')$force_porcess_str .= "<a href='' class='btn btn-circle btn-outline-success play_campaign_info' data-toggle='tooltip' title='".lang("Resume Campaign")."' table_id='".$info[$key]['id']."'><i class='fas fa-play'></i></a>";
+                else if($posting_status!='4')  $force_porcess_str .= "<a href='' class='btn btn-circle btn-outline-dark pause_campaign_info' data-toggle='tooltip' title='".lang("Pause Campaign")."' table_id='".$info[$key]['id']."'><i class='fas fa-pause'></i></a>";
             }
 
             if($posting_status=='1')
             {
                 $action_count++;
-                $force_porcess_str .= "<a href='' class='btn btn-circle btn-outline-warning force' data-toggle='tooltip' title='".$this->lang->line("Force Re-process Campaign")."' id='".$info[$key]['id']."'><i class='fas fa-sync'></i></a>";
+                $force_porcess_str .= "<a href='' class='btn btn-circle btn-outline-warning force' data-toggle='tooltip' title='".lang("Force Re-process Campaign")."' id='".$info[$key]['id']."'><i class='fas fa-sync'></i></a>";
             } 
             $info[$key]['force'] = $force_porcess_str;
 
-            $hold_message = '<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Campaign Status : On-hold").'" data-content="'.$this->lang->line("If campaign receive more than `Subscriber Broadcast - hold after number of errors` error message during broadcast, system hold the campaign to avoid risk. The subscribers those get error, automatically marked as unavailable for future campaign to reduce error rate in future until subscriber send message to your Messenger BOT again. 
+            $hold_message = '<a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="'.lang("Campaign Status : On-hold").'" data-content="'.lang("If campaign receive more than `Subscriber Broadcast - hold after number of errors` error message during broadcast, system hold the campaign to avoid risk. The subscribers those get error, automatically marked as unavailable for future campaign to reduce error rate in future until subscriber send message to your Messenger BOT again. 
 In this case, we suggest you to check the error message in report, and if you think it’s not for your message content, but for specific subscribers, you can restart the campaign from where it is left off, by clicking on the option menu & then click Force Resume. ").'"><i class="fas fa-info-circle"></i> </a>';
 
 
-            if( $posting_status == '2') $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-success badge"><i class="fas fa-check-circle"></i> '.$this->lang->line("Completed").'</span></div>';
-            else if( $posting_status == '1') $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-warning"><i class="fas fa-spinner"></i> '.$this->lang->line("Processing").'</span></div>';
-            else if( $posting_status == '3') $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-muted"><i class="fas fa-stop"></i> '.$this->lang->line("Paused").'</span></div>';
-            else if( $posting_status == '4') $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-dark"><i class="fas fa-ban"></i> '.$this->lang->line("On-hold").$hold_message.'</span></div>';
-            else $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-danger"><i class="far fa-times-circle"></i> '.$this->lang->line("Pending").'</span></div>';
+            if( $posting_status == '2') $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-success badge"><i class="fas fa-check-circle"></i> '.lang("Completed").'</span></div>';
+            else if( $posting_status == '1') $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-warning"><i class="fas fa-spinner"></i> '.lang("Processing").'</span></div>';
+            else if( $posting_status == '3') $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-muted"><i class="fas fa-stop"></i> '.lang("Paused").'</span></div>';
+            else if( $posting_status == '4') $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-dark"><i class="fas fa-ban"></i> '.lang("On-hold").$hold_message.'</span></div>';
+            else $info[$key]['posting_status'] = '<div style="min-width:100px"><span class="text-danger"><i class="far fa-times-circle"></i> '.lang("Pending").'</span></div>';
 
             $info[$key]['posting_status'] = '<div style="min-width:80px;">'.$info[$key]['posting_status'].'</div>';
 
-            $info[$key]['report'] =  "<a class='btn btn-circle btn-outline-primary sent_report' data-toggle='tooltip' title='".$this->lang->line("Campaign Report")."' href='' cam-id='".$info[$key]['id']."'><i class='fas fa-eye'></i></a>";
+            $info[$key]['report'] =  "<a class='btn btn-circle btn-outline-primary sent_report' data-toggle='tooltip' title='".lang("Campaign Report")."' href='' cam-id='".$info[$key]['id']."'><i class='fas fa-eye'></i></a>";
 
             if($posting_status!='0' || $info[$key]['schedule_type']!="later") 
-            $info[$key]['edit'] =  "<a class='btn btn-circle btn-light text-muted' data-toggle='tooltip' title='".$this->lang->line("Only scheduled pending campaign can be edited.")."'><i class='fas fa-edit'></i></a>";
+            $info[$key]['edit'] =  "<a class='btn btn-circle btn-light text-muted' data-toggle='tooltip' title='".lang("Only scheduled pending campaign can be edited.")."'><i class='fas fa-edit'></i></a>";
             else
             {                
                 $edit_url = site_url('messenger_bot_enhancers/edit_subscriber_broadcast_campaign/'.$info[$key]['id']);
-                $info[$key]['edit'] =  "<a class='btn btn-circle btn-outline-warning' data-toggle='tooltip' title='".$this->lang->line("Edit Campaign")."' href='".$edit_url."'><i class='fas fa-edit'></i></a>";
+                $info[$key]['edit'] =  "<a class='btn btn-circle btn-outline-warning' data-toggle='tooltip' title='".lang("Edit Campaign")."' href='".$edit_url."'><i class='fas fa-edit'></i></a>";
             }
 
             $action_width = ($action_count*47)+20;
@@ -398,13 +406,13 @@ In this case, we suggest you to check the error message in report, and if you th
     public function subscriber_delete_campaign()
     {   
         if(!check_module_action_access($module_id=211,3,'check')){
-            echo $this->lang->line("You do not have access to perform this action.");
+            echo lang("You do not have access to perform this action.");
             exit();
         }
         $this->ajax_check();
         $this->csrf_token_check();
 
-        $id=$this->input->post("id");
+        $id=$this->request->getPost("id");
 
         $xdata = $this->basic->get_data("messenger_bot_broadcast_serial",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
         $posting_status  = isset($xdata[0]["posting_status"]) ? $xdata[0]["posting_status"] : "";
@@ -414,7 +422,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         if($posting_status=='1')
         {
-           echo $this->lang->line("This campaign is in processing state and can not be deleted.");
+           echo lang("This campaign is in processing state and can not be deleted.");
            exit();
         }
 
@@ -438,7 +446,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->ajax_check();
         $this->csrf_token_check();
 
-        $id=$this->input->post("id");
+        $id=$this->request->getPost("id");
 
         $where = array('id'=>$id,'user_id'=>$this->user_id);
         $data = array('is_try_again'=>'1','posting_status'=>'1');
@@ -456,7 +464,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         $this->ajax_check();
 
-        $id=$this->input->post("table_id");
+        $id=$this->request->getPost("table_id");
 
         $where = array('id'=>$id,'user_id'=>$this->user_id);
         $data = array('is_try_again'=>'1','posting_status'=>'1','last_try_error_count'=>0);
@@ -474,7 +482,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->ajax_check();
         $this->csrf_token_check();
 
-        $table_id = $this->input->post('table_id');
+        $table_id = $this->request->getPost('table_id');
         $post_info = $this->basic->update_data('messenger_bot_broadcast_serial',array('id'=>$table_id),array('posting_status'=>'3','is_try_again'=>'0'));
         echo '1';
     }
@@ -489,7 +497,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->ajax_check();
         $this->csrf_token_check();
 
-        $table_id = $this->input->post('table_id');
+        $table_id = $this->request->getPost('table_id');
         $post_info = $this->basic->update_data('messenger_bot_broadcast_serial',array('id'=>$table_id),array('posting_status'=>'1','is_try_again'=>'1'));
         echo '1';
     }
@@ -500,7 +508,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->ajax_check();
         $this->csrf_token_check();
         
-        $id = $this->input->post("id");
+        $id = $this->request->getPost("id");
 
         $campaign_data = $this->basic->get_data("messenger_bot_broadcast_serial",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
         $report = isset($campaign_data[0]["report"]) ? json_decode($campaign_data[0]["report"],true) : array();
@@ -535,11 +543,11 @@ In this case, we suggest you to check the error message in report, and if you th
 
         $posting_status = $campaign_data[0]['posting_status'];
 
-        if( $posting_status == '2') $posting_status = '<span class="text-success"> ('.$this->lang->line("Completed").')</span>';
-        else if( $posting_status == '1') $posting_status = '<span class="text-warning"> ('.$this->lang->line("Processing").')</span>';
-        else if( $posting_status == '3') $posting_status = '<span class="text-muted"> ('.$this->lang->line("Paused").')</span>';
-        else if( $posting_status == '4') $posting_status = '<span class="text-dark"> ('.$this->lang->line("On-hold").')</span>';
-        else $posting_status = '<span class="text-danger"> ('.$this->lang->line("Pending").')</span>';
+        if( $posting_status == '2') $posting_status = '<span class="text-success"> ('.lang("Completed").')</span>';
+        else if( $posting_status == '1') $posting_status = '<span class="text-warning"> ('.lang("Processing").')</span>';
+        else if( $posting_status == '3') $posting_status = '<span class="text-muted"> ('.lang("Paused").')</span>';
+        else if( $posting_status == '4') $posting_status = '<span class="text-dark"> ('.lang("On-hold").')</span>';
+        else $posting_status = '<span class="text-danger"> ('.lang("Pending").')</span>';
 
 
         $response = "";
@@ -549,11 +557,11 @@ In this case, we suggest you to check the error message in report, and if you th
 
         if($campaign_data[0]['posting_status']=='4')
         {            
-        $drop_menu = '<div class="btn-group dropleft float-right"><button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'.$this->lang->line("Options").'  </button>  <div class="dropdown-menu dropleft"> <a class="dropdown-item has-icon restart_button pointer" title="'.$this->lang->line('If the campaign has been completed due to error but there are still some subscriber to be sent, you can resume it from it was left off by force.').'" data-toggle="tooltip" table_id="'.$id.'"><i class="fas fa-sync"></i> '.$this->lang->line("Force Resume").'</a></div> </div>';
+        $drop_menu = '<div class="btn-group dropleft float-right"><button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'.lang("Options").'  </button>  <div class="dropdown-menu dropleft"> <a class="dropdown-item has-icon restart_button pointer" title="'.lang('If the campaign has been completed due to error but there are still some subscriber to be sent, you can resume it from it was left off by force.').'" data-toggle="tooltip" table_id="'.$id.'"><i class="fas fa-sync"></i> '.lang("Force Resume").'</a></div> </div>';
         }
 
         if($error_message!="")
-        $response .= "<div class='alert alert-danger text-center'> {$this->lang->line("Something went wrong for one or more message. Original error message :")} {$error_message} <br><a class='pointer' style='text-decoration:underline;' href='' data-toggle='modal' data-target='#error_message_learn'>".$this->lang->line("Learn more about common error messages")."</a></div>";
+        $response .= "<div class='alert alert-danger text-center'> ".lang("Something went wrong for one or more message. Original error message :")." {$error_message} <br><a class='pointer' style='text-decoration:underline;' href='' data-toggle='modal' data-target='#error_message_learn'>".lang("Learn more about common error messages")."</a></div>";
 
 
         // $response .= "<div class='row'><h6 style='width:100%;padding:0 20px'><span class='float-left'>".$campaign_name." : <a href='https://facebook.com/".$fb_page_id."'>".$page_name."</a></span> <span class='float-right'>".$posting_status."</span></h6></div>";
@@ -567,7 +575,7 @@ In this case, we suggest you to check the error message in report, and if you th
               </div>
               <div class="card-wrap">
                 <div class="card-header">
-                  <h4>'. $this->lang->line("Campaign").$posting_status.'</h4>
+                  <h4>'. lang("Campaign").$posting_status.'</h4>
                 </div>
                 <div class="card-body">
                   '.$campaign_name.'
@@ -582,7 +590,7 @@ In this case, we suggest you to check the error message in report, and if you th
               </div>
               <div class="card-wrap">
                 <div class="card-header">
-                  <h4>'.$this->lang->line("Page Name").'</h4>
+                  <h4>'.lang("Page Name").'</h4>
                 </div>
                 <div class="card-body">
                   <a target="_BLANK" href="https://facebook.com/'.$campaign_data[0]["fb_page_id"].'">'.$campaign_data[0]["page_name"].'</a>
@@ -597,7 +605,7 @@ In this case, we suggest you to check the error message in report, and if you th
               </div>
               <div class="card-wrap">
                 <div class="card-header">
-                  <h4>'.$this->lang->line("Sent").' ('.$sent_rate.'%)</h4>
+                  <h4>'.lang("Sent").' ('.$sent_rate.'%)</h4>
                 </div>
                 <div class="card-body">
                   '.$successfully_sent.'/'.$total_thread.'</a>
@@ -612,7 +620,7 @@ In this case, we suggest you to check the error message in report, and if you th
               </div>
               <div class="card-wrap">
                 <div class="card-header">
-                  <h4>'.$this->lang->line("Delivered").' ('.$delivery_rate.'%)</h4>
+                  <h4>'.lang("Delivered").' ('.$delivery_rate.'%)</h4>
                 </div>
                 <div class="card-body">
                   '.$successfully_delivered.'/'.$total_thread.'
@@ -627,7 +635,7 @@ In this case, we suggest you to check the error message in report, and if you th
               </div>
               <div class="card-wrap">
                 <div class="card-header">
-                  <h4>'.$this->lang->line("Opened").' ('.$open_rate.'%)</h4>
+                  <h4>'.lang("Opened").' ('.$open_rate.'%)</h4>
                 </div>
                 <div class="card-body">
                   '.$successfully_opened.'/'.$total_thread.'
@@ -651,7 +659,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->csrf_token_check();
 
         $search_value = $_POST['search']['value'];
-        $id = $this->input->post("campaign_id");
+        $id = $this->request->getPost("campaign_id");
 
         $display_columns = 
         array(
@@ -708,7 +716,7 @@ In this case, we suggest you to check the error message in report, and if you th
             $info[$key]['delivery_time'] =  $delivered;
 
             $tempu=explode(' ', $value['message_sent_id']);
-            if(isset($tempu[0]) && (strlen($tempu[0])>50) || strpos($tempu[0], 'mid.$') !== false) $msg_sent_id=' <i class="fa fa-check green"></i> '.$this->lang->line("sent")." : ". $value['message_sent_id'];
+            if(isset($tempu[0]) && (strlen($tempu[0])>50) || strpos($tempu[0], 'mid.$') !== false) $msg_sent_id=' <i class="fa fa-check green"></i> '.lang("sent")." : ". $value['message_sent_id'];
             else $msg_sent_id=$value['message_sent_id'];
 
             if($value['message_sent_id']=="") $info[$key]["message_sent_id"]= "<i class='fa fa-remove red'></i>";
@@ -732,20 +740,20 @@ In this case, we suggest you to check the error message in report, and if you th
         $data["templates"]=$this->basic->get_enum_values("messenger_bot_broadcast_serial","template_type");
 
         $data['body'] = 'messenger_broadcaster/subscriber_bulk_broadcast_add';
-        $data['page_title'] = $this->lang->line('Add Subscriber Broadcast');  
+        $data['page_title'] = lang('Add Subscriber Broadcast');  
 
-        // $data['page_info'] = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),"bot_enabled"=>"1")),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
+        // $data['page_info'] = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),"bot_enabled"=>"1")),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
 
         $join = array('facebook_rx_fb_user_info'=>'facebook_rx_fb_page_info.facebook_rx_fb_user_info_id=facebook_rx_fb_user_info.id,left');
-        $page_info = $this->basic->get_data('facebook_rx_fb_page_info',array('where'=>array("facebook_rx_fb_page_info.facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),'facebook_rx_fb_page_info.user_id'=>$this->user_id,'bot_enabled'=>'1')),array('facebook_rx_fb_page_info.id','page_name','name'),$join);
+        $page_info = $this->basic->get_data('facebook_rx_fb_page_info',array('where'=>array("facebook_rx_fb_page_info.facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),'facebook_rx_fb_page_info.user_id'=>$this->user_id,'bot_enabled'=>'1')),array('facebook_rx_fb_page_info.id','page_name','name'),$join);
 
-        $ig_page_info = $this->basic->get_data('facebook_rx_fb_page_info',array('where'=>array("facebook_rx_fb_page_info.facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),'facebook_rx_fb_page_info.user_id'=>$this->user_id,'bot_enabled'=>'1','has_instagram'=>'1')),array('facebook_rx_fb_page_info.id','page_name','name','insta_username'),$join);
+        $ig_page_info = $this->basic->get_data('facebook_rx_fb_page_info',array('where'=>array("facebook_rx_fb_page_info.facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),'facebook_rx_fb_page_info.user_id'=>$this->user_id,'bot_enabled'=>'1','has_instagram'=>'1')),array('facebook_rx_fb_page_info.id','page_name','name','insta_username'),$join);
 
         $group_page_list = array();
 
         $flow_page_list = array();
         if(isset($page_info) && count($page_info) > 0) {
-            $flow_page_list['media_name'] = $this->lang->line("Facebook");
+            $flow_page_list['media_name'] = lang("Facebook");
             foreach($page_info as $value)
             {
                 if(!empty($this->team_allowed_pages) && !in_array($value['id'], $this->team_allowed_pages)) continue;
@@ -756,7 +764,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         $ig_flow_page_list = array();
         if(isset($ig_page_info) && count($ig_page_info) > 0) {
-            $ig_flow_page_list['media_name'] = $this->lang->line("Instagram");
+            $ig_flow_page_list['media_name'] = lang("Instagram");
             foreach($ig_page_info as $ig_value)
             {
                 if(!empty($this->team_allowed_pages) && !in_array($ig_value['id'], $this->team_allowed_pages)) continue;
@@ -812,7 +820,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $successfully_clicked = 0;
         $total_thread = 0;
         $insert_data = array();
-        $page_id=$this->input->post("page");// database id
+        $page_id=$this->request->getPost("page");// database id
         $pageid=explode("-",$page_id);
         $page_id = $pageid[0];
         $media_type = "fb";
@@ -1644,7 +1652,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         if($total_thread==0)
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("Campaign could not target any subscriber to reach message. Please try again with different targeting options.")));
+            echo json_encode(array('status'=>'0','message'=>lang("Campaign could not target any subscriber to reach message. Please try again with different targeting options.")));
             exit();
         }
 
@@ -1659,12 +1667,12 @@ In this case, we suggest you to check the error message in report, and if you th
         $status=$this->_check_usage($module_id=211,$request=$total_thread);
         if($status=="2")  //monthly limit is exceeded, can not send another ,message this month
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("Sorry, your bulk to send subscriber message is exceeded.")));
+            echo json_encode(array('status'=>'0','message'=>lang("Sorry, your bulk to send subscriber message is exceeded.")));
             exit();
         }
         else if($status=="3")  //monthly limit is exceeded, can not send another ,message this month
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line("Sorry, your monthly limit to send subscriber message is exceeded.")));
+            echo json_encode(array('status'=>'0','message'=>lang("Sorry, your monthly limit to send subscriber message is exceeded.")));
             exit();
         }
 
@@ -1673,7 +1681,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         if($this->basic->insert_data('messenger_bot_broadcast_serial',$insert_data))
         {
-            $campaign_id= $this->db->insert_id();
+            $campaign_id= $this->db->insertID();
             $this->_insert_usage_log($module_id=211,$request=$total_thread);
 
             $report_insert=array();
@@ -1693,7 +1701,7 @@ In this case, we suggest you to check the error message in report, and if you th
             }
             $this->db->insert_batch('messenger_bot_broadcast_serial_send', $report_insert); // strong the leads to send message in database
 
-            $this->session->set_flashdata('broadcast_success',1);
+            session()->setFlashdata('broadcast_success',1);
             echo json_encode(array("status" => "1"));            
         }
         
@@ -1707,19 +1715,19 @@ In this case, we suggest you to check the error message in report, and if you th
         $template_types=$this->basic->get_enum_values("messenger_bot_broadcast_serial","template_type");
 
         $data['body'] = 'messenger_broadcaster/subscriber_bulk_broadcast_edit';
-        $data['page_title'] = $this->lang->line('Edit Subscriber Broadcast');  
+        $data['page_title'] = lang('Edit Subscriber Broadcast');  
 
-        // $data['page_info'] = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),"bot_enabled"=>"1")),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
+        // $data['page_info'] = $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),"bot_enabled"=>"1")),$select='',$join='',$limit='',$start=NULL,$order_by='page_name ASC');
         $join = array('facebook_rx_fb_user_info'=>'facebook_rx_fb_page_info.facebook_rx_fb_user_info_id=facebook_rx_fb_user_info.id,left');
-        $page_info = $this->basic->get_data('facebook_rx_fb_page_info',array('where'=>array("facebook_rx_fb_page_info.facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),'facebook_rx_fb_page_info.user_id'=>$this->user_id,'bot_enabled'=>'1')),array('facebook_rx_fb_page_info.id','page_name','name'),$join);
+        $page_info = $this->basic->get_data('facebook_rx_fb_page_info',array('where'=>array("facebook_rx_fb_page_info.facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),'facebook_rx_fb_page_info.user_id'=>$this->user_id,'bot_enabled'=>'1')),array('facebook_rx_fb_page_info.id','page_name','name'),$join);
 
-        $ig_page_info = $this->basic->get_data('facebook_rx_fb_page_info',array('where'=>array("facebook_rx_fb_page_info.facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),'facebook_rx_fb_page_info.user_id'=>$this->user_id,'bot_enabled'=>'1','has_instagram'=>'1')),array('facebook_rx_fb_page_info.id','page_name','name','insta_username'),$join);
+        $ig_page_info = $this->basic->get_data('facebook_rx_fb_page_info',array('where'=>array("facebook_rx_fb_page_info.facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),'facebook_rx_fb_page_info.user_id'=>$this->user_id,'bot_enabled'=>'1','has_instagram'=>'1')),array('facebook_rx_fb_page_info.id','page_name','name','insta_username'),$join);
 
         $group_page_list = array();
 
         $flow_page_list = array();
         if(isset($page_info) && count($page_info) > 0) {
-            $flow_page_list['media_name'] = $this->lang->line("Facebook");
+            $flow_page_list['media_name'] = lang("Facebook");
             foreach($page_info as $value)
             {
                 if(!empty($this->team_allowed_pages) && !in_array($value['id'], $this->team_allowed_pages)) continue;
@@ -1730,7 +1738,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         $ig_flow_page_list = array();
         if(isset($ig_page_info) && count($ig_page_info) > 0) {
-            $ig_flow_page_list['media_name'] = $this->lang->line("Instagram");
+            $ig_flow_page_list['media_name'] = lang("Instagram");
             foreach($ig_page_info as $ig_value)
             {
                 if(!empty($this->team_allowed_pages) && !in_array($ig_value['id'], $this->team_allowed_pages)) continue;
@@ -1797,7 +1805,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->ajax_check();
         check_module_access($module_id=211);
 
-        $xid=$this->input->post("xid");
+        $xid=$this->request->getPost("xid");
 
         $xdata = $this->basic->get_data("messenger_bot_broadcast_serial",array("where"=>array("id"=>$xid,"user_id"=>$this->user_id)));
         if(!isset($xdata[0])) exit();
@@ -1813,11 +1821,11 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->_delete_usage_log(211,$total_thread);
         $this->db->trans_complete();
         if($this->db->trans_status() === false) 
-        echo json_encode(array('status'=>'0','message'=>$this->lang->line('Something went wrong, please try again.')));
+        echo json_encode(array('status'=>'0','message'=>lang('Something went wrong, please try again.')));
         else 
         {
-            echo json_encode(array('status'=>'1','message'=>$this->lang->line('Campaign has been updated successfully.')));
-            $this->session->set_flashdata('broadcast_success',1);
+            echo json_encode(array('status'=>'1','message'=>lang('Campaign has been updated successfully.')));
+            session()->setFlashdata('broadcast_success',1);
         }
     }
     /*-------------BROADCASTING FUNCTIONS-----------*/
@@ -1833,7 +1841,7 @@ In this case, we suggest you to check the error message in report, and if you th
     public function get_postback()
     {
         $this->ajax_check();
-        $page_id=$this->input->post('page_id');// database id      
+        $page_id=$this->request->getPost('page_id');// database id      
 
         $postback_data=$this->basic->get_data("messenger_bot_postback",array("where"=>array("page_id"=>$page_id,'is_template'=>'1','template_for'=>"reply_message")),'','','',$start=NULL,$order_by='id DESC');
         $push_postback="";
@@ -1848,9 +1856,9 @@ In this case, we suggest you to check the error message in report, and if you th
     {
         $this->ajax_check();
 
-        $page_id=$this->input->post('page_id');// database id    
-        $push_id=$this->input->post('push_id');
-        $media_type=$this->input->post('media_type');
+        $page_id=$this->request->getPost('page_id');// database id    
+        $push_id=$this->request->getPost('push_id');
+        $media_type=$this->request->getPost('media_type');
         if($media_type=='') $media_type=='fb';
 
         if($for_hour=='1')
@@ -1861,7 +1869,7 @@ In this case, we suggest you to check the error message in report, and if you th
        
         $postback_data=$this->basic->get_data("messenger_bot_postback",array("where"=>array("page_id"=>$page_id,'is_template'=>'1','template_for'=>"reply_message","media_type"=>$media_type)),'','','',$start=NULL,$order_by='id DESC');
         $push_postback='<select name="'.$template_id_str.$push_id.'" class="form-control '.$template_id_str.'" id="'.$template_id_str.$push_id.'">';
-        $push_postback.="<option value=''>"."--- ".$this->lang->line("Do not send message")." ---"."</option>";
+        $push_postback.="<option value=''>"."--- ".lang("Do not send message")." ---"."</option>";
         foreach ($postback_data as $key => $value) 
         {
             $push_postback.="<option value='".$value['id']."'>".$value['template_name'].' ['.$value['postback_id'].']'."</option>";
@@ -1874,9 +1882,9 @@ In this case, we suggest you to check the error message in report, and if you th
     {
         $this->ajax_check();
         
-        $id = $this->input->post("campaign_id");
-        $is_day = $this->input->post("is_day");
-        $media_type = $this->input->post("media_type");
+        $id = $this->request->getPost("campaign_id");
+        $is_day = $this->request->getPost("is_day");
+        $media_type = $this->request->getPost("media_type");
 
         $select = array("messenger_bot_drip_report.*","messenger_bot_drip_campaign.message_content","messenger_bot_drip_campaign.message_content_hourly","messenger_bot_drip_campaign.campaign_name");
         $join = array('messenger_bot_drip_campaign'=>"messenger_bot_drip_campaign.id=messenger_bot_drip_report.messenger_bot_drip_campaign_id,left");
@@ -1961,7 +1969,7 @@ In this case, we suggest you to check the error message in report, and if you th
         if($successfully_opened==0 || $successfully_sent==0) $open_rate=0;
         else $open_rate=round(($successfully_opened/$successfully_sent)*100);
 
-        //echo "<h5 class='text-center'>".$this->lang->line('Campaign Name')." : ".$campaign_name."</h5><br>";
+        //echo "<h5 class='text-center'>".lang('Campaign Name')." : ".$campaign_name."</h5><br>";
 
         echo '        
         <div class="card card-statistic-2 border_me" style="margin-bottom:0">
@@ -1969,21 +1977,21 @@ In this case, we suggest you to check the error message in report, and if you th
             <div class="card-stats-title">
             </div>
             <div class="card-stats-items">
-              <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Targeted Subscribers").'">
+              <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Targeted Subscribers").'">
                 <div class="card-stats-item-count">'.$total_report_data_stat['subscribers'].'</div>
-                <div class="card-stats-item-label">'.$this->lang->line("Targeted").'</div>
+                <div class="card-stats-item-label">'.lang("Targeted").'</div>
               </div>
-              <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Sent").'">
+              <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Sent").'">
                 <div class="card-stats-item-count">'.$total_report_data_stat['sent'].'</div>
-                <div class="card-stats-item-label">'.$this->lang->line("Sent").'</div>
+                <div class="card-stats-item-label">'.lang("Sent").'</div>
               </div>
-              <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Delivered").' ('.round($delivery_rate).'%)">
+              <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Delivered").' ('.round($delivery_rate).'%)">
                 <div class="card-stats-item-count">'.$total_report_data_stat['delivered'].'</div>
-                <div class="card-stats-item-label">'.$this->lang->line("Delivered").' ('.round($delivery_rate).'%)</div>
+                <div class="card-stats-item-label">'.lang("Delivered").' ('.round($delivery_rate).'%)</div>
               </div>
-              <!--<div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Opened").' ('.round($open_rate).'%)">
+              <!--<div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Opened").' ('.round($open_rate).'%)">
                 <div class="card-stats-item-count">'.$total_report_data_stat['opened'].'</div>
-                <div class="card-stats-item-label">'.$this->lang->line("Opened").' ('.round($open_rate).'%)</div>
+                <div class="card-stats-item-label">'.lang("Opened").' ('.round($open_rate).'%)</div>
               </div>-->
             </div>
           </div>
@@ -2015,17 +2023,17 @@ In this case, we suggest you to check the error message in report, and if you th
 
             $accor_title = "";
             if($is_day=='1')
-            $accor_title = '<i class="fa fa-calendar"></i> '.$this->lang->line("Day").'-'.$key;     
+            $accor_title = '<i class="fa fa-calendar"></i> '.lang("Day").'-'.$key;     
             else 
             {
               // if($key==30)
-              // $accor_title = '<i class="fa fa-calendar"></i> 30 '.$this->lang->line("Minute");
+              // $accor_title = '<i class="fa fa-calendar"></i> 30 '.lang("Minute");
               // else 
               // {
               //   $hourval = $key/60;
-              //   $accor_title = '<i class="fa fa-calendar"></i> '.$this->lang->line("Hour").'-'.$hourval;
+              //   $accor_title = '<i class="fa fa-calendar"></i> '.lang("Hour").'-'.$hourval;
               // }
-              $accor_title = '<i class="fa fa-calendar"></i> '.$key.'-'.$this->lang->line("Minute");
+              $accor_title = '<i class="fa fa-calendar"></i> '.$key.'-'.lang("Minute");
             }   
 
             echo'            
@@ -2046,21 +2054,21 @@ In this case, we suggest you to check the error message in report, and if you th
                         <div class="card-stats-title">
                         </div>
                         <div class="card-stats-items">
-                          <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Targeted Subscribers").'">
+                          <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Targeted Subscribers").'">
                             <div class="card-stats-item-count">'.$temp_subscribers.'</div>
-                            <div class="card-stats-item-label">'.$this->lang->line("Targeted").'</div>
+                            <div class="card-stats-item-label">'.lang("Targeted").'</div>
                           </div>
-                          <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Sent").'">
+                          <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Sent").'">
                             <div class="card-stats-item-count">'.$temp_sent.'</div>
-                            <div class="card-stats-item-label">'.$this->lang->line("Sent").'</div>
+                            <div class="card-stats-item-label">'.lang("Sent").'</div>
                           </div>
-                          <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Delivered").' ('.round($temp_delivery_rate).'%)">
+                          <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Delivered").' ('.round($temp_delivery_rate).'%)">
                             <div class="card-stats-item-count">'.$temp_delivered.'</div>
-                            <div class="card-stats-item-label">'.$this->lang->line("Delivered").' ('.round($temp_delivery_rate).'%)</div>
+                            <div class="card-stats-item-label">'.lang("Delivered").' ('.round($temp_delivery_rate).'%)</div>
                           </div>
-                          <!--<div class="card-stats-item d-none d-sm-block" data-toggle="tooltip" title="'.$this->lang->line("Total Opened").' ('.round($temp_open_rate).'%)">
+                          <!--<div class="card-stats-item d-none d-sm-block" data-toggle="tooltip" title="'.lang("Total Opened").' ('.round($temp_open_rate).'%)">
                             <div class="card-stats-item-count">'.$temp_opened.'</div>
-                            <div class="card-stats-item-label">'.$this->lang->line("Opened").' ('.round($temp_open_rate).'%)</div>
+                            <div class="card-stats-item-label">'.lang("Opened").' ('.round($temp_open_rate).'%)</div>
                           </div>-->
                         </div>
                       </div>
@@ -2104,28 +2112,28 @@ In this case, we suggest you to check the error message in report, and if you th
                     echo "<thead>";
                         echo "<tr>";
                             echo "<th nowrap>";
-                                echo $this->lang->line("SL");
+                                echo lang("SL");
                             echo "</th>";
                             echo "<th class='text-center' nowrap>";
-                                echo $this->lang->line("Subscriber ID");
+                                echo lang("Subscriber ID");
                             echo "</th>";
                             echo "<th nowrap>";
-                                echo $this->lang->line("Name");
+                                echo lang("Name");
                             echo "</th>";;
                             echo "<th class='text-center' nowrap>";
-                                echo $this->lang->line("Status");
+                                echo lang("Status");
                             echo "</th>"; 
                              echo "<th class='text-center' nowrap>";
-                                echo $this->lang->line("Sent");
+                                echo lang("Sent");
                             echo "</th>";
                              echo "<th class='text-center' nowrap>";
-                                echo $this->lang->line("Delivery");
+                                echo lang("Delivery");
                             echo "</th>"; 
                             // echo "<th class='text-center' nowrap>";
-                            //     echo $this->lang->line("Open");
+                            //     echo lang("Open");
                             // echo "</th>";                                                           
                             echo "<th nowrap>";
-                                echo $this->lang->line("Response");
+                                echo lang("Response");
                             echo "</th>";
 
                         echo "</tr>";
@@ -2148,9 +2156,9 @@ In this case, we suggest you to check the error message in report, and if you th
                         if($value2['opened_at']!='0000-00-00 00:00:00') $value2['opened_at']=date("jS M, y H:i:s",strtotime($value2['opened_at']));
                         else $value2['opened_at']='x';
                     
-                        if($value2['is_opened']=='1') $value2['status'] = "<span class='badge badge-status'><i class='fa fa-eye text-primary'></i> ".$this->lang->line('Opened')."</span>";
-                        else if($value2['is_delivered']=='1') $value2['status'] = "<span class='badge badge-status'><i class='fa fa-check-circle text-success'></i> ".$this->lang->line('Delivered')."</span>";
-                        else $value2['status'] = "<span class='badge badge-status'><i class='fa fa-send text-info'></i> ".$this->lang->line('Sent')."</span>";
+                        if($value2['is_opened']=='1') $value2['status'] = "<span class='badge badge-status'><i class='fa fa-eye text-primary'></i> ".lang('Opened')."</span>";
+                        else if($value2['is_delivered']=='1') $value2['status'] = "<span class='badge badge-status'><i class='fa fa-check-circle text-success'></i> ".lang('Delivered')."</span>";
+                        else $value2['status'] = "<span class='badge badge-status'><i class='fa fa-send text-info'></i> ".lang('Sent')."</span>";
                       
                         $db_res=json_decode($value2["sent_response"]);
                         $print_res="";
@@ -2161,13 +2169,13 @@ In this case, we suggest you to check the error message in report, and if you th
                             {
                                 $message_num++;
                                 $tempu=explode(' ', $value_res);
-                                if(isset($tempu[0]) && strlen($tempu[0])>50) $value_res=' <i class="fa fa-check-circle green"></i> '.$this->lang->line("Sent");
-                                $print_res.=$this->lang->line("Message")."-".$message_num." : ".$value_res."<br>";
+                                if(isset($tempu[0]) && strlen($tempu[0])>50) $value_res=' <i class="fa fa-check-circle green"></i> '.lang("Sent");
+                                $print_res.=lang("Message")."-".$message_num." : ".$value_res."<br>";
                             }
                         }
                         else $print_res=$value2["sent_response"];
 
-                        if($print_res=="") $print_res='<span class="label label-light"><i class="fa fa-check-circle green"></i> '.$this->lang->line("Success").'</span>';
+                        if($print_res=="") $print_res='<span class="label label-light"><i class="fa fa-check-circle green"></i> '.lang("Success").'</span>';
 
                         echo "<tr>";
                             echo "<td nowrap>".$sl."</td>";
@@ -2212,7 +2220,7 @@ In this case, we suggest you to check the error message in report, and if you th
         if(!isset($page_info[0])) exit();
         
         $data['body'] = 'messenger_sequence/campaign_list';
-        $data['page_title'] = $this->lang->line('Sequence Message');  
+        $data['page_title'] = lang('Sequence Message');  
         $data['page_info'] = isset($page_info[0]) ? $page_info[0] : array();        
         $data["page_auto_id"]=$page_auto_id;
         $data["drip_types"]=$this->get_drip_type();
@@ -2250,7 +2258,7 @@ In this case, we suggest you to check the error message in report, and if you th
         if(!isset($page_info[0])) exit();
         
         $data['body'] = 'messenger_sequence/create_campaign';
-        $data['page_title'] = $this->lang->line('Sequence Message');  
+        $data['page_title'] = lang('Sequence Message');  
         $data['page_info'] = isset($page_info[0]) ? $page_info[0] : array();        
         $data["page_auto_id"]=$page_auto_id;
         $data["drip_types"]=$this->get_drip_type();
@@ -2283,7 +2291,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         foreach ($post as $key => $value) 
         {
-            // $$key=$this->input->post($key,true);
+            // $$key=$this->request->getPost($key);
             if(!is_array($value)) $temp = strip_tags($value);
             else $temp = $value;
             $$key=$temp;
@@ -2295,7 +2303,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $status=$this->_check_usage($module_id=219,$request=1);
         if($status=="3") 
         {
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("You can not create more sequence message campaign. Module limit exceeded.")));
+            echo json_encode(array("status" => "0", "message" =>lang("You can not create more sequence message campaign. Module limit exceeded.")));
             exit();
         }
        
@@ -2303,21 +2311,21 @@ In this case, we suggest you to check the error message in report, and if you th
         // every page must have an default campaign
         // if($drip_type!='default' && !$this->basic->is_exist("messenger_bot_drip_campaign",array("page_id"=>$page_id,"user_id"=>$this->user_id,"drip_type"=>"default")))
         // {            
-        //     echo json_encode(array("status" => "0", "message" =>$this->lang->line("You must first create a default type campaign for the page.")));
+        //     echo json_encode(array("status" => "0", "message" =>lang("You must first create a default type campaign for the page.")));
         //     exit();        
         // }
 
         // if default campaign exists and trying to create again, prevent it
         if($drip_type=='default' && $this->basic->is_exist("messenger_bot_drip_campaign",array("page_id"=>$page_id,"user_id"=>$this->user_id,"drip_type"=>"default","media_type"=>$media_type)))
         {            
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("Default type campaign has been already created for this page.")));
+            echo json_encode(array("status" => "0", "message" =>lang("Default type campaign has been already created for this page.")));
             exit();        
         }
 
         // can not duplicate enagement re-targeting
         if($drip_type!='default' && $drip_type!='custom' && $this->basic->is_exist("messenger_bot_drip_campaign",array("page_id"=>$page_id,"user_id"=>$this->user_id,"drip_type"=>$drip_type,"engagement_table_id"=>$engagement_table_id,"media_type"=>$media_type)))
         {            
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("This messenger engagement re-targeting has been already used.")));
+            echo json_encode(array("status" => "0", "message" =>lang("This messenger engagement re-targeting has been already used.")));
             exit();        
         }
 
@@ -2333,7 +2341,7 @@ In this case, we suggest you to check the error message in report, and if you th
         for($i=0; $i<=$hour_counter;$i++)
         { 
            $minutes = $i*60;
-           $displayname = $i." ".$this->lang->line('Hour');
+           $displayname = $i." ".lang('Hour');
            if($i==0) $minutes = 30;           
 
            $temp="hour_template_id".$i;
@@ -2364,12 +2372,12 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->db->trans_complete();
         if($this->db->trans_status() === false)
         {
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("Something went wrong, please try again.")));
+            echo json_encode(array("status" => "0", "message" =>lang("Something went wrong, please try again.")));
             exit(); 
         }
         else
         {
-            echo json_encode(array("status" => "1", "message" =>$this->lang->line('Campaign has been created successfully.')));
+            echo json_encode(array("status" => "1", "message" =>lang('Campaign has been created successfully.')));
             exit(); 
         }    
     }
@@ -2389,7 +2397,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         
         $data['body'] = 'messenger_sequence/edit_campaign';
-        $data['page_title'] = $this->lang->line('Edit Sequence Message');  
+        $data['page_title'] = lang('Edit Sequence Message');  
         $data['page_info'] = isset($page_info[0]) ? $page_info[0] : array();        
         $data["page_auto_id"]=$page_auto_id;
         $data["drip_types"]=$this->get_drip_type();
@@ -2448,21 +2456,21 @@ In this case, we suggest you to check the error message in report, and if you th
         // I dont allow to switch drip type if default :p
         // if($drip_type!='default' && $xdrip_type=='default')
         // {
-        //     echo json_encode(array("status" => "0", "message" =>$this->lang->line("Drip type can not be edited to others from default type.")));
+        //     echo json_encode(array("status" => "0", "message" =>lang("Drip type can not be edited to others from default type.")));
         //     exit();   
         // }
 
         // if default campaign exists and trying to create again, prevent it
         if($drip_type=='default' && $xdrip_type!='default' && $this->basic->is_exist("messenger_bot_drip_campaign",array("page_id"=>$page_id,"user_id"=>$this->user_id,"drip_type"=>"default")))
         {            
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("Default type campaign has been already created for this page.")));
+            echo json_encode(array("status" => "0", "message" =>lang("Default type campaign has been already created for this page.")));
             exit();        
         }
 
         // can not duplicate enagement re-targeting
         if($drip_type!='default' && $drip_type!='custom' && $engagement_table_id!=$xengagement_table_id && $drip_type!=$xdrip_type && $this->basic->is_exist("messenger_bot_drip_campaign",array("page_id"=>$page_id,"user_id"=>$this->user_id,"drip_type"=>$drip_type,"engagement_table_id"=>$engagement_table_id)))
         {            
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("This messenger engagement re-targeting has been already used.")));
+            echo json_encode(array("status" => "0", "message" =>lang("This messenger engagement re-targeting has been already used.")));
             exit();        
         }
 
@@ -2478,7 +2486,7 @@ In this case, we suggest you to check the error message in report, and if you th
         for($i=0; $i<=$hour_counter;$i++)
         { 
            $minutes = $i*60;
-           $displayname = $i." ".$this->lang->line('Hour');
+           $displayname = $i." ".lang('Hour');
            if($i==0) $minutes = 30;           
 
            $temp="hour_template_id".$i;
@@ -2501,7 +2509,7 @@ In this case, we suggest you to check the error message in report, and if you th
         if($drip_type!='default' && $drip_type!='custom') $insert_data['engagement_table_id']=$engagement_table_id;
 
         $this->basic->update_data("messenger_bot_drip_campaign",array("id"=>$campaign_id,"user_id"=>$this->user_id),$insert_data);
-        echo json_encode(array("status" => "1", "message" =>$this->lang->line('Campaign has been updated successfully.')));          
+        echo json_encode(array("status" => "1", "message" =>lang('Campaign has been updated successfully.')));          
     }
 
 
@@ -2510,8 +2518,8 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->ajax_check();
         check_module_action_access($module_id=219,$actions=3);
 
-        $id=$this->input->post("id");        
-        $page_auto_id=$this->input->post("page_auto_id");        
+        $id=$this->request->getPost("id");        
+        $page_auto_id=$this->request->getPost("page_auto_id");        
         $this->db->trans_start();
 
         $this->basic->delete_data("messenger_bot_drip_campaign",array("id"=>$id,"user_id"=>$this->user_id));
@@ -2530,14 +2538,14 @@ In this case, we suggest you to check the error message in report, and if you th
 
     public function page_messaging_report($page_id=0)
     {
-        $this->session->set_userdata('drip_messaging_report_page_id', $page_id);
+        session()->set('drip_messaging_report_page_id', $page_id);
         redirect('drip_messaging/messaging_report','refresh');
     }
 
     public function messaging_report()
     {
         $data['body'] = "messaging_report";
-        $data['page_title'] = $this->lang->line("Message Sent Log");
+        $data['page_title'] = lang("Message Sent Log");
         $page_info = $this->db->query("SELECT page_id,page_name,id FROM `facebook_rx_fb_page_info` WHERE bot_enabled='1' AND user_id = '".$this->user_id."'")->result_array();
         $data['page_info'] = $page_info;
         $data["drip_types"]=$this->get_drip_type();
@@ -2547,28 +2555,28 @@ In this case, we suggest you to check the error message in report, and if you th
     public function messaging_report_data()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET')
-        redirect('home/access_forbidden', 'location');
+        return redirect()->to(base_url('home/access_forbidden'));
 
         $page = isset($_POST['page']) ? intval($_POST['page']) : 15;
         $rows = isset($_POST['rows']) ? intval($_POST['rows']) : 5;
         $sort = isset($_POST['sort']) ? strval($_POST['sort']) : 'last_updated_at';
         $order = isset($_POST['order']) ? strval($_POST['order']) : 'DESC';
 
-        $campaign_name = trim($this->input->post("search_campaign_name"));
-        $drip_type = trim($this->input->post("search_drip_type", true));
-        $page_id = trim($this->input->post("search_page", true));
-        $is_searched = $this->input->post('is_searched', true);
+        $campaign_name = trim($this->request->getPost("search_campaign_name"));
+        $drip_type = trim($this->request->getPost("search_drip_type"));
+        $page_id = trim($this->request->getPost("search_page"));
+        $is_searched = $this->request->getPost('is_searched');
 
         if($is_searched)
         {
-            $this->session->set_userdata('drip_messaging_report_campaign_name', $campaign_name);
-            $this->session->set_userdata('drip_messaging_report_drip_type', $drip_type);
-            $this->session->set_userdata('drip_messaging_report_page_id', $page_id);
+            session()->set('drip_messaging_report_campaign_name', $campaign_name);
+            session()->set('drip_messaging_report_drip_type', $drip_type);
+            session()->set('drip_messaging_report_page_id', $page_id);
         }
 
-        $search_campaign_name  = $this->session->userdata('drip_messaging_report_campaign_name');
-        $search_drip_type  = $this->session->userdata('drip_messaging_report_drip_type');
-        $search_page_id  = $this->session->userdata('drip_messaging_report_page_id');
+        $search_campaign_name  = session()->get('drip_messaging_report_campaign_name');
+        $search_drip_type  = session()->get('drip_messaging_report_drip_type');
+        $search_page_id  = session()->get('drip_messaging_report_page_id');
 
         $where_simple=array();
 
@@ -2588,15 +2596,15 @@ In this case, we suggest you to check the error message in report, and if you th
         
         for($i=0;$i<count($info);$i++) 
         {
-            $info[$i]['campaign_details']="<a target='_BLANK' class='btn btn-outline-info' href='".base_url("drip_messaging/edit_campaign/".$info[$i]["messenger_bot_drip_campaign_id"]."/".$info[$i]["page_id"])."'><i class='fa fa-list-alt'></i> ".$this->lang->line("details")."</a>";
+            $info[$i]['campaign_details']="<a target='_BLANK' class='btn btn-outline-info' href='".base_url("drip_messaging/edit_campaign/".$info[$i]["messenger_bot_drip_campaign_id"]."/".$info[$i]["page_id"])."'><i class='fa fa-list-alt'></i> ".lang("details")."</a>";
             $info[$i]['subscriber']=$info[$i]['first_name']." ".$info[$i]['last_name'];
             
-            if($info[$i]['is_opened']=='1') $info[$i]['status'] = "<span class='label label-light'><i class='fa fa-eye blue'></i> ".$this->lang->line('opened')."</span>";
-            else if($info[$i]['is_delivered']=='1') $info[$i]['status'] = "<span class='label label-light'><i class='fa fa-check-circle green'></i> ".$this->lang->line('delivered')."</span>";
-            else $info[$i]['status'] = "<span class='label label-light'><i class='fa fa-send orange'></i> ".$this->lang->line('sent')."</span>";
+            if($info[$i]['is_opened']=='1') $info[$i]['status'] = "<span class='label label-light'><i class='fa fa-eye blue'></i> ".lang('opened')."</span>";
+            else if($info[$i]['is_delivered']=='1') $info[$i]['status'] = "<span class='label label-light'><i class='fa fa-check-circle green'></i> ".lang('delivered')."</span>";
+            else $info[$i]['status'] = "<span class='label label-light'><i class='fa fa-send orange'></i> ".lang('sent')."</span>";
             
             if($info[$i]['last_completed_day']==0) $info[$i]['last_completed_day']='x';
-            else $info[$i]['last_completed_day']=$this->lang->line("day")."-".$info[$i]['last_completed_day'];
+            else $info[$i]['last_completed_day']=lang("day")."-".$info[$i]['last_completed_day'];
 
             if($info[$i]['sent_at']!='0000-00-00 00:00:00') $info[$i]['sent_at']=date("jS M, y H:i:s",strtotime($info[$i]['sent_at']));
             else $info[$i]['sent_at']='x';
@@ -2639,9 +2647,9 @@ In this case, we suggest you to check the error message in report, and if you th
     public function get_engagement_list()
     {
         $this->ajax_check();
-        $page_id=$this->input->post('page_auto_id');// database id    
-        $table_name=$this->input->post('table_name');        
-        $engagement_id=$this->input->post('engagement_id');  // provided when edit     
+        $page_id=$this->request->getPost('page_auto_id');// database id    
+        $table_name=$this->request->getPost('table_name');        
+        $engagement_id=$this->request->getPost('engagement_id');  // provided when edit     
 
         $page_id_field='page_id';
         if($table_name=="messenger_bot_engagement_2way_chat_plugin") $page_id_field='page_auto_id';
@@ -2661,18 +2669,18 @@ In this case, we suggest you to check the error message in report, and if you th
         </script>';
 
         if($table_name=="messenger_bot_engagement_checkbox")
-        echo '<div class="well text-justify" style="border:1px solid var(--blue);padding:15px;color:var(--blue);">'.$this->lang->line("Sequence message campaign will be assigned for checkbox plugin only after replying back of the message sent for checkbox OPTIN.").'</div><br>';
+        echo '<div class="well text-justify" style="border:1px solid var(--blue);padding:15px;color:var(--blue);">'.lang("Sequence message campaign will be assigned for checkbox plugin only after replying back of the message sent for checkbox OPTIN.").'</div><br>';
 
         echo "
         <div class='table-responsive data-card'><table class='table table-hover table-bordered table-sm' id='engagement_list_data_table'>";
           echo "<thead>";
             echo "<tr>";
-              echo "<th class='text-center'>".$this->lang->line("SL")."</th>";
-              echo "<th class='text-center'>".$this->lang->line("Select")."</th>";
+              echo "<th class='text-center'>".lang("SL")."</th>";
+              echo "<th class='text-center'>".lang("Select")."</th>";
               if(isset($getdata[0]['domain_name']))
-              echo "<th>".$this->lang->line("Domain")."</th>";
-              echo "<th>".$this->lang->line("Reference")."</th>";
-              echo "<th class='text-center'>".$this->lang->line("Created at")."</th>";
+              echo "<th>".lang("Domain")."</th>";
+              echo "<th>".lang("Reference")."</th>";
+              echo "<th class='text-center'>".lang("Created at")."</th>";
             echo "</tr>";
           echo "</thead>";
 
@@ -2732,17 +2740,17 @@ In this case, we suggest you to check the error message in report, and if you th
     {
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/javascript');
-        $code=$this->input->get('code');
+        $code=$this->request->getGet('code');
         if($code=="") 
         {
-            echo "console.error('".$this->config->item('product_name')." Error : Facebook messenger checkbox plugin is failed to load, no domain code found.');";
+            echo "console.error('".(config('MyConfig')->product_name ?? '')." Error : Facebook messenger checkbox plugin is failed to load, no domain code found.');";
             exit();
         }
 
         $plugin_data=$this->basic->get_data("messenger_bot_engagement_checkbox",array("where"=>array("domain_code"=>$code)));
         if(!isset($plugin_data[0])) 
         {
-            echo "console.error('".$this->config->item('product_name')." Error : Facebook messenger checkbox plugin is failed to load, invalid domain code.');";
+            echo "console.error('".(config('MyConfig')->product_name ?? '')." Error : Facebook messenger checkbox plugin is failed to load, invalid domain code.');";
             exit();
         }
 
@@ -2750,7 +2758,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $user_data=$this->basic->get_data("users",array("where"=>array("id"=>$user_id,"status"=>"1")));
         if(!isset($user_data[0])) 
         {
-            echo "console.error('".$this->config->item('product_name')." Error : Facebook messenger checkbox plugin is failed to load, the requesting user is no longer valid.');";
+            echo "console.error('".(config('MyConfig')->product_name ?? '')." Error : Facebook messenger checkbox plugin is failed to load, the requesting user is no longer valid.');";
             exit();
         }
 
@@ -2972,17 +2980,17 @@ In this case, we suggest you to check the error message in report, and if you th
     {
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/javascript');
-        $code=$this->input->get('code');
+        $code=$this->request->getGet('code');
         if($code=="") 
         {
-            echo "console.error('".$this->config->item('product_name')." Error : Facebook send to messenger plugin is failed to load, no domain code found.');";
+            echo "console.error('".(config('MyConfig')->product_name ?? '')." Error : Facebook send to messenger plugin is failed to load, no domain code found.');";
             exit();
         }
 
         $plugin_data=$this->basic->get_data("messenger_bot_engagement_send_to_msg",array("where"=>array("domain_code"=>$code)));
         if(!isset($plugin_data[0])) 
         {
-            echo "console.error('".$this->config->item('product_name')." Error : Facebook send to messenger plugin is failed to load, invalid domain code.');";
+            echo "console.error('".(config('MyConfig')->product_name ?? '')." Error : Facebook send to messenger plugin is failed to load, invalid domain code.');";
             exit();
         }
 
@@ -2990,7 +2998,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $user_data=$this->basic->get_data("users",array("where"=>array("id"=>$user_id,"status"=>"1")));
         if(!isset($user_data[0])) 
         {
-            echo "console.error('".$this->config->item('product_name')." Error : Facebook send to messenger plugin is failed to load, the requesting user is no longer valid.');";
+            echo "console.error('".(config('MyConfig')->product_name ?? '')." Error : Facebook send to messenger plugin is failed to load, the requesting user is no longer valid.');";
             exit();
         }
 
@@ -3132,17 +3140,17 @@ In this case, we suggest you to check the error message in report, and if you th
     {
         header('Access-Control-Allow-Origin: *');
         header('Content-Type: application/javascript');
-        $code=$this->input->get('code');
+        $code=$this->request->getGet('code');
         if($code=="") 
         {
-            echo "console.error('".$this->config->item('product_name')." Error : m.me link plugin is failed to load, no link code found.');";
+            echo "console.error('".(config('MyConfig')->product_name ?? '')." Error : m.me link plugin is failed to load, no link code found.');";
             exit();
         }
 
         $plugin_data=$this->basic->get_data("messenger_bot_engagement_mme",array("where"=>array("link_code"=>$code)));
         if(!isset($plugin_data[0])) 
         {
-            echo "console.error('".$this->config->item('product_name')." Error : m.me link plugin is failed to load, invalid link code.');";
+            echo "console.error('".(config('MyConfig')->product_name ?? '')." Error : m.me link plugin is failed to load, invalid link code.');";
             exit();
         }
 
@@ -3150,7 +3158,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $user_data=$this->basic->get_data("users",array("where"=>array("id"=>$user_id,"status"=>"1")));
         if(!isset($user_data[0])) 
         {
-            echo "console.error('".$this->config->item('product_name')." Error : m.me link plugin is failed to load, the requesting user is no longer valid.');";
+            echo "console.error('".(config('MyConfig')->product_name ?? '')." Error : m.me link plugin is failed to load, the requesting user is no longer valid.');";
             exit();
         }   
 
@@ -3222,7 +3230,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=213);
 
         $data['body'] = 'messenger_engagement/checkbox_plugin_list';
-        $data['page_title'] = $this->lang->line("Checkbox Plugin");
+        $data['page_title'] = lang("Checkbox Plugin");
         
         $data['page_info'] = $this->get_user_page();
         // $data['label_info'] = $this->get_page_label();
@@ -3235,7 +3243,7 @@ In this case, we suggest you to check the error message in report, and if you th
     {
       $this->ajax_check();
 
-      $pagename        = trim($this->input->post("search_page_id",true));
+      $pagename        = trim($this->request->getPost("search_page_id",true));
       $domain_name     = isset($_POST['search']) ? $_POST['search']['value'] : null;
       $display_columns = array("#",'id','domain_name','page_name','domain_code','actions','domain_code','reference','visual_flow_type','created_at','label_names');
       $search_columns = array('domain_name','page_name','created_at');
@@ -3268,11 +3276,11 @@ In this case, we suggest you to check the error message in report, and if you th
       for($i=0;$i<count($info);$i++)
       {   
 
-          // $info[$i]["new_button"] = ($info[$i]["new_button"]=='1') ? "<span title=".$this->lang->line('New')." class='text-success'><i class='fa fa-star-o '></i> ".$this->lang->line('New')."</span>" : "<span title='".$this->lang->line('Already Existing')."' class='text-warning'><i class='fa fa-circle-o'></i> ".$this->lang->line('Exist')."</span>";
+          // $info[$i]["new_button"] = ($info[$i]["new_button"]=='1') ? "<span title=".lang('New')." class='text-success'><i class='fa fa-star-o '></i> ".lang('New')."</span>" : "<span title='".lang('Already Existing')."' class='text-warning'><i class='fa fa-circle-o'></i> ".lang('Exist')."</span>";
 
           $info[$i]["domain_name"] = "<a data-toggle='tooltip' data-original-title='".$info[$i]["domain_name"]."' target='_BLANK' href='".addHttp($info[$i]["domain_name"])."'>".$info[$i]["domain_name"]."</a>";
 
-          $info[$i]["page_name"] = "<a data-toggle='tooltip' data-original-title='".$this->lang->line('Visit Page')."' target='_BLANK' href='https://facebook.com/".$info[$i]["fb_page_id"]."'>".$info[$i]["page_name"]."</a>";
+          $info[$i]["page_name"] = "<a data-toggle='tooltip' data-original-title='".lang('Visit Page')."' target='_BLANK' href='https://facebook.com/".$info[$i]["fb_page_id"]."'>".$info[$i]["page_name"]."</a>";
 
           $info[$i]['created_at'] = date('jS F y', strtotime($info[$i]['created_at']));
           $label_ids=$info[$i]["label_ids"];
@@ -3292,16 +3300,16 @@ In this case, we suggest you to check the error message in report, and if you th
           {
             $flow_campaign_exist = $this->basic->get_data('visual_flow_builder_campaign',['where'=>['id'=>$info[$i]['visual_flow_campaign_id'],'user_id'=>$this->user_id]],['id']);
             if(!empty($flow_campaign_exist))
-                $info[$i]['actions'] .= '<a target="_blank" class="btn btn-circle btn-outline-warning" href="'.base_url()."visual_flow_builder/edit_builder_data/".$info[$i]['visual_flow_campaign_id'].'/4" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                $info[$i]['actions'] .= '<a target="_blank" class="btn btn-circle btn-outline-warning" href="'.base_url()."visual_flow_builder/edit_builder_data/".$info[$i]['visual_flow_campaign_id'].'/4" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
             else
-                $info[$i]['actions'] .= '<div style="min-width:100px;"><a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/checkbox_plugin_edit/".$info[$i]['id'].'/1" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                $info[$i]['actions'] .= '<div style="min-width:100px;"><a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/checkbox_plugin_edit/".$info[$i]['id'].'/1" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
           }
           else
-            $info[$i]['actions'] .= '<div style="min-width:100px;"><a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/checkbox_plugin_edit/".$info[$i]['id'].'/1" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+            $info[$i]['actions'] .= '<div style="min-width:100px;"><a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/checkbox_plugin_edit/".$info[$i]['id'].'/1" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
 
           if($info[$i]['visual_flow_type'] == 'general') {
 
-            $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-danger delete_campaign" href="#" title="'.$this->lang->line('delete').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-trash-alt"></i></a>';
+            $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-danger delete_campaign" href="#" title="'.lang('delete').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-trash-alt"></i></a>';
           }
           $info[$i]['actions'] .= "</div><script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
 
@@ -3320,7 +3328,7 @@ In this case, we suggest you to check the error message in report, and if you th
     public function checkbox_plugin_js_code()
     {
        $this->ajax_check();
-       $id=$this->input->post("campaign_id");
+       $id=$this->request->getPost("campaign_id");
 
        $plugin_data=$this->basic->get_data("messenger_bot_engagement_checkbox",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
        $domain_code=isset($plugin_data[0]["domain_code"])?$plugin_data[0]["domain_code"]:"";       
@@ -3334,7 +3342,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->ajax_check();
         check_module_action_access($module_id=213,$actions=3);
 
-        $id = $this->input->post('campaign_id',true);
+        $id = $this->request->getPost('campaign_id',true);
         $response = array();
         $this->db->trans_start();
         $xdata=$this->basic->get_data("messenger_bot_engagement_checkbox",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
@@ -3343,7 +3351,7 @@ In this case, we suggest you to check the error message in report, and if you th
         if($domain_code=="")
         {
             $response['status'] = '0';
-            $response['message'] = $this->lang->line('Something went wrong.');
+            $response['message'] = lang('Something went wrong.');
         }
         
         $this->basic->delete_data('messenger_bot_engagement_checkbox',$where=array('id'=>$id));
@@ -3357,13 +3365,13 @@ In this case, we suggest you to check the error message in report, and if you th
         if($this->db->trans_status() === false) 
         {
           $response['status'] = '0';
-          $response['message'] = $this->lang->line('Something went wrong.');
+          $response['message'] = lang('Something went wrong.');
         } 
         else 
         {
 
           $response['status'] = '1';
-          $response['message'] = $this->lang->line('Plugin has been deleted successfully.');
+          $response['message'] = lang('Plugin has been deleted successfully.');
         }
         echo json_encode($response);
     }
@@ -3373,7 +3381,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=213);
         $this->is_broadcaster_exist=$this->broadcaster_exist();
         $data['body'] = 'messenger_engagement/checkbox_plugin_add';
-        $data['page_title'] = $this->lang->line("Add Checkbox Plugin");
+        $data['page_title'] = lang("Add Checkbox Plugin");
         $data['page_info'] = $this->get_user_page();
         $data['js_events'] = $this->get_js_events();
         $data['sdk_list'] = $this->sdk_locale();
@@ -3390,14 +3398,14 @@ In this case, we suggest you to check the error message in report, and if you th
         $status=$this->_check_usage($module_id=213,$request=1);
         if($status=="3")  //monthly limit is exceeded, can not create another campaign this month
         {
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("limit has been exceeded. you can no longer use this feature.")));
+            echo json_encode(array("status" => "0", "message" =>lang("limit has been exceeded. you can no longer use this feature.")));
             exit();
         }
 
         $post=$_POST;
         foreach ($post as $key => $value) 
         {
-            $$key=$this->input->post($key,true);
+            $$key=$this->request->getPost($key);
         }
         //echo "<pre>";print_r($post);exit;
         $button_click_success_message=str_replace('"',"'", $button_click_success_message);
@@ -3423,13 +3431,13 @@ In this case, we suggest you to check the error message in report, and if you th
         
         if($access_token=="")
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line('Facebook page not found.')));
+            echo json_encode(array('status'=>'0','message'=>lang('Facebook page not found.')));
             exit();
         }
 
         // if($this->basic->is_exist("messenger_bot_engagement_checkbox",array("domain_name"=>$domain_name,"page_id"=>$page),$select='id'))
         // {
-        //     echo json_encode(array('status'=>'0','message'=>"".$this->lang->line("Plugin has been already generated for this page & domain before.")));
+        //     echo json_encode(array('status'=>'0','message'=>"".lang("Plugin has been already generated for this page & domain before.")));
         //     exit();
         // }
 
@@ -3438,13 +3446,13 @@ In this case, we suggest you to check the error message in report, and if you th
         if(!isset($domain_whitelist['status']) || $domain_whitelist['status']=='0')
         {
             $fb_login_button='';
-            $error=$this->lang->line('Domain failed to white-list.');
+            $error=lang('Domain failed to white-list.');
             if(isset($domain_whitelist['error']['code']) && trim($domain_whitelist['error']['code'])=='230') //does not have page_messages permission, need to login again
             {
                 // $redirect_url = base_url()."home/redirect_rx_link";
                 // $fb_login_button = $this->fb_rx_login->login_for_user_access_token($redirect_url);
                 // $fb_login_button="<br><br>".$fb_login_button;
-                $error= $this->lang->line('Domain failed to white-list. Requires pages_messaging permission to perform this operation. You need to login with Facebook again clicking the button below and then you can continue.');
+                $error= lang('Domain failed to white-list. Requires pages_messaging permission to perform this operation. You need to login with Facebook again clicking the button below and then you can continue.');
             }
             else if(isset($domain_whitelist['error']['message']))
             {
@@ -3458,8 +3466,8 @@ In this case, we suggest you to check the error message in report, and if you th
         // $reference=$reference."-".$domain_code;
         if($this->basic->is_exist("messenger_bot_engagement_checkbox",array("reference"=>$reference))) 
         {
-            $unique_lang=$this->lang->line("is_unique");
-            $unique_lang=str_replace('<b>%s</b>', $this->lang->line('reference'), $unique_lang);
+            $unique_lang=lang("is_unique");
+            $unique_lang=str_replace('<b>%s</b>', lang('reference'), $unique_lang);
             echo json_encode(array("status" => "0", "message" =>$unique_lang));
             exit();
         }
@@ -3518,12 +3526,12 @@ In this case, we suggest you to check the error message in report, and if you th
 
         if($this->db->trans_status() === false)
         {
-             echo json_encode(array('status'=>'0','message'=>"".$this->lang->line('something went wrong, please try again.')));
+             echo json_encode(array('status'=>'0','message'=>"".lang('something went wrong, please try again.')));
              exit();
         }
         else
         {
-            echo json_encode(array('status'=>'1','message'=>"<i class='fa fa-check'></i> ".$this->lang->line('plugin has been created successfully.'),'js_code'=>$js_code));
+            echo json_encode(array('status'=>'1','message'=>"<i class='fa fa-check'></i> ".lang('plugin has been created successfully.'),'js_code'=>$js_code));
             exit();
         } 
     }
@@ -3535,7 +3543,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=213);
 
         $data['body'] = 'messenger_engagement/checkbox_plugin_edit';
-        $data['page_title'] = $this->lang->line("Edit Checkbox Plugin");
+        $data['page_title'] = lang("Edit Checkbox Plugin");
         $data['page_info'] = $this->get_user_page();
         $data['js_events'] = $this->get_js_events();
         $data['sdk_list'] = $this->sdk_locale();
@@ -3557,7 +3565,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $post=$_POST;
         foreach ($post as $key => $value) 
         {
-            $$key=$this->input->post($key,true);
+            $$key=$this->request->getPost($key);
         }
         $button_click_success_message=str_replace('"',"'", $button_click_success_message);
 
@@ -3622,7 +3630,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=214);
 
         $data['body'] = 'messenger_engagement/send_to_messenger_list';
-        $data['page_title'] = $this->lang->line("Send to Messenger Plugin");
+        $data['page_title'] = lang("Send to Messenger Plugin");
         
         $data['page_info'] = $this->get_user_page();
         // $data['label_info'] = $this->get_page_label();
@@ -3634,7 +3642,7 @@ In this case, we suggest you to check the error message in report, and if you th
     public function send_to_messenger_list_data()
     {
         $this->ajax_check();
-        $pagename        = trim($this->input->post("search_page_id",true));
+        $pagename        = trim($this->request->getPost("search_page_id",true));
         $domain_name       = isset($_POST['search']) ? $_POST['search']['value'] : null;;
         $display_columns = array("#",'id','domain_name','page_name','domain_code','actions','visual_flow_type','domain_code','reference','created_at','label_names');
         $search_columns = array('domain_name','page_name','created_at');
@@ -3672,7 +3680,7 @@ In this case, we suggest you to check the error message in report, and if you th
         {
             $info[$i]["domain_name"] = "<a data-toggle='tooltip' data-original-title='".$info[$i]["domain_name"]."' target='_BLANK' href='".addHttp($info[$i]["domain_name"])."'>".$info[$i]["domain_name"]."</a>";
 
-            $info[$i]["page_name"] = "<a data-toggle='tooltip' data-original-title='".$this->lang->line('Visit Page')."' target='_BLANK' href='https://facebook.com/".$info[$i]["fb_page_id"]."'>".$info[$i]["page_name"]."</a>";
+            $info[$i]["page_name"] = "<a data-toggle='tooltip' data-original-title='".lang('Visit Page')."' target='_BLANK' href='https://facebook.com/".$info[$i]["fb_page_id"]."'>".$info[$i]["page_name"]."</a>";
 
             $info[$i]['created_at'] = date('jS F y', strtotime($info[$i]['created_at']));
 
@@ -3692,15 +3700,15 @@ In this case, we suggest you to check the error message in report, and if you th
             {
                 $flow_campaign_exist = $this->basic->get_data('visual_flow_builder_campaign',['where'=>['id'=>$info[$i]['visual_flow_campaign_id'],'user_id'=>$this->user_id]],['id']);
                 if(!empty($flow_campaign_exist))
-                    $info[$i]['actions'] .= '<a target="_BLANK" class="btn btn-circle btn-outline-warning" href="'.base_url()."visual_flow_builder/edit_builder_data/".$info[$i]['visual_flow_campaign_id'].'/5" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                    $info[$i]['actions'] .= '<a target="_BLANK" class="btn btn-circle btn-outline-warning" href="'.base_url()."visual_flow_builder/edit_builder_data/".$info[$i]['visual_flow_campaign_id'].'/5" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
                 else
-                    $info[$i]['actions'] .= '<div style="min-width:100px;"><a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/send_to_messenger_edit/".$info[$i]['id'].'/1" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                    $info[$i]['actions'] .= '<div style="min-width:100px;"><a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/send_to_messenger_edit/".$info[$i]['id'].'/1" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
             }
             else
-                $info[$i]['actions'] .= '<div style="min-width:100px;"><a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/send_to_messenger_edit/".$info[$i]['id'].'/1" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                $info[$i]['actions'] .= '<div style="min-width:100px;"><a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/send_to_messenger_edit/".$info[$i]['id'].'/1" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
             
             if($info[$i]['visual_flow_type'] == 'general') {
-                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-danger delete_campaign" href="#" title="'.$this->lang->line('delete').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-trash-alt"></i></a>';
+                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-danger delete_campaign" href="#" title="'.lang('delete').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-trash-alt"></i></a>';
             }
             $info[$i]['actions'] .= "</div><script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
             $info[$i]['visual_flow_type'] = ucfirst($info[$i]['visual_flow_type']);
@@ -3718,7 +3726,7 @@ In this case, we suggest you to check the error message in report, and if you th
     public function send_to_messenger_js_code()
     {
        $this->ajax_check();
-       $id=$this->input->post("campaign_id");
+       $id=$this->request->getPost("campaign_id");
 
        $plugin_data=$this->basic->get_data("messenger_bot_engagement_send_to_msg",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
        $domain_code=isset($plugin_data[0]["domain_code"])?$plugin_data[0]["domain_code"]:"";       
@@ -3732,7 +3740,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->ajax_check(); 
         check_module_action_access($module_id=214,$actions=3);
 
-        $id = $this->input->post('campaign_id',true);
+        $id = $this->request->getPost('campaign_id',true);
         $response = array();
         $this->db->trans_start();
         $xdata=$this->basic->get_data("messenger_bot_engagement_send_to_msg",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
@@ -3740,7 +3748,7 @@ In this case, we suggest you to check the error message in report, and if you th
         if($domain_code=="")
         {
           $response['status'] = '0';
-          $response['message'] = $this->lang->line('Something went wrong.');
+          $response['message'] = lang('Something went wrong.');
         }
 
         $this->basic->delete_data('messenger_bot_engagement_send_to_msg',$where=array('id'=>$id));
@@ -3754,12 +3762,12 @@ In this case, we suggest you to check the error message in report, and if you th
         if($this->db->trans_status() === false) 
         {
            $response['status'] = '0';
-           $response['message'] = $this->lang->line('Something went wrong.');
+           $response['message'] = lang('Something went wrong.');
         } 
         else 
         {
           $response['status'] = '1';
-          $response['message'] = $this->lang->line('Plugin has been deleted successfully.');
+          $response['message'] = lang('Plugin has been deleted successfully.');
         }
         echo json_encode($response);
     }
@@ -3769,7 +3777,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=214);
         $this->is_broadcaster_exist=$this->broadcaster_exist();
         $data['body'] = 'messenger_engagement/send_to_messenger_add';
-        $data['page_title'] = $this->lang->line("Add Send to Messenger Plugin");
+        $data['page_title'] = lang("Add Send to Messenger Plugin");
         $data['page_info'] = $this->get_user_page();
         $data['sdk_list'] = $this->sdk_locale();
         $data['cta_options'] = $this->get_cta_options();
@@ -3787,7 +3795,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $status=$this->_check_usage($module_id=214,$request=1);
         if($status=="3")  //monthly limit is exceeded, can not create another campaign this month
         {
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("limit has been exceeded. you can no longer use this feature.")));
+            echo json_encode(array("status" => "0", "message" =>lang("limit has been exceeded. you can no longer use this feature.")));
             exit();
         }
 
@@ -3795,7 +3803,7 @@ In this case, we suggest you to check the error message in report, and if you th
         //echo "<pre>";print_r($post);exit;
         foreach ($post as $key => $value) 
         {
-            $$key=$this->input->post($key,true);
+            $$key=$this->request->getPost($key);
         }
         $button_click_success_message=str_replace('"',"'", $button_click_success_message);
 
@@ -3819,13 +3827,13 @@ In this case, we suggest you to check the error message in report, and if you th
         
         if($access_token=="")
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line('Facebook page not found.')));
+            echo json_encode(array('status'=>'0','message'=>lang('Facebook page not found.')));
             exit();
         }
 
         // if($this->basic->is_exist("messenger_bot_engagement_send_to_msg",array("domain_name"=>$domain_name,"page_id"=>$page),$select='id'))
         // {
-        //     echo json_encode(array('status'=>'0','message'=>"".$this->lang->line("Plugin has been already generated for this page & domain before.")));
+        //     echo json_encode(array('status'=>'0','message'=>"".lang("Plugin has been already generated for this page & domain before.")));
         //     exit();
         // }
 
@@ -3834,13 +3842,13 @@ In this case, we suggest you to check the error message in report, and if you th
         if(!isset($domain_whitelist['status']) || $domain_whitelist['status']=='0')
         {
             $fb_login_button='';
-            $error=$this->lang->line('Domain failed to white-list.');
+            $error=lang('Domain failed to white-list.');
             if(isset($domain_whitelist['error']['code']) && trim($domain_whitelist['error']['code'])=='230') //does not have page_messages permission, need to login again
             {
                 // $redirect_url = base_url()."home/redirect_rx_link";
                 // $fb_login_button = $this->fb_rx_login->login_for_user_access_token($redirect_url);
                 // $fb_login_button="<br><br>".$fb_login_button;
-                $error= $this->lang->line('Domain failed to white-list. Requires pages_messaging permission to perform this operation. You need to login with Facebook again clicking the button below and then you can continue.');
+                $error= lang('Domain failed to white-list. Requires pages_messaging permission to perform this operation. You need to login with Facebook again clicking the button below and then you can continue.');
             }
             else if(isset($domain_whitelist['error']['message']))
             {
@@ -3854,8 +3862,8 @@ In this case, we suggest you to check the error message in report, and if you th
         // $reference=$reference."-".$domain_code;
         if($this->basic->is_exist("messenger_bot_engagement_send_to_msg",array("reference"=>$reference))) 
         {
-            $unique_lang=$this->lang->line("is_unique");
-            $unique_lang=str_replace('<b>%s</b>', $this->lang->line('reference'), $unique_lang);
+            $unique_lang=lang("is_unique");
+            $unique_lang=str_replace('<b>%s</b>', lang('reference'), $unique_lang);
             echo json_encode(array("status" => "0", "message" =>$unique_lang));
             exit();
         }
@@ -3893,12 +3901,12 @@ In this case, we suggest you to check the error message in report, and if you th
 
         if($this->db->trans_status() === false)
         {
-             echo json_encode(array('status'=>'0','message'=> $this->lang->line('something went wrong, please try again.')));
+             echo json_encode(array('status'=>'0','message'=> lang('something went wrong, please try again.')));
              exit();
         }
         else
         {
-            echo json_encode(array('status'=>'1','message'=> $this->lang->line('plugin has been created successfully.'),'js_code'=>$js_code));
+            echo json_encode(array('status'=>'1','message'=> lang('plugin has been created successfully.'),'js_code'=>$js_code));
             exit();
         } 
     }
@@ -3910,7 +3918,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=214);
 
         $data['body'] = 'messenger_engagement/send_to_messenger_edit';
-        $data['page_title'] = $this->lang->line("Edit Send to Messenger Plugin");
+        $data['page_title'] = lang("Edit Send to Messenger Plugin");
         $data['page_info'] = $this->get_user_page();
         $data['sdk_list'] = $this->sdk_locale();
         $data['cta_options'] = $this->get_cta_options();
@@ -3934,7 +3942,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $post=$_POST;
         foreach ($post as $key => $value) 
         {
-            $$key=$this->input->post($key,true);
+            $$key=$this->request->getPost($key);
         }
         $button_click_success_message=str_replace('"',"'", $button_click_success_message);
 
@@ -3981,7 +3989,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=215);
 
         $data['body'] = 'messenger_engagement/mme_link_list';
-        $data['page_title'] = $this->lang->line("m.me link");
+        $data['page_title'] = lang("m.me link");
         
         $data['page_info'] = $this->get_user_page();
         // $data['label_info'] = $this->get_page_label();
@@ -3997,7 +4005,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         $this->ajax_check();
 
-        $pagename = trim($this->input->post("search_page_id",true));
+        $pagename = trim($this->request->getPost("search_page_id",true));
         $search_ref_name = isset($_POST['search']) ? $_POST['search']['value'] : null;
         $display_columns = array("#",'id','page_name','link_code','actions','visual_flow_type','link_code','reference','created_at','label_names');
         $search_columns = array('page_name','reference','created_at');
@@ -4032,7 +4040,7 @@ In this case, we suggest you to check the error message in report, and if you th
         
         for($i=0;$i<count($info);$i++)
         {
-            $info[$i]["page_name"] = "<a data-toggle='tooltip' data-original-title='".$this->lang->line('Visit Page')."' target='_BLANK' href='https://facebook.com/".$info[$i]["fb_page_id"]."'>".$info[$i]["page_name"]."</a>";
+            $info[$i]["page_name"] = "<a data-toggle='tooltip' data-original-title='".lang('Visit Page')."' target='_BLANK' href='https://facebook.com/".$info[$i]["fb_page_id"]."'>".$info[$i]["page_name"]."</a>";
             $info[$i]['created_at'] = date('jS F y', strtotime($info[$i]['created_at']));
 
             $info[$i]['actions'] = '<div style="min-width:120px;">';
@@ -4040,15 +4048,15 @@ In this case, we suggest you to check the error message in report, and if you th
             {
                 $flow_campaign_exist = $this->basic->get_data('visual_flow_builder_campaign',['where'=>['id'=>$info[$i]['visual_flow_campaign_id'],'user_id'=>$this->user_id]],['id']);
                 if(!empty($flow_campaign_exist))
-                    $info[$i]['actions'] .= '<a target="_BLANK" class="btn btn-circle btn-outline-warning" href="'.base_url()."visual_flow_builder/edit_builder_data/".$info[$i]['visual_flow_campaign_id'].'/6" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                    $info[$i]['actions'] .= '<a target="_BLANK" class="btn btn-circle btn-outline-warning" href="'.base_url()."visual_flow_builder/edit_builder_data/".$info[$i]['visual_flow_campaign_id'].'/6" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
                 else
-                    $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/mme_link_edit/".$info[$i]['id'].'/1" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                    $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/mme_link_edit/".$info[$i]['id'].'/1" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
             }
             else
-                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/mme_link_edit/".$info[$i]['id'].'/1" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/mme_link_edit/".$info[$i]['id'].'/1" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
 
             if($info[$i]['visual_flow_type'] == 'general') {
-                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-danger delete_campaign" href="#" title="'.$this->lang->line('delete').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-trash-alt"></i></a>';
+                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-danger delete_campaign" href="#" title="'.lang('delete').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-trash-alt"></i></a>';
             }
             $info[$i]['actions'] .= "</div><script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
 
@@ -4078,7 +4086,7 @@ In this case, we suggest you to check the error message in report, and if you th
     {
        $this->ajax_check();
 
-       $id=$this->input->post("campaign_id");
+       $id=$this->request->getPost("campaign_id");
 
        $plugin_data=$this->basic->get_data("messenger_bot_engagement_mme",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
        $link_code=isset($plugin_data[0]["link_code"])?$plugin_data[0]["link_code"]:"";       
@@ -4103,7 +4111,7 @@ In this case, we suggest you to check the error message in report, and if you th
     {
        $this->ajax_check();
 
-       $id=$this->input->post("campaign_id");
+       $id=$this->request->getPost("campaign_id");
 
        $plugin_data=$this->basic->get_data("messenger_bot_engagement_mme",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
        $link_code=isset($plugin_data[0]["link_code"])?$plugin_data[0]["link_code"]:"";       
@@ -4131,7 +4139,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $this->ajax_check();        
         check_module_action_access($module_id=215,$actions=3);
 
-        $id = $this->input->post('campaign_id',true);
+        $id = $this->request->getPost('campaign_id',true);
         $response = array();
 
         $this->db->trans_start();
@@ -4140,7 +4148,7 @@ In this case, we suggest you to check the error message in report, and if you th
         if($link_code=="")
         {
           $response['status'] = '0';
-          $response['message'] = $this->lang->line('Something went wrong.');
+          $response['message'] = lang('Something went wrong.');
         }
         
         $this->basic->delete_data('messenger_bot_engagement_mme',$where=array('id'=>$id));
@@ -4154,12 +4162,12 @@ In this case, we suggest you to check the error message in report, and if you th
         if($this->db->trans_status() === false) 
         {
           $response['status'] = '0';
-          $response['message'] = $this->lang->line('Something went wrong.');
+          $response['message'] = lang('Something went wrong.');
         } 
         else 
         {
           $response['status'] = '1';
-          $response['message'] = $this->lang->line('Plugin has been deleted successfully.');
+          $response['message'] = lang('Plugin has been deleted successfully.');
         }
         echo json_encode($response);
     }
@@ -4169,7 +4177,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=215);
         $this->is_broadcaster_exist=$this->broadcaster_exist();
         $data['body'] = 'messenger_engagement/mme_link_add';
-        $data['page_title'] = $this->lang->line("Add m.me link");
+        $data['page_title'] = lang("Add m.me link");
         $data['page_info'] = $this->get_user_page();
         $data['page_id'] = $page_id;
         $data['iframe'] = $iframe;
@@ -4185,14 +4193,14 @@ In this case, we suggest you to check the error message in report, and if you th
         $status=$this->_check_usage($module_id=215,$request=1);
         if($status=="3")  //monthly limit is exceeded, can not create another campaign this month
         {
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("limit has been exceeded. you can no longer use this feature.")));
+            echo json_encode(array("status" => "0", "message" =>lang("limit has been exceeded. you can no longer use this feature.")));
             exit();
         }
 
         $post=$_POST;
         foreach ($post as $key => $value) 
         {
-            $$key=$this->input->post($key,true);
+            $$key=$this->request->getPost($key);
         }
 
         $pageinfo=$this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("id"=>$page)));
@@ -4200,14 +4208,14 @@ In this case, we suggest you to check the error message in report, and if you th
         
         if($access_token=="")
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line('Facebook page not found.')));
+            echo json_encode(array('status'=>'0','message'=>lang('Facebook page not found.')));
             exit();
         }
 
 
         // if($this->basic->is_exist("messenger_bot_engagement_mme",array("page_id"=>$page),$select='id'))
         // {
-        //     echo json_encode(array('status'=>'0','message'=>"".$this->lang->line("Plugin has been already generated for this page.")));
+        //     echo json_encode(array('status'=>'0','message'=>"".lang("Plugin has been already generated for this page.")));
         //     exit();
         // }
 
@@ -4215,8 +4223,8 @@ In this case, we suggest you to check the error message in report, and if you th
         // $reference=$reference."-".$link_code;
         if($this->basic->is_exist("messenger_bot_engagement_mme",array("reference"=>$reference))) 
         {
-            $unique_lang=$this->lang->line("is_unique");
-            $unique_lang=str_replace('<b>%s</b>', $this->lang->line('reference'), $unique_lang);
+            $unique_lang=lang("is_unique");
+            $unique_lang=str_replace('<b>%s</b>', lang('reference'), $unique_lang);
             echo json_encode(array("status" => "0", "message" =>$unique_lang));
             exit();
         }
@@ -4255,12 +4263,12 @@ In this case, we suggest you to check the error message in report, and if you th
 
         if($this->db->trans_status() === false)
         {
-             echo json_encode(array('status'=>'0','message'=>"".$this->lang->line('something went wrong, please try again.')));
+             echo json_encode(array('status'=>'0','message'=>"".lang('something went wrong, please try again.')));
              exit();
         }
         else
         {
-            echo json_encode(array('status'=>'1','message'=>"<i class='fa fa-check'></i> ".$this->lang->line('plugin has been created successfully.'),'js_code'=>$js_code,'js_code2'=>$js_code2));
+            echo json_encode(array('status'=>'1','message'=>"<i class='fa fa-check'></i> ".lang('plugin has been created successfully.'),'js_code'=>$js_code,'js_code2'=>$js_code2));
             exit();
         } 
     }
@@ -4271,7 +4279,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=215);
         $this->is_broadcaster_exist=$this->broadcaster_exist(); 
         $data['body'] = 'messenger_engagement/mme_link_edit';
-        $data['page_title'] = $this->lang->line("Edit m.me link");
+        $data['page_title'] = lang("Edit m.me link");
         $data['page_info'] = $this->get_user_page();
         $data['btn_sizes'] = $this->basic->get_enum_values("messenger_bot_engagement_mme","btn_size");
         $xdata=$this->basic->get_data("messenger_bot_engagement_mme",array("where"=>array("id"=>$id,"user_id"=>$this->user_id)));
@@ -4292,7 +4300,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $post=$_POST;
         foreach ($post as $key => $value) 
         {
-            $$key=$this->input->post($key,true);
+            $$key=$this->request->getPost($key);
         }      
 
         if(!isset($label_ids)) $label_ids=array();
@@ -4320,7 +4328,7 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=217);
 
         $data['body'] = 'messenger_engagement/customer_chat_list';
-        $data['page_title'] = $this->lang->line("Customer Chat Plugin");
+        $data['page_title'] = lang("Customer Chat Plugin");
         $data['page_info'] = $this->get_user_page();
 
         $data['page_id'] = $page_id;
@@ -4333,7 +4341,7 @@ In this case, we suggest you to check the error message in report, and if you th
     {
         $this->ajax_check();
 
-        $pagename = trim($this->input->post("search_page_id",true));
+        $pagename = trim($this->request->getPost("search_page_id",true));
         $search_ref_name = isset($_POST['search']) ? $_POST['search']['value'] : null;
         $display_columns = array("#",'id','domain_name','page_name','domain_code','domain_code','actions','visual_flow_type','add_date','language');
         $search_columns = array('page_name','domain_name','created_at');
@@ -4368,9 +4376,9 @@ In this case, we suggest you to check the error message in report, and if you th
 
         for($i=0;$i<count($info);$i++)
         {
-            $info[$i]["domain_name"] = "<a data-toggle='tooltip' data-original-title='".$this->lang->line('Visit website')."' target='_BLANK' href='".addHttp($info[$i]["domain_name"])."'>".$info[$i]["domain_name"]."</a>";
+            $info[$i]["domain_name"] = "<a data-toggle='tooltip' data-original-title='".lang('Visit website')."' target='_BLANK' href='".addHttp($info[$i]["domain_name"])."'>".$info[$i]["domain_name"]."</a>";
 
-            $info[$i]["page_name"] = "<a data-toggle='tooltip' data-original-title='".$this->lang->line('Visit Page')."' target='_BLANK' href='https://facebook.com/".$info[$i]["page_id"]."'>".$info[$i]["page_name"]."</a>";
+            $info[$i]["page_name"] = "<a data-toggle='tooltip' data-original-title='".lang('Visit Page')."' target='_BLANK' href='https://facebook.com/".$info[$i]["page_id"]."'>".$info[$i]["page_name"]."</a>";
             $info[$i]['add_date'] = date('jS F y', strtotime($info[$i]['add_date']));
 
             $info[$i]['actions'] = '<div style="min-width:140px;">';
@@ -4378,19 +4386,19 @@ In this case, we suggest you to check the error message in report, and if you th
             {
                 $flow_campaign_exist = $this->basic->get_data('visual_flow_builder_campaign',['where'=>['id'=>$info[$i]['visual_flow_campaign_id'],'user_id'=>$this->user_id]],['id']);
                 if(!empty($flow_campaign_exist))
-                    $info[$i]['actions'] .= '<a target="_BLANK" class="btn btn-circle btn-outline-warning" href="'.base_url()."visual_flow_builder/edit_builder_data/".$info[$i]['visual_flow_campaign_id'].'/7" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                    $info[$i]['actions'] .= '<a target="_BLANK" class="btn btn-circle btn-outline-warning" href="'.base_url()."visual_flow_builder/edit_builder_data/".$info[$i]['visual_flow_campaign_id'].'/7" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
                 else
-                    $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/customer_chat_edit/".$info[$i]['id'].'/1" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                    $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/customer_chat_edit/".$info[$i]['id'].'/1" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
             }
             else
-                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/customer_chat_edit/".$info[$i]['id'].'/1" title="'.$this->lang->line('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
+                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-warning" href="'.base_url()."messenger_bot_enhancers/customer_chat_edit/".$info[$i]['id'].'/1" title="'.lang('Edit').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-edit"></i></a> &nbsp;';
 
 
 
-            $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-success" target="_blank" href="'.base_url()."messenger_bot_enhancers/wp_plugin2/".$info[$i]['page_auto_id'].'/'.$info[$i]['id'].'" title="'.$this->lang->line('Download Wordpress Plugin').'" campaign_id='.$info[$i]['id'].'><i class="fa fa-wordpress"></i></a> &nbsp;';
+            $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-success" target="_blank" href="'.base_url()."messenger_bot_enhancers/wp_plugin2/".$info[$i]['page_auto_id'].'/'.$info[$i]['id'].'" title="'.lang('Download Wordpress Plugin').'" campaign_id='.$info[$i]['id'].'><i class="fa fa-wordpress"></i></a> &nbsp;';
 
             if($info[$i]['visual_flow_type'] == 'general') {
-                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-danger delete_campaign" href="#" title="'.$this->lang->line('delete').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-trash-alt"></i></a>';
+                $info[$i]['actions'] .= '<a class="btn btn-circle btn-outline-danger delete_campaign" href="#" title="'.lang('delete').'" campaign_id='.$info[$i]['id'].'><i class="fas fa-trash-alt"></i></a>';
             }
 
             $info[$i]['actions'] .= "</div><script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
@@ -4410,7 +4418,7 @@ In this case, we suggest you to check the error message in report, and if you th
     {
        $this->ajax_check();
 
-       $id=$this->input->post("campaign_id");
+       $id=$this->request->getPost("campaign_id");
        $plugin_data=$this->basic->get_data("messenger_bot_engagement_2way_chat_plugin",array("where"=>array("id"=>$id)));
        $domain_code=isset($plugin_data[0]["domain_code"])?$plugin_data[0]["domain_code"]:"";
        $page_auto_id=isset($plugin_data[0]["page_auto_id"])?$plugin_data[0]["page_auto_id"]:"";
@@ -4441,14 +4449,14 @@ In this case, we suggest you to check the error message in report, and if you th
         check_module_access($module_id=217);
         $this->is_broadcaster_exist=$this->broadcaster_exist();
         $data['body'] = 'messenger_engagement/customer_chat_add';
-        $data['page_title'] = $this->lang->line("Add Customer Chat Plugin");
+        $data['page_title'] = lang("Add Customer Chat Plugin");
         $data['sdk_locale']=$this->sdk_locale();
         $data['page_info'] = $this->get_user_page();
         $data['load_chatbox']=array
         (
-          'hide'=>$this->lang->line('hide'),
-          'show'=>$this->lang->line('show'),
-          'fade'=>$this->lang->line('fade')
+          'hide'=>lang('hide'),
+          'show'=>lang('show'),
+          'fade'=>lang('fade')
         );
 
         $data['page_id'] = $page_id;
@@ -4465,14 +4473,14 @@ In this case, we suggest you to check the error message in report, and if you th
         $status=$this->_check_usage($module_id=217,$request=1);
         if($status=="3")  //monthly limit is exceeded, can not create another campaign this month
         {
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("limit has been exceeded. you can no longer use this feature.")));
+            echo json_encode(array("status" => "0", "message" =>lang("limit has been exceeded. you can no longer use this feature.")));
             exit();
         }
 
         $post=$_POST;
         foreach ($post as $key => $value) 
         {
-            $$key=$this->input->post($key,true);
+            $$key=$this->request->getPost($key);
         }
     
 
@@ -4481,20 +4489,20 @@ In this case, we suggest you to check the error message in report, and if you th
         
         if($access_token=="")
         {
-            echo json_encode(array('status'=>'0','message'=>$this->lang->line('Facebook page not found.')));
+            echo json_encode(array('status'=>'0','message'=>lang('Facebook page not found.')));
             exit();
         }
 
         // if($this->basic->is_exist("messenger_bot_engagement_2way_chat_plugin",array("domain_name"=>$domain_name,"page_auto_id"=>$page),$select='id'))
         // {
-        //     echo json_encode(array('status'=>'0','message'=>"".$this->lang->line("Chat plugin for this page & website has already been generated before.")));
+        //     echo json_encode(array('status'=>'0','message'=>"".lang("Chat plugin for this page & website has already been generated before.")));
         //     exit();
         // }
 
         // $strpos=strpos($domain_name,'https://');
         // if($strpos===FALSE)
         // {
-        //     echo json_encode(array('status'=>'0','message'=>"".$this->lang->line("The website you have entered is not HTTPS, this operation needs HTTPS website to work.")));
+        //     echo json_encode(array('status'=>'0','message'=>"".lang("The website you have entered is not HTTPS, this operation needs HTTPS website to work.")));
         //     exit();
         // }
 
@@ -4513,13 +4521,13 @@ In this case, we suggest you to check the error message in report, and if you th
         if(!isset($domain_whitelist['status']) || $domain_whitelist['status']=='0')
         {
             $fb_login_button='';
-            $error=$this->lang->line("Error in Domain Whitelisting ").$domain_whitelist['result'];
+            $error=lang("Error in Domain Whitelisting ").$domain_whitelist['result'];
             if(isset($domain_whitelist['error']['code']) && trim($domain_whitelist['error']['code'])=='230') //does not have page_messages permission, need to login again
             {
                 // $redirect_url = base_url()."home/redirect_rx_link";
                 // $fb_login_button = $this->fb_rx_login->login_for_user_access_token($redirect_url);
                 // $fb_login_button="<br><br>".$fb_login_button;
-                $error= $this->lang->line('Domain failed to white-list. Requires pages_messaging permission to perform this operation. You need to login with Facebook again clicking the button below and then you can continue.');
+                $error= lang('Domain failed to white-list. Requires pages_messaging permission to perform this operation. You need to login with Facebook again clicking the button below and then you can continue.');
             }
             else if(isset($domain_whitelist['error']['message']))
             {
@@ -4535,8 +4543,8 @@ In this case, we suggest you to check the error message in report, and if you th
 
         if($this->basic->is_exist("messenger_bot_engagement_2way_chat_plugin",array("reference"=>$reference))) 
         {
-            $unique_lang=$this->lang->line("is_unique");
-            $unique_lang=str_replace('<b>%s</b>', $this->lang->line('reference'), $unique_lang);
+            $unique_lang=lang("is_unique");
+            $unique_lang=str_replace('<b>%s</b>', lang('reference'), $unique_lang);
             echo json_encode(array("status" => "0", "message" =>$unique_lang));
             exit();
         }
@@ -4563,7 +4571,7 @@ In this case, we suggest you to check the error message in report, and if you th
             );        
 
         $this->basic->insert_data('messenger_bot_engagement_2way_chat_plugin',$data);
-        $last_id = $this->db->insert_id();
+        $last_id = $this->db->insertID();
         $new_feture="";
         if($color!="")    $new_feture.=' theme_color="'.$color.'"'; 
         if($logged_in!="") $new_feture.=' logged_in_greeting="'.$logged_in.'"'; 
@@ -4583,7 +4591,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         if($this->db->trans_status() === false)
         {
-             echo json_encode(array('status'=>'0','message'=>"".$this->lang->line('something went wrong, please try again.')));
+             echo json_encode(array('status'=>'0','message'=>"".lang('something went wrong, please try again.')));
              exit();
         } 
         else 
@@ -4634,13 +4642,13 @@ In this case, we suggest you to check the error message in report, and if you th
                 $download_url=base_url('download/'.$name2.'.zip');
             }
 
-            echo json_encode(array('status'=>'1','message'=>"<i class='fa fa-check'></i> ".$this->lang->line('Chat plugin has been created successfully. Now copy the embed code and paste it in your webpage.')." <a href='".base_url("messenger_bot_enhancers/customer_chat_plugin_list")."'>".$this->lang->line('go to list')."</a>",'js_code'=>$js_code,"wp_plugin"=>$download_url));
+            echo json_encode(array('status'=>'1','message'=>"<i class='fa fa-check'></i> ".lang('Chat plugin has been created successfully. Now copy the embed code and paste it in your webpage.')." <a href='".base_url("messenger_bot_enhancers/customer_chat_plugin_list")."'>".lang('go to list')."</a>",'js_code'=>$js_code,"wp_plugin"=>$download_url));
         }
     }
 
     public function zip_error($value='')
     {
-        echo "<h2 class='text-align:center;color:red;border:1px solid red;padding:20px;margin-top:30px;'>".$this->lang->line("EasyEmbedChat plugin for WordPress can not be generated beacuse PHP ZipArchive class is not installed.");
+        echo "<h2 class='text-align:center;color:red;border:1px solid red;padding:20px;margin-top:30px;'>".lang("EasyEmbedChat plugin for WordPress can not be generated beacuse PHP ZipArchive class is not installed.");
     }
 
     public function wp_plugin2($page='',$auto_id='')
@@ -4663,7 +4671,7 @@ In this case, we suggest you to check the error message in report, and if you th
         $delay=isset($xdata[0]["delay"])?$xdata[0]["delay"]:0;
         $DONOT_SHOW_IF_NOT_LOGIN=($xdata[0]["donot_show_if_not_login"]=='0')?'false':'true';
         $where2=array();
-        $where2['where'] = array('facebook_rx_fb_user_info.id'=>$this->session->userdata("facebook_rx_fb_user_info"),"facebook_rx_config.status"=>'1',"facebook_rx_config.deleted"=>'0');
+        $where2['where'] = array('facebook_rx_fb_user_info.id'=>session()->get("facebook_rx_fb_user_info"),"facebook_rx_config.status"=>'1',"facebook_rx_config.deleted"=>'0');
         $join=array('facebook_rx_config'=>"facebook_rx_fb_user_info.facebook_rx_config_id=facebook_rx_config.id,left");
         $app_info = $this->basic->get_data('facebook_rx_fb_user_info',$where2,array('api_id'),$join);
         $APP_ID=isset($app_info[0]['api_id']) ? $app_info[0]['api_id']: '';
@@ -4726,14 +4734,14 @@ In this case, we suggest you to check the error message in report, and if you th
         if(!isset($xdata[0])) exit();
         $data['xdata']=$xdata[0];
         $data['body'] = 'messenger_engagement/customer_chat_edit';
-        $data['page_title'] = $this->lang->line("Edit Customer Chat Plugin");
+        $data['page_title'] = lang("Edit Customer Chat Plugin");
         $data['sdk_locale']=$this->sdk_locale();
         $data['page_info'] = $this->get_user_page();
         $data['load_chatbox']=array
         (
-          'hide'=>$this->lang->line('hide'),
-          'show'=>$this->lang->line('show'),
-          'fade'=>$this->lang->line('fade')
+          'hide'=>lang('hide'),
+          'show'=>lang('show'),
+          'fade'=>lang('fade')
         );
         $data['iframe'] = $iframe;
         $this->_viewcontroller($data);
@@ -4748,28 +4756,28 @@ In this case, we suggest you to check the error message in report, and if you th
             exit();
         }
 
-        $id=$this->input->post("hidden_id");
+        $id=$this->request->getPost("hidden_id");
         $response = array();
-        $xdata=$this->basic->get_data("messenger_bot_engagement_2way_chat_plugin",array("where"=>array("id"=>$id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"))));
+        $xdata=$this->basic->get_data("messenger_bot_engagement_2way_chat_plugin",array("where"=>array("id"=>$id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"))));
         if(!isset($xdata[0]))
         {
             $response['status'] = '0';
-            $response['message'] = $this->lang->line('Something went wrong.');
+            $response['message'] = lang('Something went wrong.');
         }
 
         $domain_name = $xdata[0]['domain_name'];
         $page = $xdata[0]['page_auto_id'];
         $domain_code = $xdata[0]['domain_code'];
-        $language = $this->input->post('language', true);
-        $minimized = $this->input->post('minimized', true);
-        $logged_in = $this->input->post('logged_in', true);
-        $logged_out = $this->input->post('logged_out', true);
-        $color = $this->input->post('color', true);
-        $label_ids=$this->input->post("label_ids",true);
-        $reference=$this->input->post("reference",true);
-        $template_id=$this->input->post("template_id",true);
-        $donot_show_if_not_login=$this->input->post("donot_show_if_not_login",true);
-        $delay=$this->input->post("delay",true);
+        $language = $this->request->getPost('language');
+        $minimized = $this->request->getPost('minimized');
+        $logged_in = $this->request->getPost('logged_in');
+        $logged_out = $this->request->getPost('logged_out');
+        $color = $this->request->getPost('color');
+        $label_ids=$this->request->getPost("label_ids",true);
+        $reference=$this->request->getPost("reference",true);
+        $template_id=$this->request->getPost("template_id",true);
+        $donot_show_if_not_login=$this->request->getPost("donot_show_if_not_login",true);
+        $delay=$this->request->getPost("delay",true);
 
 
         $pageinfo=$this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("id"=>$page)));
@@ -4778,12 +4786,12 @@ In this case, we suggest you to check the error message in report, and if you th
         if($access_token=="")
         {
           $response['status'] = '0';
-          $response['message'] = $this->lang->line('Something went wrong.');
+          $response['message'] = lang('Something went wrong.');
         }
     
         $LOCALE=$language;
         $where2=array();
-        $where2['where'] = array('facebook_rx_fb_user_info.id'=>$this->session->userdata("facebook_rx_fb_user_info"),"facebook_rx_config.status"=>'1',"facebook_rx_config.deleted"=>'0');
+        $where2['where'] = array('facebook_rx_fb_user_info.id'=>session()->get("facebook_rx_fb_user_info"),"facebook_rx_config.status"=>'1',"facebook_rx_config.deleted"=>'0');
         $join=array('facebook_rx_config'=>"facebook_rx_fb_user_info.facebook_rx_config_id=facebook_rx_config.id,left");
         $app_info = $this->basic->get_data('facebook_rx_fb_user_info',$where2,array('api_id'),$join);
         $APP_ID=isset($app_info[0]['api_id']) ? $app_info[0]['api_id']: '';
@@ -4811,7 +4819,7 @@ In this case, we suggest you to check the error message in report, and if you th
         file_put_contents('js/2waychat/plugin-'.$domain_code.'.js', $chat_plugin_js_new, LOCK_EX);
 
         $response['status'] = '1';
-        $response['message'] = $this->lang->line('Plugin has been updated successfully.');
+        $response['message'] = lang('Plugin has been updated successfully.');
         echo json_encode($response);
 
 
@@ -4823,7 +4831,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
         check_module_action_access($module_id=217,$actions=3);
 
-        $id = $this->input->post('campaign_id',true);
+        $id = $this->request->getPost('campaign_id',true);
         $response = array();
         $this->db->trans_start();
         $xdata=$this->basic->get_data("messenger_bot_engagement_2way_chat_plugin",array("where"=>array("id"=>$id)));
@@ -4832,7 +4840,7 @@ In this case, we suggest you to check the error message in report, and if you th
         if($domain_code == "")
         {
           $response['status'] = '0';
-          $response['message'] = $this->lang->line('Something went wrong.');
+          $response['message'] = lang('Something went wrong.');
         }
         $this->basic->delete_data('messenger_bot_engagement_2way_chat_plugin',$where=array('id'=>$id,"user_id"=>$this->user_id));
 
@@ -4845,7 +4853,7 @@ In this case, we suggest you to check the error message in report, and if you th
         if($this->db->trans_status() === false) 
         {
           $response['status'] = '0';
-          $response['message'] = $this->lang->line('Something went wrong.');
+          $response['message'] = lang('Something went wrong.');
         } 
         else 
         {
@@ -4853,7 +4861,7 @@ In this case, we suggest you to check the error message in report, and if you th
             @unlink(FCPATH.'js/2waychat/plugin-'.$domain_code.'.js');
 
           $response['status'] = '1';
-          $response['message'] = $this->lang->line('Plugin has been deleted successfully.');
+          $response['message'] = lang('Plugin has been deleted successfully.');
         }
         echo json_encode($response);
     }
@@ -4865,7 +4873,7 @@ In this case, we suggest you to check the error message in report, and if you th
     public function get_template_label_dropdown()
     {
         if(!$_POST) exit();
-        $page_id=$this->input->post('page_id');// database id
+        $page_id=$this->request->getPost('page_id');// database id
 
         $label_list=$this->get_page_label($page_id);
         $template_list=$this->get_page_template($page_id);
@@ -4880,7 +4888,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
             </script>';
         $str=$str2='';
-        $str2.=  "<option value=''>".$this->lang->line('select template')."</option>";
+        $str2.=  "<option value=''>".lang('select template')."</option>";
         foreach ($label_list as  $key=>$value)
         {            
             $str.=  "<option value='{$key}'>".$value."</option>";
@@ -4905,9 +4913,9 @@ In this case, we suggest you to check the error message in report, and if you th
     public function get_template_label_dropdown_edit()
     {
         if(!$_POST) exit();
-        $page_id=$this->input->post('page_id');// database id
-        $table_name=$this->input->post('table_name');
-        $id=$this->input->post('id');
+        $page_id=$this->request->getPost('page_id');// database id
+        $table_name=$this->request->getPost('table_name');
+        $id=$this->request->getPost('id');
 
         $xdata=$this->basic->get_data($table_name,array("where"=>array("id"=>$id)));
         $xtemplate_id=isset($xdata[0]["template_id"])?$xdata[0]["template_id"]:"";
@@ -4928,7 +4936,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
             </script>';
         $str=$str2='';
-        $str2.=  "<option value=''>".$this->lang->line('select template')."</option>";
+        $str2.=  "<option value=''>".lang('select template')."</option>";
         foreach ($label_list as  $key=>$value)
         {            
             if(in_array($key, $xlabel_ids)) $selected="selected";
@@ -4963,7 +4971,7 @@ In this case, we suggest you to check the error message in report, and if you th
 
     private function get_user_page()
     {
-        $facebook_rx_fb_user_info = $this->session->userdata('facebook_rx_fb_user_info');
+        $facebook_rx_fb_user_info = session()->get('facebook_rx_fb_user_info');
         $where = array("where"=>array("facebook_rx_fb_user_info_id"=>$facebook_rx_fb_user_info,"bot_enabled"=>"1"));
         if(!empty($this->team_allowed_pages)){
             $where['where_in'] = array("facebook_rx_fb_page_info.id"=>$this->team_allowed_pages);
@@ -5039,8 +5047,8 @@ In this case, we suggest you to check the error message in report, and if you th
     {
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
-        $purchase_code=$this->input->post('purchase_code');
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $purchase_code=$this->request->getPost('purchase_code');
         $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
                   
         //this addon system support 2-level sidebar entry, to make sidebar entry you must provide 2D array like below
@@ -5134,7 +5142,7 @@ In this case, we suggest you to check the error message in report, and if you th
     {        
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);         
     }
@@ -5143,7 +5151,7 @@ In this case, we suggest you to check the error message in report, and if you th
     {        
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $addon_controller_name=ucfirst((new \ReflectionClass($this))->getShortName()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
         $sql=array

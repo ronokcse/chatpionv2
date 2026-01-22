@@ -10,7 +10,7 @@ $(document).ready(function($) {
       var button = ui.button({
         contents: '<i class="fas fa-user"/> ',
         container: 'body',
-        tooltip: '<?php echo $this->lang->line("You can include #FIRST_NAME# variable inside your message. The variable will be replaced by real name when we will send it.") ?>',
+        tooltip: '<?php echo lang("You can include #FIRST_NAME# variable inside your message. The variable will be replaced by real name when we will send it.") ?>',
         click: function () {
           context.invoke('editor.insertText', ' #FIRST_NAME# ');
         }
@@ -27,7 +27,7 @@ $(document).ready(function($) {
       var button = ui.button({
         contents: '<i class="fas fa-user-circle"></i>',
         container: 'body',
-        tooltip: '<?php echo $this->lang->line("You can include #LAST_NAME# variable inside your message. The variable will be replaced by real name when we will send it.") ?>',
+        tooltip: '<?php echo lang("You can include #LAST_NAME# variable inside your message. The variable will be replaced by real name when we will send it.") ?>',
         click: function () {
           context.invoke('editor.insertText', ' #LAST_NAME# ');
         }
@@ -44,7 +44,7 @@ $(document).ready(function($) {
       var button = ui.button({
         contents: '<i class="fas fa-bell-slash"/>',
         container: 'body',
-        tooltip: '<?php echo $this->lang->line("You can include #UNSUBSCRIBE_LINK# variable inside your message. The variable will be replaced by real value when we will send it.") ?>',
+        tooltip: '<?php echo lang("You can include #UNSUBSCRIBE_LINK# variable inside your message. The variable will be replaced by real value when we will send it.") ?>',
         click: function () {
           context.invoke('editor.insertText', ' #UNSUBSCRIBE_LINK# ');
         }
@@ -73,7 +73,7 @@ $(document).ready(function($) {
         },
         language: 
         {
-          url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+          url: "<?php echo base_url('assets/modules/datatables/language/'.$language.'.json'); ?>"
         },
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         columnDefs: [
@@ -346,8 +346,8 @@ $(document).ready(function($) {
     $(document).on('click','.delete_template',function(e){
         e.preventDefault();
         swal({
-            title: '<?php echo $this->lang->line("Are you sure?"); ?>',
-            text: '<?php echo $this->lang->line("Do you want to delete this template?"); ?>',
+            title: '<?php echo lang("Are you sure?"); ?>',
+            text: '<?php echo lang("Do you want to delete this template?"); ?>',
             icon: 'warning',
             buttons: true,
             dangerMode: true,
@@ -368,11 +368,11 @@ $(document).ready(function($) {
 
                         if(response == '1')
                         {
-                            iziToast.success({title: '',message: '<?php echo $this->lang->line('Template has been Deleted Successfully.'); ?>',position: 'bottomRight'});
+                            iziToast.success({title: '',message: '<?php echo lang('Template has been Deleted Successfully.'); ?>',position: 'bottomRight'});
                             table_sms_email_template.draw();
                         } else
                         {
-                            iziToast.error({title: '',message: '<?php echo $this->lang->line('Something went wrong, please try once again.'); ?>',position: 'bottomRight'});
+                            iziToast.error({title: '',message: '<?php echo lang('Something went wrong, please try once again.'); ?>',position: 'bottomRight'});
                         }
                     }
                 });

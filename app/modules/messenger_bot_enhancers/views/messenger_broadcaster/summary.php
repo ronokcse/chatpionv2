@@ -1,23 +1,23 @@
 <div class="form-group">
 	<?php 
         $pop="";
-        if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segment(2)=="edit_quick_broadcast_campaign") 
-        $pop =  $this->lang->line("This campaign is totally handled by Facebook for each send. So actual send may differ for various reason. As for example, if any subscriber did not interact with your bot for many days like 2 months or page sent private reply of comment but he never replied back, in those cases, those subscribers will not be eligible for quick broadcasting. While targeting by label it may happen that some subscribers have label in Facebook but have not been assigned label in our system, they are eligible for quick broadcasting.");
+        if(service('uri')->getSegment(2)=="create_quick_broadcast_campaign" || service('uri')->getSegment(2)=="edit_quick_broadcast_campaign") 
+        $pop =  lang("This campaign is totally handled by Facebook for each send. So actual send may differ for various reason. As for example, if any subscriber did not interact with your bot for many days like 2 months or page sent private reply of comment but he never replied back, in those cases, those subscribers will not be eligible for quick broadcasting. While targeting by label it may happen that some subscribers have label in Facebook but have not been assigned label in our system, they are eligible for quick broadcasting.");
     ?> 
     <label class="full_width">
     	<?php if($pop!='') {?>
-    		<a class="float-right" data-toggle="popover" href="#" data-placement="top" data-trigger="focus" title="<?php echo $this->lang->line('Campaign Reach');?>" data-content="<?php echo $pop;?>"><i class="fas fa-info-circle"></i></a>
+    		<a class="float-right" data-toggle="popover" href="#" data-placement="top" data-trigger="focus" title="<?php echo lang('Campaign Reach');?>" data-content="<?php echo $pop;?>"><i class="fas fa-info-circle"></i></a>
     	<?php } ?>
     </label>
   	<ul class="list-group">
-  	  <?php if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segment(2)=="edit_quick_broadcast_campaign") 
+  	  <?php if(service('uri')->getSegment(2)=="create_quick_broadcast_campaign" || service('uri')->getSegment(2)=="edit_quick_broadcast_campaign") 
   	  { ?>
 	      <li class="list-group-item d-flex justify-content-between align-items-center">
-	        <?php echo $this->lang->line("Estimated Reach"); ?> 
+	        <?php echo lang("Estimated Reach"); ?> 
 	        <span class="badge badge-status" id="page_subscriber">0</span>
 	      </li>
 	      <li class="list-group-item d-flex justify-content-between align-items-center active">
-	        <?php echo $this->lang->line("Targeted Reach"); ?>
+	        <?php echo lang("Targeted Reach"); ?>
 	        <span class="badge badge-status" id="targetted_subscriber">0</span>
 	      </li>
 	  <?php 
@@ -25,11 +25,11 @@
 	  else 
 	  { ?>
 	  	<li class="list-group-item d-flex justify-content-between align-items-center">
-        	<?php echo $this->lang->line("Page Subscribers"); ?> 
+        	<?php echo lang("Page Subscribers"); ?> 
         	<span class="badge badge-status" id="page_subscriber">0</span>
       	</li>
 	    <li class="list-group-item d-flex justify-content-between align-items-center active">
-	        <?php echo $this->lang->line("Targeted Reach"); ?>
+	        <?php echo lang("Targeted Reach"); ?>
 	        <span class="badge badge-status" id="targetted_subscriber">0</span>
 	    </li>
 	  <?php 
@@ -94,7 +94,7 @@
 </style>
 
 <?php 
-if($this->uri->segment(2)=="edit_quick_broadcast_campaign" || $this->uri->segment(2)=="edit_subscriber_broadcast_campaign") { ?>
+if(service('uri')->getSegment(2)=="edit_quick_broadcast_campaign" || service('uri')->getSegment(2)=="edit_subscriber_broadcast_campaign") { ?>
 <script type="text/javascript">
 	var xlabels = "<?php echo $xdata['label_ids'];?>"; 
 	var xexcluded_label_ids = "<?php echo $xdata['excluded_label_ids'];?>";
@@ -103,7 +103,7 @@ if($this->uri->segment(2)=="edit_quick_broadcast_campaign" || $this->uri->segmen
 
 <?php 
 $is_quick_broadcast = "0";
-if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segment(2)=="edit_quick_broadcast_campaign") $is_quick_broadcast = "1";
+if(service('uri')->getSegment(2)=="create_quick_broadcast_campaign" || service('uri')->getSegment(2)=="edit_quick_broadcast_campaign") $is_quick_broadcast = "1";
 ?>
 
 <script type="text/javascript">
@@ -172,8 +172,8 @@ if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segm
 		  if(load_label=='1')
 		  {
 		  	$("#dropdown_con").removeClass('hidden');
-		  	$("#first_dropdown").html('<?php echo $this->lang->line("Loading labels..."); ?>');
-	      	$("#second_dropdown").html('<?php echo $this->lang->line("Loading labels..."); ?>');
+		  	$("#first_dropdown").html('<?php echo lang("Loading labels..."); ?>');
+	      	$("#second_dropdown").html('<?php echo lang("Loading labels..."); ?>');
 	      }
 	      $("#page_subscriber").html('<i class="fas fa-spinner fa-spin"></i>');
           $("#targetted_subscriber").html('<i class="fas fa-spinner fa-spin"></i>');
@@ -285,7 +285,7 @@ if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segm
 		  	var success_message="News messages allow news publishers to send regular news updates to their subscribers in Messenger. This feature is only available for registered news Pages under the <br><a target='_BLANK' href='https://www.facebook.com/help/publisher/316333835842972'>Facebook News Page Index (NPI)</a> <br><a target='_BLANK' href='https://developers.facebook.com/docs/messenger-platform/policy/policy-overview/#news_messaging'>Read Policy Details here</a>";
 		  	var span = document.createElement("span");
 		  	span.innerHTML = success_message;
-		  	swal({ title:'<?php echo $this->lang->line("READ ME"); ?>', content:span,icon:'info'});
+		  	swal({ title:'<?php echo lang("READ ME"); ?>', content:span,icon:'info'});
 		  }
 		});
 
@@ -294,6 +294,6 @@ if($this->uri->segment(2)=="create_quick_broadcast_campaign" || $this->uri->segm
 
 </script>
 
-<?php include("application/modules/messenger_bot_enhancers/views/message_tag_modal.php") ?>
+<?php include(APPPATH."modules/messenger_bot_enhancers/views/message_tag_modal.php") ?>
 
 

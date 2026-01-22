@@ -25,25 +25,32 @@ Version: 2.1
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Sms_email_sequence\Controllers;
 
-class sms_email_sequence extends Home
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
+class Sms_email_sequence extends Home
 {
     public $addon_data = array();
-
     protected $module_path;
 
-    public function __construct()
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
+        parent::initController($request, $response, $logger);
 
-        $function_name=$this->uri->segment(2);
+        if (session()->get('logged_in') != 1) {
+            redirect()->to(base_url('home/login'))->send();
+            exit;
+        }
 
-        if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');         
-        $this->member_validity();        
+        $this->member_validity();
 
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
-        $this->addon_data=$this->get_addon_data($addon_path);
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path = APPPATH . "modules/" . strtolower($controller_name) . "/controllers/" . ucfirst($controller_name) . ".php";
+        $this->addon_data = $this->get_addon_data($addon_path);
 
         // Sets module path
         $this->module_path = APPPATH . '/modules/';
@@ -51,12 +58,12 @@ class sms_email_sequence extends Home
 
     public function template_lists($type='')
     {
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) {
-            redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) {
+            return redirect()->to(base_url('home/login_page'));
         }
 
         $data['body'] = 'sms_email_manager/sequence/template_lists';
-        $data['page_title'] = ucfirst($type). ' ' .$this->lang->line('Template');
+        $data['page_title'] = ucfirst($type). ' ' .lang('Template');
         $data['template_type'] = $type;
         $this->_viewcontroller($data); 
     }
@@ -65,10 +72,10 @@ class sms_email_sequence extends Home
     {
         $this->ajax_check();
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) exit;
 
-        $template_type = trim($this->input->post("template_type",true));
-        $template_text  = trim($this->input->post("template_text",true));
+        $template_type = trim($this->request->getPost("template_type") ?? '');
+        $template_text  = trim($this->request->getPost("template_text") ?? '');
 
         $display_columns = array("#",'id','template_name','actions');
 
@@ -99,11 +106,11 @@ class sms_email_sequence extends Home
         {
             $tempType = $info[$i]['template_type'];
             
-            $info[$i]['actions'] = "<div><a href='".base_url()."sms_email_sequence/view_template/".$info[$i]['id']."' data-toggle='tooltip' title='".$this->lang->line("View Template")."' class='btn btn-circle btn-outline-primary'><i class='fas fa-eye'></i></a>&nbsp;&nbsp;";
+            $info[$i]['actions'] = "<div><a href='".base_url()."sms_email_sequence/view_template/".$info[$i]['id']."' data-toggle='tooltip' title='".lang("View Template")."' class='btn btn-circle btn-outline-primary'><i class='fas fa-eye'></i></a>&nbsp;&nbsp;";
 
-            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".$this->lang->line("Edit Template")."' class='btn btn-circle btn-outline-warning edit_template' table_id='".$info[$i]['id']."' type='".$tempType."'><i class='fas fa-edit'></i></a>&nbsp;&nbsp;";
+            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".lang("Edit Template")."' class='btn btn-circle btn-outline-warning edit_template' table_id='".$info[$i]['id']."' type='".$tempType."'><i class='fas fa-edit'></i></a>&nbsp;&nbsp;";
 
-            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".$this->lang->line("Delete Template")."' class='btn btn-circle btn-outline-danger delete_template' table_id='".$info[$i]['id']."' type='".$tempType."'><i class='fas fa-trash-alt'></i></a></div>
+            $info[$i]['actions'] .= "<a href='#' data-toggle='tooltip' title='".lang("Delete Template")."' class='btn btn-circle btn-outline-danger delete_template' table_id='".$info[$i]['id']."' type='".$tempType."'><i class='fas fa-trash-alt'></i></a></div>
             <script>$('[data-toggle=\"tooltip\"]').tooltip();</script>";
         }
 
@@ -118,29 +125,29 @@ class sms_email_sequence extends Home
 
     public function view_template($id='')
     {
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) {
-            redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) {
+            return redirect()->to(base_url('home/login_page'));
         }
 
         if($id == '' || $id == "0") {
-            redirect("home/error_404","location");
+            return redirect()->to(base_url("home/error_404"));
         }
 
         $data['template_data'] = $this->basic->get_data("email_sms_template",['where'=>['id'=>$id,'user_id'=>$this->user_id]]);
         $data['templateType'] = $data['template_data'][0]['template_type'];
         $data['body'] = 'sms_email_manager/sequence/view_template';
-        $data['page_title'] = $this->lang->line("View"). ' '. ucfirst($data['templateType']). ' ' .$this->lang->line('Template');
+        $data['page_title'] = lang("View"). ' '. ucfirst($data['templateType']). ' ' .lang('Template');
         $this->_viewcontroller($data); 
     }
 
     public function delete_template()
     {
         $this->ajax_check();
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) exit;
         $this->csrf_token_check();
 
-        $table_id = $this->input->post("table_id",true);
-        $type = $this->input->post("type",true);
+        $table_id = $this->request->getPost("table_id");
+        $type = $this->request->getPost("type");
 
         if($table_id == "" || $table_id == "0") exit;
 
@@ -158,9 +165,9 @@ class sms_email_sequence extends Home
     public function sms_email_template_sequence($for_hour='0')
     {
         $this->ajax_check();
-        $push_id = $this->input->post('push_id');
-        $campaign_types = $this->input->post('campaign_types');
-        $current_template_id = $this->input->post('current_template_id');
+        $push_id = $this->request->getPost('push_id');
+        $campaign_types = $this->request->getPost('campaign_types');
+        $current_template_id = $this->request->getPost('current_template_id');
 
         if($for_hour=='1') {
           $template_id_str="hour_template_id";
@@ -171,7 +178,7 @@ class sms_email_sequence extends Home
 
         $sms_email_template=$this->basic->get_data("email_sms_template",["where"=>['user_id'=>$this->user_id,'template_type'=>$campaign_types]],'','','',$start=NULL,$order_by='id DESC');
         $push_template ='<select name="'.$template_id_str.$push_id.'" class="form-control '.$template_id_str.'" id="'.$template_id_str.$push_id.'">';
-        $push_template .="<option value=''>"."--- ".$this->lang->line("Do not send message")." ---"."</option>";
+        $push_template .="<option value=''>"."--- ".lang("Do not send message")." ---"."</option>";
         foreach ($sms_email_template as $key => $value) 
         {
             $selected_id = '';
@@ -198,13 +205,13 @@ class sms_email_sequence extends Home
     public function edited_get_selected_sequence_lists()
     {
         $timezones = $this->_time_zone_list();
-        $how_many_days = $this->input->post("how_many_days");
-        $how_many_hours = $this->input->post("how_many_hours");
-        $page_auto_id = $this->input->post("page_auto_id");
+        $how_many_days = $this->request->getPost("how_many_days");
+        $how_many_hours = $this->request->getPost("how_many_hours");
+        $page_auto_id = $this->request->getPost("page_auto_id");
 
-        $campaign_types = $this->input->post("campaign_types"); // on change type
-        $current_campaign_id = $this->input->post("current_campaign_id"); // current type id
-        $current_campaign_type = $this->input->post("current_campaign_type"); // current database type
+        $campaign_types = $this->request->getPost("campaign_types"); // on change type
+        $current_campaign_id = $this->request->getPost("current_campaign_id"); // current type id
+        $current_campaign_type = $this->request->getPost("current_campaign_type"); // current database type
         $sms_email_sequence_templates = $this->get_sms_email_template_lists($campaign_types);
 
         if(isset($current_campaign_id) && ($campaign_types == $current_campaign_type)) {
@@ -237,25 +244,25 @@ class sms_email_sequence extends Home
 
         $between_start = isset($xdata[0]['between_start']) ? $xdata[0]['between_start']:"00:00";
         $between_end = isset($xdata[0]['between_end']) ? $xdata[0]['between_end']:"23:59";
-        $selcted_timezone = isset($xdata[0]['timezone']) ? $xdata[0]['timezone'] : $this->config->item('time_zone');
+        $selcted_timezone = isset($xdata[0]['timezone']) ? $xdata[0]['timezone'] : config('MyConfig')->time_zone;
 
         if($campaign_types == 'sms') {
-            $tooplip1='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Starting & Closing Time").'" data-content="'.$this->lang->line("System will start processing sms from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all sms properly.").'"><i class="fa fa-info-circle"></i> </a>';
+            $tooplip1='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.lang("Starting & Closing Time").'" data-content="'.lang("System will start processing sms from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all sms properly.").'"><i class="fa fa-info-circle"></i> </a>';
         }
 
         if($campaign_types == 'email') {
-            $tooplip1='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Starting & Closing Time").'" data-content="'.$this->lang->line("System will start processing email from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all email properly.").'"><i class="fa fa-info-circle"></i> </a>';
+            $tooplip1='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.lang("Starting & Closing Time").'" data-content="'.lang("System will start processing email from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all email properly.").'"><i class="fa fa-info-circle"></i> </a>';
         }
 
         $html = '
             <ul class="nav nav-tabs" id="sequence_tab" role="tablist">
 
                 <li class="nav-item">
-                    <a class="nav-link active" id="sequence_tab2" data-toggle="tab" href="#hourwise" role="tab" aria-controls="profile" aria-selected="false">'.$this->lang->line("24 Hour").'
+                    <a class="nav-link active" id="sequence_tab2" data-toggle="tab" href="#hourwise" role="tab" aria-controls="profile" aria-selected="false">'.lang("24 Hour").'
                 </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="sequence_tab1" data-toggle="tab" href="#daywise" role="tab" aria-selected="true">'.$this->lang->line("Daily").'</a>
+                    <a class="nav-link" id="sequence_tab1" data-toggle="tab" href="#daywise" role="tab" aria-selected="true">'.lang("Daily").'</a>
                 </li>
             </ul>
 
@@ -264,19 +271,19 @@ class sms_email_sequence extends Home
                     <div class="row">
                         <div class="col-6 col-md-4">
                             <div class="form-group">
-                                <label>'.$this->lang->line("Starting Time")." ".$tooplip1.'</label>
+                                <label>'.lang("Starting Time")." ".$tooplip1.'</label>
                                 <input type="text" class="form-control timepicker_x" value="'.$between_start.'" id="between_start" name="between_start">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-group">
-                                <label>'.$this->lang->line("Closing Time")." ".$tooplip1.'</label>
+                                <label>'.lang("Closing Time")." ".$tooplip1.'</label>
                                 <input type="text" class="form-control timepicker_x" value="'.$between_end.'" id="between_end" name="between_end">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-group">
-                            <label>'.$this->lang->line("Time Zone").'</label>'.
+                            <label>'.lang("Time Zone").'</label>'.
                             form_dropdown('timezone', $timezones,$selcted_timezone,"class='form-control select2' id='timezone' style='width:100%;'").'
                             </div>
                         </div>
@@ -292,7 +299,7 @@ class sms_email_sequence extends Home
                                         <div class="selectgroup w-100">
                                             <label class="selectgroup-item">
                                                 <input type="checkbox" value="'.$i.'" id="day'.$i.'" class="selectgroup-input" checked>
-                                                <span class="selectgroup-button selectgroup-button-icon"><i class="fas fa-calendar"></i> '.$this->lang->line('Day').'-'.$i.'</span>
+                                                <span class="selectgroup-button selectgroup-button-icon"><i class="fas fa-calendar"></i> '.lang('Day').'-'.$i.'</span>
                                             </label>
                                         </div>
                                     </div>
@@ -307,23 +314,23 @@ class sms_email_sequence extends Home
                                         }
 
                                         $template_id="template_id".$i;
-                                        $sms_email_sequence_templates['']="--- ".$this->lang->line("Do not send message")." ---";
+                                        $sms_email_sequence_templates['']="--- ".lang("Do not send message")." ---";
                         $html .= form_dropdown($template_id,$sms_email_sequence_templates, $select_template,'class="form-control template_id select2" id="'.$template_id.'" style="width:100%;"').
                                         '</div>
                                     </div>
                                     <div class="form-group col-2">              
-                                        <a href="" title="'.$this->lang->line("Refresh Template List").'" data-toggle="tooltip" data-id="'.$i.'" class="ref_template btn btn-lg"><i class="fas blue fa-sync"></i></a>
+                                        <a href="" title="'.lang("Refresh Template List").'" data-toggle="tooltip" data-id="'.$i.'" class="ref_template btn btn-lg"><i class="fas blue fa-sync"></i></a>
                                     </div>
                                 </div>';
                     }
 
                     $html .='<div class="row button_container">
                                 <div class="form-group col-7 offset-3">
-                                    <a id="add_more_day" href="" class="btn btn-outline-primary btn-sm float-left"><i class="fas fa-plus-circle"></i> '.$this->lang->line('Add More Day').'</a>
-                                    <a id="remove_last_day" href="" class="btn btn-outline-danger btn-sm float-right"><i class="fas fa-times-circle"></i> '.$this->lang->line('Remove Last Day').'</a>
+                                    <a id="add_more_day" href="" class="btn btn-outline-primary btn-sm float-left"><i class="fas fa-plus-circle"></i> '.lang('Add More Day').'</a>
+                                    <a id="remove_last_day" href="" class="btn btn-outline-danger btn-sm float-right"><i class="fas fa-times-circle"></i> '.lang('Remove Last Day').'</a>
                                 </div>
                                 <div class="form-group col-2">
-                                  <a target="_BLANK" title="'.$this->lang->line('Add New Template').'" data-toggle="tooltip" class="btn btn-default btn-lg add_template"  href=""><i class="fas fa-plus-circle"></i></a>
+                                  <a target="_BLANK" title="'.lang('Add New Template').'" data-toggle="tooltip" class="btn btn-default btn-lg add_template"  href=""><i class="fas fa-plus-circle"></i></a>
                                 </div>
                             </div>
                 </div>
@@ -336,30 +343,30 @@ class sms_email_sequence extends Home
                         if($i==0)
                         {
                             $minutes = 1;
-                            $displayname = $this->lang->line('1 Mins');
+                            $displayname = lang('1 Mins');
                         }
 
                         if($i==1)
                         {
                             $minutes = 5;
-                            $displayname = $this->lang->line('5 Mins');
+                            $displayname = lang('5 Mins');
                         }
 
                         if($i==2)
                         {
                             $minutes = 15;
-                            $displayname = $this->lang->line('15 Mins');
+                            $displayname = lang('15 Mins');
                         }
 
                         if($i==3)
                         {
                             $minutes = 30;
-                            $displayname = $this->lang->line('30 Mins');
+                            $displayname = lang('30 Mins');
                         } 
 
                         if($i > 3) {
                             $minutes = ($i-3)*60;
-                            $displayname = ($i-3)." ".$this->lang->line('Hour');
+                            $displayname = ($i-3)." ".lang('Hour');
                         }
 
                         $select_template_hourly = '';
@@ -380,12 +387,12 @@ class sms_email_sequence extends Home
                                     <div class="form-group col-7">              
                                         <div id="hour_sms_email_sequence_templates'.$i.'">';
                                         $template_id="hour_template_id".$i;
-                                        $sms_email_sequence_templates['']="--- ".$this->lang->line("Do not send message")." ---";
+                                        $sms_email_sequence_templates['']="--- ".lang("Do not send message")." ---";
                         $html .=        form_dropdown($template_id,$sms_email_sequence_templates, $select_template_hourly,'class="form-control hour_template_id select2" id="'.$template_id.'" style="width:100%;"').'
                                         </div>
                                     </div>
                                     <div class="form-group col-2">              
-                                      <a href="" title="'.$this->lang->line("Refresh Template List").'" data-toggle="tooltip" data-id="'.$i.'" class="hour_ref_template btn btn-lg"><i class="fas blue fa-sync"></i></a>
+                                      <a href="" title="'.lang("Refresh Template List").'" data-toggle="tooltip" data-id="'.$i.'" class="hour_ref_template btn btn-lg"><i class="fas blue fa-sync"></i></a>
                                     </div>
                                 </div>';
                     }
@@ -395,11 +402,11 @@ class sms_email_sequence extends Home
                 $html .= '
                     <div class="row button_container">
                         <div class="form-group col-7 offset-3">
-                            <a id="add_more_hour" href="" class="btn btn-outline-primary btn-sm float-left"><i class="fas fa-plus-circle"></i> '.$this->lang->line('Add More Hour').'</a>
-                            <a id="remove_last_hour" href="" class="btn btn-outline-danger btn-sm float-right"><i class="fas fa-times-circle"></i> '.$this->lang->line('Remove Last Hour').'</a>
+                            <a id="add_more_hour" href="" class="btn btn-outline-primary btn-sm float-left"><i class="fas fa-plus-circle"></i> '.lang('Add More Hour').'</a>
+                            <a id="remove_last_hour" href="" class="btn btn-outline-danger btn-sm float-right"><i class="fas fa-times-circle"></i> '.lang('Remove Last Hour').'</a>
                         </div>
                         <div class="form-group col-2">
-                            <a target="_BLANK" title="'.$this->lang->line('Add New Template').'" data-toggle="tooltip" class="btn btn-default btn-lg add_template"  href=""><i class="fas fa-plus-circle"></i></a>
+                            <a target="_BLANK" title="'.lang('Add New Template').'" data-toggle="tooltip" class="btn btn-default btn-lg add_template"  href=""><i class="fas fa-plus-circle"></i></a>
                         </div>
                     </div>
                 </div>
@@ -423,31 +430,31 @@ class sms_email_sequence extends Home
     public function get_selected_sequence_lists()
     {
         $timezones = $this->_time_zone_list();
-        $how_many_days = $this->input->post("how_many_days");
-        $how_many_hours = $this->input->post("how_many_hours");
-        $default_display = $this->input->post("default_display");
-        $default_display_hour = $this->input->post("default_display_hour");
-        $page_auto_id = $this->input->post("page_auto_id");
-        $campaign_types = $this->input->post("campaign_types");
+        $how_many_days = $this->request->getPost("how_many_days");
+        $how_many_hours = $this->request->getPost("how_many_hours");
+        $default_display = $this->request->getPost("default_display");
+        $default_display_hour = $this->request->getPost("default_display_hour");
+        $page_auto_id = $this->request->getPost("page_auto_id");
+        $campaign_types = $this->request->getPost("campaign_types");
         $sms_email_sequence_templates = $this->get_sms_email_template_lists($campaign_types);
 
         if($campaign_types == "sms") {
-            $tooplip1='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Starting & Closing Time").'" data-content="'.$this->lang->line("System will start processing sms from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all sms properly.").'"><i class="fa fa-info-circle"></i> </a>';
+            $tooplip1='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.lang("Starting & Closing Time").'" data-content="'.lang("System will start processing sms from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all sms properly.").'"><i class="fa fa-info-circle"></i> </a>';
         }
 
         if($campaign_types == "email") {
-            $tooplip1='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Starting & Closing Time").'" data-content="'.$this->lang->line("System will start processing email from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all email properly.").'"><i class="fa fa-info-circle"></i> </a>';
+            $tooplip1='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.lang("Starting & Closing Time").'" data-content="'.lang("System will start processing email from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all email properly.").'"><i class="fa fa-info-circle"></i> </a>';
         }
 
         $html = '
             <ul class="nav nav-tabs" id="sequence_tab" role="tablist">
 
                 <li class="nav-item">
-                <a class="nav-link active" id="sequence_tab2" data-toggle="tab" href="#hourwise" role="tab" aria-controls="profile" aria-selected="false">'.$this->lang->line("24 Hour").'
+                <a class="nav-link active" id="sequence_tab2" data-toggle="tab" href="#hourwise" role="tab" aria-controls="profile" aria-selected="false">'.lang("24 Hour").'
                 </a>
                 </li>
                 <li class="nav-item">
-                <a class="nav-link" id="sequence_tab1" data-toggle="tab" href="#daywise" role="tab" aria-selected="true">'.$this->lang->line("Daily").'</a>
+                <a class="nav-link" id="sequence_tab1" data-toggle="tab" href="#daywise" role="tab" aria-selected="true">'.lang("Daily").'</a>
                 </li>
             </ul>
 
@@ -456,20 +463,20 @@ class sms_email_sequence extends Home
                     <div class="row">
                         <div class="col-6 col-md-4">
                             <div class="form-group">
-                            <label>'.$this->lang->line("Starting Time")." ".$tooplip1.'</label>
+                            <label>'.lang("Starting Time")." ".$tooplip1.'</label>
                             <input type="text" class="form-control timepicker_x" value="00:00" id="between_start" name="between_start">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-group">
-                                <label>'.$this->lang->line("Closing Time")." ".$tooplip1.'</label>
+                                <label>'.lang("Closing Time")." ".$tooplip1.'</label>
                                 <input type="text" class="form-control timepicker_x" value="23:59" id="between_end" name="between_end">
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-group">
-                            <label>'.$this->lang->line("Time Zone").'</label>'.
-                            form_dropdown('timezone', $timezones,$this->config->item('time_zone'),"class='form-control select2' id='timezone' style='width:100%;'").'
+                            <label>'.lang("Time Zone").'</label>'.
+                            form_dropdown('timezone', $timezones, config('MyConfig')->time_zone,"class='form-control select2' id='timezone' style='width:100%;'").'
                             </div>
                         </div>
                     </div>';
@@ -484,7 +491,7 @@ class sms_email_sequence extends Home
                                         <div class="selectgroup w-100">
                                             <label class="selectgroup-item">
                                                 <input type="checkbox" value="'.$i.'" id="day'.$i.'" class="selectgroup-input" checked>
-                                                <span class="selectgroup-button selectgroup-button-icon"><i class="fas fa-calendar"></i> '.$this->lang->line('Day').'-'.$i.'</span>
+                                                <span class="selectgroup-button selectgroup-button-icon"><i class="fas fa-calendar"></i> '.lang('Day').'-'.$i.'</span>
                                             </label>
                                         </div>
                                     </div>
@@ -492,23 +499,23 @@ class sms_email_sequence extends Home
                                     <div class="form-group col-7">              
                                         <div id="sms_email_sequence_templates'.$i.'">';
                                         $template_id="template_id".$i;
-                                        $sms_email_sequence_templates['']="--- ".$this->lang->line("Do not send message")." ---";
+                                        $sms_email_sequence_templates['']="--- ".lang("Do not send message")." ---";
                         $html .= form_dropdown($template_id,$sms_email_sequence_templates, '','class="form-control template_id select2" id="'.$template_id.'" style="width:100%;"').
                                         '</div>
                                     </div>
                                     <div class="form-group col-2">              
-                                        <a href="" title="'.$this->lang->line("Refresh Template List").'" data-toggle="tooltip" data-id="'.$i.'" class="ref_template btn btn-lg"><i class="fas blue fa-sync"></i></a>
+                                        <a href="" title="'.lang("Refresh Template List").'" data-toggle="tooltip" data-id="'.$i.'" class="ref_template btn btn-lg"><i class="fas blue fa-sync"></i></a>
                                     </div>
                                 </div>';
                     }
 
                     $html .='<div class="row button_container">
                                 <div class="form-group col-7 offset-3">
-                                    <a id="add_more_day" href="" class="btn btn-outline-primary btn-sm float-left"><i class="fas fa-plus-circle"></i> '.$this->lang->line('Add More Day').'</a>
-                                    <a id="remove_last_day" href="" class="btn btn-outline-danger btn-sm float-right"><i class="fas fa-times-circle"></i> '.$this->lang->line('Remove Last Day').'</a>
+                                    <a id="add_more_day" href="" class="btn btn-outline-primary btn-sm float-left"><i class="fas fa-plus-circle"></i> '.lang('Add More Day').'</a>
+                                    <a id="remove_last_day" href="" class="btn btn-outline-danger btn-sm float-right"><i class="fas fa-times-circle"></i> '.lang('Remove Last Day').'</a>
                                 </div>
                                 <div class="form-group col-2">
-                                  <a target="_BLANK" title="'.$this->lang->line('Add New Template').'" data-toggle="tooltip" class="btn btn-default btn-lg add_template"  href=""><i class="fas fa-plus-circle"></i></a>
+                                  <a target="_BLANK" title="'.lang('Add New Template').'" data-toggle="tooltip" class="btn btn-default btn-lg add_template"  href=""><i class="fas fa-plus-circle"></i></a>
                                 </div>
                             </div>
                 </div>
@@ -521,30 +528,30 @@ class sms_email_sequence extends Home
                         if($i==0)
                         {
                             $minutes = 1;
-                            $displayname = $this->lang->line('1 Mins');
+                            $displayname = lang('1 Mins');
                         }
 
                         if($i==1)
                         {
                             $minutes = 5;
-                            $displayname = $this->lang->line('5 Mins');
+                            $displayname = lang('5 Mins');
                         }
 
                         if($i==2)
                         {
                             $minutes = 15;
-                            $displayname = $this->lang->line('15 Mins');
+                            $displayname = lang('15 Mins');
                         }
 
                         if($i==3)
                         {
                             $minutes = 30;
-                            $displayname = $this->lang->line('30 Mins');
+                            $displayname = lang('30 Mins');
                         } 
 
                         if($i > 3) {
                             $minutes = ($i-3)*60;
-                            $displayname = ($i-3)." ".$this->lang->line('Hour');
+                            $displayname = ($i-3)." ".lang('Hour');
                         }
 
                         $html .='<div class="row '.$hideshowclass.'" id="hour_container'.$i.'">
@@ -559,12 +566,12 @@ class sms_email_sequence extends Home
                                     <div class="form-group col-7">              
                                         <div id="hour_sms_email_sequence_templates'.$i.'">';
                                         $template_id="hour_template_id".$i;
-                                        $sms_email_sequence_templates['']="--- ".$this->lang->line("Do not send message")." ---";
+                                        $sms_email_sequence_templates['']="--- ".lang("Do not send message")." ---";
                         $html .=        form_dropdown($template_id,$sms_email_sequence_templates, '','class="form-control hour_template_id select2" id="'.$template_id.'" style="width:100%;"').'
                                         </div>
                                     </div>
                                     <div class="form-group col-2">              
-                                      <a href="" title="'.$this->lang->line("Refresh Template List").'" data-toggle="tooltip" data-id="'.$i.'" class="hour_ref_template btn btn-lg"><i class="fas blue fa-sync"></i></a>
+                                      <a href="" title="'.lang("Refresh Template List").'" data-toggle="tooltip" data-id="'.$i.'" class="hour_ref_template btn btn-lg"><i class="fas blue fa-sync"></i></a>
                                     </div>
                                 </div>';
                     }
@@ -574,11 +581,11 @@ class sms_email_sequence extends Home
                 $html .= '
                     <div class="row button_container">
                         <div class="form-group col-7 offset-3">
-                            <a id="add_more_hour" href="" class="btn btn-outline-primary btn-sm float-left"><i class="fas fa-plus-circle"></i> '.$this->lang->line('Add More Hour').'</a>
-                            <a id="remove_last_hour" href="" class="btn btn-outline-danger btn-sm float-right"><i class="fas fa-times-circle"></i> '.$this->lang->line('Remove Last Hour').'</a>
+                            <a id="add_more_hour" href="" class="btn btn-outline-primary btn-sm float-left"><i class="fas fa-plus-circle"></i> '.lang('Add More Hour').'</a>
+                            <a id="remove_last_hour" href="" class="btn btn-outline-danger btn-sm float-right"><i class="fas fa-times-circle"></i> '.lang('Remove Last Hour').'</a>
                         </div>
                         <div class="form-group col-2">
-                            <a target="_BLANK" title="'.$this->lang->line('Add New Template').'" data-toggle="tooltip" class="btn btn-default btn-lg add_template"  href=""><i class="fas fa-plus-circle"></i></a>
+                            <a target="_BLANK" title="'.lang('Add New Template').'" data-toggle="tooltip" class="btn btn-default btn-lg add_template"  href=""><i class="fas fa-plus-circle"></i></a>
                         </div>
                     </div>
                 </div>
@@ -600,15 +607,15 @@ class sms_email_sequence extends Home
 
     public function sms_email_sequence_message_campaign($page_auto_id=0,$iframe='0')
    	{
-    	if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) {
-    	    redirect('home/login_page', 'location');
+    	if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) {
+    	    return redirect()->to(base_url('home/login_page'));
     	}
 
     	if($page_auto_id==0) exit();
         $this->is_engagement_exist=$this->engagement_exist();
     	
     	$data['body'] = 'sms_email_manager/sequence/sequence_campaign_lists';
-    	$data['page_title'] = $this->lang->line('SMS/Email Sequence Message'); 
+    	$data['page_title'] = lang('SMS/Email Sequence Message'); 
     	$data["page_auto_id"]=$page_auto_id;
         $data['campaign_types'] = ['sms'=>'SMS','email'=>'Email'];
         $data['sms_email_sequence_settings'] = $this->basic->get_data("messenger_bot_drip_campaign",["where"=>["page_id"=>$page_auto_id,"user_id"=>$this->user_id,'campaign_type !='=>'messenger']],$select='',$join='',$limit='',$start=NULL,$order_by='created_at DESC');
@@ -627,13 +634,13 @@ class sms_email_sequence extends Home
     public function create_sequence_campaign_action()
     {
         $this->ajax_check();
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) exit();
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) exit();
         $this->is_engagement_exist=$this->engagement_exist();
         $post=$_POST;
 
         foreach ($post as $key => $value) 
         {
-            // $$key=$this->input->post($key,true);
+            // $$key=$this->request->getPost($key,true);
             if(!is_array($value)) $temp = strip_tags($value);
             else $temp = $value;
             $$key=$temp;
@@ -642,13 +649,13 @@ class sms_email_sequence extends Home
         $mid = $sms_api_id = $email_api_id = '';
         if($campaign_types == "sms") {
             $mid=270;
-            $sms_api_id = $this->input->post("sms_api_id");
+            $sms_api_id = $this->request->getPost("sms_api_id");
             if(is_null($sms_api_id)) $sms_api_id="";
         }
 
         if($campaign_types == "email") {
             $mid=271;
-            $email_api_id = $this->input->post("email_api_id");
+            $email_api_id = $this->request->getPost("email_api_id");
             if(is_null($email_api_id)) $email_api_id="";
 
         }
@@ -656,7 +663,7 @@ class sms_email_sequence extends Home
         $status=$this->_check_usage($module_id=$mid,$request=1);
         if($status=="3") 
         {
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("You can not create more sequence message campaign. Module limit exceeded.")));
+            echo json_encode(array("status" => "0", "message" =>lang("You can not create more sequence message campaign. Module limit exceeded.")));
             exit();
         }
 
@@ -677,7 +684,7 @@ class sms_email_sequence extends Home
            if($i==3) $minutes = 30;         
            if($i > 3) {
             $minutes = ($i-3)*60;
-            $displayname = ($i-3)." ".$this->lang->line('Hour');
+            $displayname = ($i-3)." ".lang('Hour');
            }
 
            $temp="hour_template_id".$i;
@@ -704,34 +711,34 @@ class sms_email_sequence extends Home
             "external_sequence_email_api_id"=>$email_api_id,
         );
 
-        $this->db->trans_start();
+        $this->db->transStart();
         $this->basic->insert_data("messenger_bot_drip_campaign",$insert_data);
 
         $this->_insert_usage_log($module_id=$mid,$request=1);
 
-        $this->db->trans_complete();
-        if($this->db->trans_status() === false)
+        $this->db->transComplete();
+        if($this->db->transStatus() === false)
         {
-            echo json_encode(array("status" => "0", "message" =>$this->lang->line("Something went wrong, please try again.")));
+            echo json_encode(array("status" => "0", "message" =>lang("Something went wrong, please try again.")));
             exit();
         }
         else
         {
-            echo json_encode(array("status" => "1", "message" =>$this->lang->line('Campaign has been created successfully.')));
+            echo json_encode(array("status" => "1", "message" =>lang('Campaign has been created successfully.')));
             exit(); 
         }    
     }
 
     public function edit_sequence_campaign($id=0,$page_auto_id=0,$iframe='0')
     {
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0)
-        redirect('home/login_page', 'location');
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0)
+        return redirect()->to(base_url('home/login_page'));
 
         if($page_auto_id==0) exit();
         $this->is_engagement_exist=$this->engagement_exist();
 
         $data['body'] = 'sms_email_manager/sequence/edit_sequence_campaign';
-        $data['page_title'] = $this->lang->line('Edit Sequence Campaign');  
+        $data['page_title'] = lang('Edit Sequence Campaign');  
         $data["page_auto_id"]=$page_auto_id;
         $data['campaign_types'] = ['sms'=>'SMS','email'=>'Email'];
         $xdata = $this->basic->get_data("messenger_bot_drip_campaign",["where"=>["id"=>$id,"user_id"=>$this->user_id]]);
@@ -743,11 +750,11 @@ class sms_email_sequence extends Home
         $data["how_many_hours"]=26;
 
         if($xdata[0]['campaign_type'] == "sms") {
-            $data['tooplip1'] ='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Starting & Closing Time").'" data-content="'.$this->lang->line('System will start processing sms from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all sms properly.').'"><i class="fa fa-info-circle"></i> </a>';
+            $data['tooplip1'] ='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.lang("Starting & Closing Time").'" data-content="'.lang('System will start processing sms from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all sms properly.').'"><i class="fa fa-info-circle"></i> </a>';
         }
 
         if($xdata[0]['campaign_type'] == 'email') {
-            $data['tooplip1'] ='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Starting & Closing Time").'" data-content="'.$this->lang->line('System will start processing email from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all email properly.').'"><i class="fa fa-info-circle"></i> </a>';
+            $data['tooplip1'] ='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.lang("Starting & Closing Time").'" data-content="'.lang('System will start processing email from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all email properly.').'"><i class="fa fa-info-circle"></i> </a>';
         }
 
         $message_content=isset($xdata[0]['message_content'])?json_decode($xdata[0]['message_content'],true):array();
@@ -781,7 +788,7 @@ class sms_email_sequence extends Home
     public function edit_sequence_message_campaign_action()
     {
         $this->ajax_check();
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) exit();
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) exit();
 
         $this->is_engagement_exist=$this->engagement_exist();
         $post=$_POST;
@@ -795,11 +802,11 @@ class sms_email_sequence extends Home
         $sms_api_id = $email_api_id = '';
 
         if($campaign_types == "email") {
-            $email_api_id = $this->input->post("email_api_id");
+            $email_api_id = $this->request->getPost("email_api_id");
         }
 
         if($campaign_types == "sms") {
-            $sms_api_id = $this->input->post("sms_api_id");
+            $sms_api_id = $this->request->getPost("sms_api_id");
         }
 
         $message_content=array();
@@ -819,7 +826,7 @@ class sms_email_sequence extends Home
             if($i==3) $minutes = 30;         
             if($i > 3) {
              $minutes = ($i-3)*60;
-             $displayname = ($i-3)." ".$this->lang->line('Hour');
+             $displayname = ($i-3)." ".lang('Hour');
             }       
 
            $temp="hour_template_id".$i;
@@ -845,29 +852,29 @@ class sms_email_sequence extends Home
         );
 
         $this->basic->update_data("messenger_bot_drip_campaign",array("id"=>$campaign_id,"user_id"=>$this->user_id),$insert_data);
-        echo json_encode(array("status" => "1", "message" =>$this->lang->line('Campaign has been updated successfully.')));          
+        echo json_encode(array("status" => "1", "message" =>lang('Campaign has been updated successfully.')));          
     }
 
     public function delete_sequecne_campaign()
     {
         $this->ajax_check();
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) exit();
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) exit();
 
-        $id=$this->input->post("id");       
-        $campaign_type = $this->input->post("cam_type"); 
+        $id=$this->request->getPost("id");       
+        $campaign_type = $this->request->getPost("cam_type"); 
 
         $mid = '';
         if($campaign_type == "sms") $mid = 270;
         if($campaign_type == "email") $mid = 271;
 
-        $this->db->trans_start();
+        $this->db->transStart();
 
         $this->basic->delete_data("messenger_bot_drip_campaign",array("id"=>$id,"user_id"=>$this->user_id));
         $this->basic->delete_data("messenger_bot_drip_campaign_assign",array("messenger_bot_drip_campaign_id"=>$id,"user_id"=>$this->user_id));
         $this->basic->delete_data("messenger_bot_drip_report",array("messenger_bot_drip_campaign_id"=>$id,"user_id"=>$this->user_id));       
 
-        $this->db->trans_complete();
-        if($this->db->trans_status() === false) echo '0';
+        $this->db->transComplete();
+        if($this->db->transStatus() === false) echo '0';
         else
         {
             $this->_delete_usage_log($mid,1);
@@ -878,9 +885,9 @@ class sms_email_sequence extends Home
     public function get_campaign_report()
     {
         $this->ajax_check();
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) exit();
-        $id = $this->input->post("campaign_id");
-        $is_day = $this->input->post("is_day");
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) exit();
+        $id = $this->request->getPost("campaign_id");
+        $is_day = $this->request->getPost("is_day");
 
         $select = array("messenger_bot_drip_report.*","messenger_bot_drip_campaign.message_content","messenger_bot_drip_campaign.message_content_hourly","messenger_bot_drip_campaign.campaign_name");
         $join = array('messenger_bot_drip_campaign'=>"messenger_bot_drip_campaign.id=messenger_bot_drip_report.messenger_bot_drip_campaign_id,left");
@@ -912,7 +919,7 @@ class sms_email_sequence extends Home
         // if($is_day=='1') $query.=" AND messenger_bot_drip_last_completed_day!=0";
         // else $query.=" AND messenger_bot_drip_last_completed_hour!=0";
         $sql=$this->db->query($query);
-        $subscriber_data=$sql->result_array();
+        $subscriber_data=$sql->getResultArray();
         $total_subscriber_count=isset($subscriber_data[0]['subscriber_count'])?$subscriber_data[0]['subscriber_count']:0;
 
         // assosiative array of days report
@@ -956,7 +963,7 @@ class sms_email_sequence extends Home
         if($successfully_opened==0 || $successfully_sent==0) $open_rate=0;
         else $open_rate=round(($successfully_opened/$successfully_sent)*100);
 
-        //echo "<h5 class='text-center'>".$this->lang->line('Campaign Name')." : ".$campaign_name."</h5><br>";
+        //echo "<h5 class='text-center'>".lang('Campaign Name')." : ".$campaign_name."</h5><br>";
 
         echo '        
         <div class="card card-statistic-2 border_me" style="margin-bottom:0">
@@ -964,21 +971,21 @@ class sms_email_sequence extends Home
             <div class="card-stats-title">
             </div>
             <div class="card-stats-items">
-              <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Targeted Subscribers").'">
+              <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Targeted Subscribers").'">
                 <div class="card-stats-item-count">'.$total_report_data_stat['subscribers'].'</div>
-                <div class="card-stats-item-label">'.$this->lang->line("Targeted").'</div>
+                <div class="card-stats-item-label">'.lang("Targeted").'</div>
               </div>
-              <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Sent").'">
+              <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Sent").'">
                 <div class="card-stats-item-count">'.$total_report_data_stat['sent'].'</div>
-                <div class="card-stats-item-label">'.$this->lang->line("Sent").'</div>
+                <div class="card-stats-item-label">'.lang("Sent").'</div>
               </div>
-              <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Delivered").' ('.round($delivery_rate).'%)">
+              <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Delivered").' ('.round($delivery_rate).'%)">
                 <div class="card-stats-item-count">'.$total_report_data_stat['delivered'].'</div>
-                <div class="card-stats-item-label">'.$this->lang->line("Delivered").' ('.round($delivery_rate).'%)</div>
+                <div class="card-stats-item-label">'.lang("Delivered").' ('.round($delivery_rate).'%)</div>
               </div>
-              <!--<div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Opened").' ('.round($open_rate).'%)">
+              <!--<div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Opened").' ('.round($open_rate).'%)">
                 <div class="card-stats-item-count">'.$total_report_data_stat['opened'].'</div>
-                <div class="card-stats-item-label">'.$this->lang->line("Opened").' ('.round($open_rate).'%)</div>
+                <div class="card-stats-item-label">'.lang("Opened").' ('.round($open_rate).'%)</div>
               </div>-->
             </div>
           </div>
@@ -1010,21 +1017,21 @@ class sms_email_sequence extends Home
 
             $accor_title = "";
             if($is_day=='1')
-            $accor_title = '<i class="fa fa-calendar"></i> '.$this->lang->line("Day").'-'.$key;     
+            $accor_title = '<i class="fa fa-calendar"></i> '.lang("Day").'-'.$key;     
             else 
             {
               if($key==1)
-                $accor_title = '<i class="fa fa-calendar"></i> 1 '.$this->lang->line("Minute");
+                $accor_title = '<i class="fa fa-calendar"></i> 1 '.lang("Minute");
               else if($key==5)
-                $accor_title = '<i class="fa fa-calendar"></i> 5 '.$this->lang->line("Minute");
+                $accor_title = '<i class="fa fa-calendar"></i> 5 '.lang("Minute");
               else if($key==15)
-                $accor_title = '<i class="fa fa-calendar"></i> 15 '.$this->lang->line("Minute");
+                $accor_title = '<i class="fa fa-calendar"></i> 15 '.lang("Minute");
               else if($key==30)
-                $accor_title = '<i class="fa fa-calendar"></i> 30 '.$this->lang->line("Minute");
+                $accor_title = '<i class="fa fa-calendar"></i> 30 '.lang("Minute");
               else 
               {
                 $hourval = $key/60;
-                $accor_title = '<i class="fa fa-calendar"></i> '.$this->lang->line("Hour").'-'.$hourval;
+                $accor_title = '<i class="fa fa-calendar"></i> '.lang("Hour").'-'.$hourval;
               }
             }   
 
@@ -1046,21 +1053,21 @@ class sms_email_sequence extends Home
                         <div class="card-stats-title">
                         </div>
                         <div class="card-stats-items">
-                          <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Targeted Subscribers").'">
+                          <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Targeted Subscribers").'">
                             <div class="card-stats-item-count">'.$temp_subscribers.'</div>
-                            <div class="card-stats-item-label">'.$this->lang->line("Targeted").'</div>
+                            <div class="card-stats-item-label">'.lang("Targeted").'</div>
                           </div>
-                          <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Sent").'">
+                          <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Sent").'">
                             <div class="card-stats-item-count">'.$temp_sent.'</div>
-                            <div class="card-stats-item-label">'.$this->lang->line("Sent").'</div>
+                            <div class="card-stats-item-label">'.lang("Sent").'</div>
                           </div>
-                          <div class="card-stats-item" data-toggle="tooltip" title="'.$this->lang->line("Total Delivered").' ('.round($temp_delivery_rate).'%)">
+                          <div class="card-stats-item" data-toggle="tooltip" title="'.lang("Total Delivered").' ('.round($temp_delivery_rate).'%)">
                             <div class="card-stats-item-count">'.$temp_delivered.'</div>
-                            <div class="card-stats-item-label">'.$this->lang->line("Delivered").' ('.round($temp_delivery_rate).'%)</div>
+                            <div class="card-stats-item-label">'.lang("Delivered").' ('.round($temp_delivery_rate).'%)</div>
                           </div>
-                          <!--<div class="card-stats-item d-none d-sm-block" data-toggle="tooltip" title="'.$this->lang->line("Total Opened").' ('.round($temp_open_rate).'%)">
+                          <!--<div class="card-stats-item d-none d-sm-block" data-toggle="tooltip" title="'.lang("Total Opened").' ('.round($temp_open_rate).'%)">
                             <div class="card-stats-item-count">'.$temp_opened.'</div>
-                            <div class="card-stats-item-label">'.$this->lang->line("Opened").' ('.round($temp_open_rate).'%)</div>
+                            <div class="card-stats-item-label">'.lang("Opened").' ('.round($temp_open_rate).'%)</div>
                           </div>-->
                         </div>
                       </div>
@@ -1104,28 +1111,28 @@ class sms_email_sequence extends Home
                     echo "<thead>";
                         echo "<tr>";
                             echo "<th nowrap>";
-                                echo $this->lang->line("SL");
+                                echo lang("SL");
                             echo "</th>";
                             echo "<th class='text-center' nowrap>";
-                                echo $this->lang->line("Subscriber ID");
+                                echo lang("Subscriber ID");
                             echo "</th>";
                             echo "<th nowrap>";
-                                echo $this->lang->line("Name");
+                                echo lang("Name");
                             echo "</th>";;
                             echo "<th class='text-center' nowrap>";
-                                echo $this->lang->line("Status");
+                                echo lang("Status");
                             echo "</th>"; 
                              echo "<th class='text-center' nowrap>";
-                                echo $this->lang->line("Sent");
+                                echo lang("Sent");
                             echo "</th>";
                             // echo "<th class='text-center' nowrap>";
-                                // echo $this->lang->line("Delivery");
+                                // echo lang("Delivery");
                             // echo "</th>"; 
                             // echo "<th class='text-center' nowrap>";
-                            //     echo $this->lang->line("Open");
+                            //     echo lang("Open");
                             // echo "</th>";                                                           
                             echo "<th nowrap>";
-                                echo $this->lang->line("Response");
+                                echo lang("Response");
                             echo "</th>";
 
                         echo "</tr>";
@@ -1148,9 +1155,9 @@ class sms_email_sequence extends Home
                         if($value2['opened_at']!='0000-00-00 00:00:00') $value2['opened_at']=date("jS M, y H:i:s",strtotime($value2['opened_at']));
                         else $value2['opened_at']='x';
                     
-                        if($value2['is_opened']=='1') $value2['status'] = "<span class='badge badge-status'><i class='fa fa-eye text-primary'></i> ".$this->lang->line('Opened')."</span>";
-                        // else if($value2['is_delivered']=='1') $value2['status'] = "<span class='badge badge-status'><i class='fa fa-check-circle text-success'></i> ".$this->lang->line('Delivered')."</span>";
-                        else $value2['status'] = "<span class='badge badge-status'><i class='fa fa-send text-info'></i> ".$this->lang->line('Sent')."</span>";
+                        if($value2['is_opened']=='1') $value2['status'] = "<span class='badge badge-status'><i class='fa fa-eye text-primary'></i> ".lang('Opened')."</span>";
+                        // else if($value2['is_delivered']=='1') $value2['status'] = "<span class='badge badge-status'><i class='fa fa-check-circle text-success'></i> ".lang('Delivered')."</span>";
+                        else $value2['status'] = "<span class='badge badge-status'><i class='fa fa-send text-info'></i> ".lang('Sent')."</span>";
                       
                         $db_res=json_decode($value2["sent_response"]);
                         $print_res="";
@@ -1161,13 +1168,13 @@ class sms_email_sequence extends Home
                             {
                                 $message_num++;
                                 $tempu=explode(' ', $value_res);
-                                if(isset($tempu[0]) && strlen($tempu[0])>50) $value_res=' <i class="fa fa-check-circle green"></i> '.$this->lang->line("Sent");
-                                $print_res.=$this->lang->line("Message")."-".$message_num." : ".$value_res."<br>";
+                                if(isset($tempu[0]) && strlen($tempu[0])>50) $value_res=' <i class="fa fa-check-circle green"></i> '.lang("Sent");
+                                $print_res.=lang("Message")."-".$message_num." : ".$value_res."<br>";
                             }
                         }
                         else $print_res=$value2["sent_response"];
 
-                        if($print_res=="") $print_res='<span class="label label-light"><i class="fa fa-check-circle green"></i> '.$this->lang->line("Success").'</span>';
+                        if($print_res=="") $print_res='<span class="label label-light"><i class="fa fa-check-circle green"></i> '.lang("Success").'</span>';
 
                         echo "<tr>";
                             echo "<td nowrap>".$sl."</td>";
@@ -1195,12 +1202,12 @@ class sms_email_sequence extends Home
 
     public function external_sequence_lists()
     {
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) {
-            redirect("home/access_forbidden","location");
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) {
+            return redirect()->to(base_url("home/access_forbidden"));
         }
 
         $data = [];
-        $data['page_title'] = $this->lang->line("Sequence Campaign");
+        $data['page_title'] = lang("Sequence Campaign");
         $data['body'] = "sms_email_manager/sequence/external_sequence/campaign_list";
 
         $this->_viewcontroller($data);
@@ -1210,9 +1217,9 @@ class sms_email_sequence extends Home
     {
         $this->ajax_check();
 
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) exit;
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, ['270','271']))==0) exit;
 
-        $sequence_search = trim($this->input->post("sequence_search",true));
+        $sequence_search = trim($this->request->getPost("sequence_search") ?? '');
         $display_columns = array("#",'id','campaign_name','last_sent_at','campaign_type','actions');
 
         $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
@@ -1259,17 +1266,17 @@ class sms_email_sequence extends Home
             $hourly_report_btn= $daily_report_btn ='';
             if($info[$i]['message_content_hourly'] != '[]') {
                 $action_count++;
-                $hourly_report_btn .= '<a class="btn btn-outline-info btn-circle message_content" href="" data-toggle="tooltip" title="'.$this->lang->line("24H Report").'" data-day="0" data-id="'.$info[$i]['id'].'"><i class="far fa-clock"></i></a>';
+                $hourly_report_btn .= '<a class="btn btn-outline-info btn-circle message_content" href="" data-toggle="tooltip" title="'.lang("24H Report").'" data-day="0" data-id="'.$info[$i]['id'].'"><i class="far fa-clock"></i></a>';
             }
 
             if($info[$i]['message_content']!='[]') {
                 $action_count++;
-                $daily_report_btn.= '<a class="btn btn-outline-primary btn-circle message_content" data-toggle="tooltip" title="'.$this->lang->line("Daily Report").'" href="" data-day="1" data-id="'.$info[$i]['id'].'"><i class="fas fa-calendar"></i></a>';
+                $daily_report_btn.= '<a class="btn btn-outline-primary btn-circle message_content" data-toggle="tooltip" title="'.lang("Daily Report").'" href="" data-day="1" data-id="'.$info[$i]['id'].'"><i class="fas fa-calendar"></i></a>';
             }
 
             $editurl = base_url("sms_email_sequence/update_external_sequence/").$info[$i]['id'];
-            $editbtn = '<a class="btn btn-circle btn-outline-warning edit_sequence_settings" data-toggle="tooltip" title="'.$this->lang->line("Edit Sequence").'" href="'.$editurl.'"><i class="fas fa-edit"></i></a>';
-            $delete_btn = '<a href="" class="btn btn-outline-danger btn-circle delete_campaign" data-toogle="tooltip" title="'.$this->lang->line("Delete Campaign").'" campaign_type="'.$tempType.'" id="'.$info[$i]['id'].'"><i class="fas fa-trash-alt"></i></a>';
+            $editbtn = '<a class="btn btn-circle btn-outline-warning edit_sequence_settings" data-toggle="tooltip" title="'.lang("Edit Sequence").'" href="'.$editurl.'"><i class="fas fa-edit"></i></a>';
+            $delete_btn = '<a href="" class="btn btn-outline-danger btn-circle delete_campaign" data-toogle="tooltip" title="'.lang("Delete Campaign").'" campaign_type="'.$tempType.'" id="'.$info[$i]['id'].'"><i class="fas fa-trash-alt"></i></a>';
 
             $action_width = ($action_count*47)+20;
             $info[$i]['actions'] ='
@@ -1300,12 +1307,12 @@ class sms_email_sequence extends Home
 
     public function create_sequnce_for_external()
     {
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) {
-            redirect("home/access_forbidden","location");
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) {
+            return redirect()->to(base_url("home/access_forbidden"));
         }
 
         $data = [];
-        $data['page_title'] = $this->lang->line("Add Sequence");
+        $data['page_title'] = lang("Add Sequence");
         $data['body'] = "sms_email_manager/sequence/external_sequence/add_campaign";
 
         $data['external_sms_email_sequence_settings'] = $this->basic->get_data("messenger_bot_drip_campaign",["where"=>["page_id"=>'0',"user_id"=>$this->user_id,'campaign_type !='=>'messenger']],$select='',$join='',$limit='',$start=NULL,$order_by='created_at DESC');
@@ -1319,10 +1326,10 @@ class sms_email_sequence extends Home
 
         /***get sms config***/
         $temp_userid = $this->user_id;
-        $apiAccess = $this->config->item('sms_api_access');
-        if($this->config->item('sms_api_access') == "") $apiAccess = "0";
+        $apiAccess = config('MyConfig')->sms_api_access;
+        if(config('MyConfig')->sms_api_access == "") $apiAccess = "0";
 
-        if(isset($apiAccess) && $apiAccess == '1' && $this->session->userdata("user_type") == 'Member')
+        if(isset($apiAccess) && $apiAccess == '1' && session()->get("user_type") == 'Member')
         {
             $join = array('users' => 'sms_api_config.user_id=users.id,left');
             $select = array('sms_api_config.*','users.id AS usersId','users.user_type');
@@ -1340,7 +1347,7 @@ class sms_email_sequence extends Home
             $id=$info['id'];
 
             if ($info['gateway_name'] == 'custom') {
-                $info['gateway_name'] = $this->lang->line("Custom"). ' : '. $info['custom_name'];
+                $info['gateway_name'] = lang("Custom"). ' : '. $info['custom_name'];
             }
 
             if($info['phone_number'] !="")
@@ -1395,16 +1402,16 @@ class sms_email_sequence extends Home
 
     public function update_external_sequence($id)
     {
-        if($this->session->userdata('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) {
-            redirect("home/access_forbidden","location");
+        if(session()->get('user_type') != 'Admin' && count(array_intersect($this->module_access, array('270','271')))==0) {
+            return redirect()->to(base_url("home/access_forbidden"));
         }
 
         if($id == 0 || $id == '') {
-            redirect("home/error_404","location");
+            return redirect()->to(base_url("home/error_404"));
         }
 
         $data = [];
-        $data['page_title'] = $this->lang->line("Edit Sequence");
+        $data['page_title'] = lang("Edit Sequence");
         $data['body'] = "sms_email_manager/sequence/external_sequence/edit_campaign";
 
         $data['campaign_types'] = ['sms'=>'SMS','email'=>'Email'];
@@ -1417,11 +1424,11 @@ class sms_email_sequence extends Home
         $data["how_many_hours"]=26;
 
         if($xdata[0]['campaign_type'] == "sms") {
-            $data['tooplip1'] ='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Starting & Closing Time").'" data-content="'.$this->lang->line('System will start processing sms from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all sms properly.').'"><i class="fa fa-info-circle"></i> </a>';
+            $data['tooplip1'] ='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.lang("Starting & Closing Time").'" data-content="'.lang('System will start processing sms from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all sms properly.').'"><i class="fa fa-info-circle"></i> </a>';
         }
 
         if($xdata[0]['campaign_type'] == 'email') {
-            $data['tooplip1'] ='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.$this->lang->line("Starting & Closing Time").'" data-content="'.$this->lang->line('System will start processing email from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all email properly.').'"><i class="fa fa-info-circle"></i> </a>';
+            $data['tooplip1'] ='<a data-html="true" href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="'.lang("Starting & Closing Time").'" data-content="'.lang('System will start processing email from starting hour & terminate processing at closing hour of the day. The time interval must be minimum one hour. If your subscriber list for this campaign is large, you should select larger time interval in order to send all email properly.').'"><i class="fa fa-info-circle"></i> </a>';
         }
 
         $message_content=isset($xdata[0]['message_content'])?json_decode($xdata[0]['message_content'],true):array();
@@ -1447,10 +1454,10 @@ class sms_email_sequence extends Home
 
         /***get sms config***/
         $temp_userid = $this->user_id;
-        $apiAccess = $this->config->item('sms_api_access');
-        if($this->config->item('sms_api_access') == "") $apiAccess = "0";
+        $apiAccess = config('MyConfig')->sms_api_access;
+        if(config('MyConfig')->sms_api_access == "") $apiAccess = "0";
 
-        if(isset($apiAccess) && $apiAccess == '1' && $this->session->userdata("user_type") == 'Member')
+        if(isset($apiAccess) && $apiAccess == '1' && session()->get("user_type") == 'Member')
         {
             $join = array('users' => 'sms_api_config.user_id=users.id,left');
             $select = array('sms_api_config.*','users.id AS usersId','users.user_type');
@@ -1468,7 +1475,7 @@ class sms_email_sequence extends Home
             $id=$info['id'];
 
             if ($info['gateway_name'] == 'custom') {
-                $info['gateway_name'] = $this->lang->line("Custom"). ' : '. $info['custom_name'];
+                $info['gateway_name'] = lang("Custom"). ' : '. $info['custom_name'];
             }
 
             if($info['phone_number'] !="")
@@ -1526,16 +1533,17 @@ class sms_email_sequence extends Home
     {
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
-        $purchase_code=$this->input->post('purchase_code');
-        $this->addon_credential_check($purchase_code,strtolower($addon_controller_name)); // retuns json status,message if error
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_controller_name = ucfirst($controller_name);
+        $purchase_code = $this->request->getPost('purchase_code');
+        $this->addon_credential_check($purchase_code, strtolower($addon_controller_name)); // returns json status,message if error
 
         //this addon system support 2-level sidebar entry, to make sidebar entry you must provide 2D array like below
-        $sidebar=array(); 
+        $sidebar = array(); 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, create table query must should IF NOT EXISTS
-        $sql=array(); 
+        $sql = array(); 
         //send blank array if you does not need sidebar entry,send a blank array if your addon does not need any sql to run
-        $this->register_addon($addon_controller_name,$sidebar,$sql,$purchase_code);
+        $this->register_addon($addon_controller_name, $sidebar, $sql, $purchase_code);
     }
 
 
@@ -1543,7 +1551,8 @@ class sms_email_sequence extends Home
     {        
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_controller_name = ucfirst($controller_name);
         // only deletes add_ons,modules and menu, menu_child1 table entires and put install.txt back, it does not delete any files or custom sql
         $this->unregister_addon($addon_controller_name);         
     }
@@ -1552,14 +1561,13 @@ class sms_email_sequence extends Home
     {        
         $this->ajax_check();
 
-        $addon_controller_name=ucfirst($this->router->fetch_class()); // here addon_controller_name name is Comment [origianl file is Comment.php, put except .php]
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_controller_name = ucfirst($controller_name);
 
         // mysql raw query needed to run, it's an array, put each query in a seperate index, drop table/column query should have IF EXISTS
-         $sql=array(); 
+         $sql = array(); 
 
         // deletes add_ons,modules and menu, menu_child1 table ,custom sql as well as module folder, no need to send sql or send blank array if you does not need any sql to run on delete
-        $this->delete_addon($addon_controller_name,$sql);         
+        $this->delete_addon($addon_controller_name, $sql);         
     }
-
-
 }

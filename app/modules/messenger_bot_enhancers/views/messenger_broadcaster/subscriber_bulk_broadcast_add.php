@@ -1,22 +1,22 @@
 <?php
 $redirect_url = site_url('');
-$this->load->view("include/upload_js");
+echo view("include/upload_js");
 
 $image_upload_limit = 1; 
-if($this->config->item('messengerbot_image_upload_limit') != '')
-$image_upload_limit = $this->config->item('messengerbot_image_upload_limit'); 
+if((config('MyConfig')->messengerbot_image_upload_limit ?? '') != '')
+$image_upload_limit = (config('MyConfig')->messengerbot_image_upload_limit ?? ''); 
 
 $video_upload_limit = 5; 
-if($this->config->item('messengerbot_video_upload_limit') != '')
-$video_upload_limit = $this->config->item('messengerbot_video_upload_limit');
+if((config('MyConfig')->messengerbot_video_upload_limit ?? '') != '')
+$video_upload_limit = (config('MyConfig')->messengerbot_video_upload_limit ?? '');
 
 $audio_upload_limit = 3; 
-if($this->config->item('messengerbot_audio_upload_limit') != '')
-$audio_upload_limit = $this->config->item('messengerbot_audio_upload_limit');
+if((config('MyConfig')->messengerbot_audio_upload_limit ?? '') != '')
+$audio_upload_limit = (config('MyConfig')->messengerbot_audio_upload_limit ?? '');
 
 $file_upload_limit = 2; 
-if($this->config->item('messengerbot_file_upload_limit') != '')
-$file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
+if((config('MyConfig')->messengerbot_file_upload_limit ?? '') != '')
+$file_upload_limit = (config('MyConfig')->messengerbot_file_upload_limit ?? '');
 
 ?>
 
@@ -24,8 +24,8 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
   <div class="section-header">
     <h1><i class="fa fa-plus-circle"></i> <?php echo $page_title;?></h1>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item active"><a href="<?php echo base_url('messenger_bot_broadcast'); ?>"><?php echo $this->lang->line("Broadcasting");?></a></div>
-      <div class="breadcrumb-item active"><a href="<?php echo base_url('messenger_bot_enhancers/subscriber_broadcast_campaign'); ?>"><?php echo $this->lang->line("Subscriber Broadcast");?></a></div>
+      <div class="breadcrumb-item active"><a href="<?php echo base_url('messenger_bot_broadcast'); ?>"><?php echo lang("Broadcasting");?></a></div>
+      <div class="breadcrumb-item active"><a href="<?php echo base_url('messenger_bot_enhancers/subscriber_broadcast_campaign'); ?>"><?php echo lang("Subscriber Broadcast");?></a></div>
       <div class="breadcrumb-item"><?php echo $page_title;?></div>
     </div>
     </div>
@@ -78,20 +78,20 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
 </style>
 
-<div class='text-center' style='padding:12px;border:.5px solid #dee2e6; color:var(--blue);background: #fff;'><?php echo $this->lang->line("Use Broadcasting with message tag carefully. Message must not contain any advertisement or promotional material & use appropriate tag that's is applicable for sending message to those people. Using message tag without proper reason may result in block your page's messaging option by Facebook."); ?> 
-  <?php if(strtotime(date("Y-m-d")) <= strtotime("2020-3-4")) echo "<br><br><p class='text-danger'>".$this->lang->line("Non-promo message sending with NON_PROMOTIONAL_SUBSCRIPTION tag will require pages_messaging_subscriptions permission approved. This permission has been deprecated on July 29, 2019. You can only use this tag until 4th March 2020 if your page has already pages_messaging_subscriptions permission approved.")."<p>"; ?>
+<div class='text-center' style='padding:12px;border:.5px solid #dee2e6; color:var(--blue);background: #fff;'><?php echo lang("Use Broadcasting with message tag carefully. Message must not contain any advertisement or promotional material & use appropriate tag that's is applicable for sending message to those people. Using message tag without proper reason may result in block your page's messaging option by Facebook."); ?> 
+  <?php if(strtotime(date("Y-m-d")) <= strtotime("2020-3-4")) echo "<br><br><p class='text-danger'>".lang("Non-promo message sending with NON_PROMOTIONAL_SUBSCRIPTION tag will require pages_messaging_subscriptions permission approved. This permission has been deprecated on July 29, 2019. You can only use this tag until 4th March 2020 if your page has already pages_messaging_subscriptions permission approved.")."<p>"; ?>
 </div>
 <div class="row multi_layout">  
 
   <div class="col-12 col-md-8 col-lg-8 collef">
     <form action="#" enctype="multipart/form-data" id="messenger_bot_form" method="post">
       
-      <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $this->session->userdata('csrf_token_session'); ?>">
+      <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo session()->get('csrf_token_session'); ?>">
       <input type="hidden" name="media_type" id="media_type" value="">
 
       <div class="card main_card">
         <div class="card-header">        
-           <h4><i class="fas fa-paper-plane"></i> <?php echo $this->lang->line("Campaign Details"); ?></h4>       
+           <h4><i class="fas fa-paper-plane"></i> <?php echo lang("Campaign Details"); ?></h4>       
         </div>
 
         <div class="card-body">
@@ -99,7 +99,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             <div class="col-12 col-md-6">
               <div class="form-group">
                 <label>
-                  <?php echo $this->lang->line("Campaign Name") ?> 
+                  <?php echo lang("Campaign Name") ?> 
                 </label>
                 <input type="text" class="form-control"  name="campaign_name" id="campaign_name">
               </div>
@@ -108,12 +108,12 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             <div class="col-12 col-md-6">
               <div class="form-group">                
                 <label>
-                  <?php echo $this->lang->line("Select Page"); ?>
+                  <?php echo lang("Select Page"); ?>
                 </label>
                 <input type="hidden" name="fb_page_id" id="fb_page_id">
                 <select class="form-control select2" id="page" name="page" style="width:100%;">
                   <?php 
-                    echo "<option value=''>".$this->lang->line('Choose a Page')."</option>";
+                    echo "<option value=''>".lang('Choose a Page')."</option>";
                     foreach ($group_page_list as $key => $value) 
                     {
                       echo '<optgroup label="'.$value['media_name'].'">';
@@ -134,8 +134,8 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             <div class="col-12 col-md-6">
               <div class="form-group">                
                 <label>
-                  <?php echo $this->lang->line("Broadcast Type"); ?>
-                  <a href="#" data-placement="top" data-html='true' data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("24H Policy"); ?>" data-content="<?php echo $this->lang->line("24H Rule : Pages are permitted to send promotional message to subscribers, those has sent message to your page in last 24 hours. The 24-hour limit is refreshed each time a person responds to a business through one of the eligible actions listed in Messenger Conversation Entry Points.")." ".$this->lang->line("The targeted subscribers may be less than real count because eligible subscriber calculation algorithm of our system has been implemented by using 23 hours time frame and avoid risk."); ?>"><i class='fa fa-info-circle'></i> </a> 
+                  <?php echo lang("Broadcast Type"); ?>
+                  <a href="#" data-placement="top" data-html='true' data-toggle="popover" data-trigger="focus" title="<?php echo lang("24H Policy"); ?>" data-content="<?php echo lang("24H Rule : Pages are permitted to send promotional message to subscribers, those has sent message to your page in last 24 hours. The 24-hour limit is refreshed each time a person responds to a business through one of the eligible actions listed in Messenger Conversation Entry Points.")." ".lang("The targeted subscribers may be less than real count because eligible subscriber calculation algorithm of our system has been implemented by using 23 hours time frame and avoid risk."); ?>"><i class='fa fa-info-circle'></i> </a> 
                 </label>
                 <?php 
                   // unset($broadcast_types['Non Promo']);
@@ -147,7 +147,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             <div class="col-12 col-md-6" id="message_tag_con">
               <div class="form-group">                
                 <label>
-                  <?php echo $this->lang->line("Message Tag"); ?>
+                  <?php echo lang("Message Tag"); ?>
                   <a data-toggle="modal" href='' data-target="#message_tags_modal"><i class='fa fa-info-circle'></i></a>
                 </label>
                 <?php echo form_dropdown('message_tag', $tag_list, '','class="select2 form-control" id="message_tag"'); ?>
@@ -159,7 +159,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
          <div class="card card-primary">
            <div class="card-header">
              <h4>
-               <?php echo $this->lang->line("Targeting Options");?>              
+               <?php echo lang("Targeting Options");?>              
              </h4>
            </div>
            <div class="card-body">
@@ -168,20 +168,20 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                <div class="col-12 col-md-6" >
                  <div class="form-group">
                    <label style="width:100%">
-                     <?php echo $this->lang->line("Target by Labels") ?>
-                     <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("Choose Labels"); ?>" data-content="<?php echo $this->lang->line("If you do not want to send to all page subscriber then you can target by labels."); ?>"><i class='fa fa-info-circle'></i> </a>
+                     <?php echo lang("Target by Labels") ?>
+                     <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang("Choose Labels"); ?>" data-content="<?php echo lang("If you do not want to send to all page subscriber then you can target by labels."); ?>"><i class='fa fa-info-circle'></i> </a>
                    </label>
-                   <span id="first_dropdown"><?php echo $this->lang->line("Loading labels..."); ?></span>                                
+                   <span id="first_dropdown"><?php echo lang("Loading labels..."); ?></span>                                
                  </div>
                </div>
 
                <div class="col-12 col-md-6">
                  <div class="form-group">
                    <label style="width:100%">
-                     <?php echo $this->lang->line("Exclude by Labels") ?>
-                     <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("Exclude Labels"); ?>" data-content="<?php echo $this->lang->line("If you do not want to send to a specific label, you can mention it here. Unsubscribe label will be excluded automatically."); ?>"><i class='fa fa-info-circle'></i> </a>
+                     <?php echo lang("Exclude by Labels") ?>
+                     <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang("Exclude Labels"); ?>" data-content="<?php echo lang("If you do not want to send to a specific label, you can mention it here. Unsubscribe label will be excluded automatically."); ?>"><i class='fa fa-info-circle'></i> </a>
                    </label>
-                   <span id="second_dropdown"><?php echo $this->lang->line("Loading labels..."); ?></span>                 
+                   <span id="second_dropdown"><?php echo lang("Loading labels..."); ?></span>                 
                  </div>
                </div>
              </div>
@@ -191,28 +191,28 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
                  <div class="form-group col-12 col-md-3">
                    <label>
-                     <?php echo $this->lang->line("Gender"); ?>
+                     <?php echo lang("Gender"); ?>
                      
                      </label>
                    <?php
-                   $gender_list = array(""=>$this->lang->line("Select"),"male"=>"Male","female"=>"Female");
+                   $gender_list = array(""=>lang("Select"),"male"=>"Male","female"=>"Female");
                    echo form_dropdown('user_gender',$gender_list,'',' class="form-control select2" id="user_gender"'); 
                    ?>
                  </div>
 
 
                  <div class="form-group col-12 col-md-5">
-                   <label><?php echo $this->lang->line("Time Zone") ?></label>
+                   <label><?php echo lang("Time Zone") ?></label>
                    <?php
-                   $time_zone_numeric[''] = $this->lang->line("Select");
+                   $time_zone_numeric[''] = lang("Select");
                    echo form_dropdown('user_time_zone',$time_zone_numeric,'',' class="form-control select2" id="user_time_zone"'); 
                    ?>
                  </div>
 
                  <div class="form-group col-12 col-md-4">
-                   <label><?php echo $this->lang->line("Locale") ?></label>
+                   <label><?php echo lang("Locale") ?></label>
                    <?php
-                   $locale_list[''] = $this->lang->line("Select");
+                   $locale_list[''] = lang("Select");
                    echo form_dropdown('user_locale',$locale_list,'',' class="form-control select2" id="user_locale"'); 
                    ?>
                  </div>
@@ -234,7 +234,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
           <div class="card card-primary" id="multiple_template_div_<?php echo $k; ?>" <?php if($k != 1) echo "style='display : none;'"; ?> >
             <div class="card-header">
               <h4 class="full_width"><i class='fa fa-file'></i> 
-                <?php echo $this->lang->line('Message Template'); ?>
+                <?php echo lang('Message Template'); ?>
               </h4>
             </div>
             <div class="card-body">             
@@ -245,11 +245,11 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                 <div class="input-group">                            
                   <div class="input-group-prepend">
                     <div class="input-group-text" style="font-weight: bold;">
-                      <?php echo $this->lang->line("Select Message Type") ?>
+                      <?php echo lang("Select Message Type") ?>
                     </div>
                   </div>
                   <select class="form-control form-control-new template_types" id="template_type_<?php echo $k; ?>" name="template_type_<?php echo $k; ?>">
-                    <option value=""><?php echo $this->lang->line('Select'); ?></option>
+                    <option value=""><?php echo lang('Select'); ?></option>
                   </select>
                 </div> 
                 <br/>
@@ -258,13 +258,13 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                 <div class="row" id="text_div_<?php echo $k; ?>"> 
                   <div class="col-12">              
                     <div class="form-group">
-                      <label><?php echo $this->lang->line("Please provide your message"); ?></label>
+                      <label><?php echo lang("Please provide your message"); ?></label>
 
                       <span class='float-right'> 
-                        <a title="<?php echo $this->lang->line("You can include {{last_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_last_name button-outline'><i class='fa fa-user'></i> <?php echo $this->lang->line("last name") ?></a>
+                        <a title="<?php echo lang("You can include {{last_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_last_name button-outline'><i class='fa fa-user'></i> <?php echo lang("last name") ?></a>
                       </span>
                       <span class='float-right'> 
-                        <a title="<?php echo $this->lang->line("You can include {{first_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_first_name button-outline'><i class='fa fa-user'></i> <?php echo $this->lang->line("first name") ?></a>
+                        <a title="<?php echo lang("You can include {{first_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_first_name button-outline'><i class='fa fa-user'></i> <?php echo lang("first name") ?></a>
                       </span> 
                       <div class="clearfix"></div>
                       <textarea class="form-control"  name="text_reply_<?php echo $k; ?>" id="text_reply_<?php echo $k; ?>"></textarea>
@@ -275,9 +275,9 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                 <div class="row" id="image_div_<?php echo $k; ?>" style="display: none;">             
                   <div class="col-12">              
                     <div class="form-group">
-                      <label><?php echo $this->lang->line("Please provide your image"); ?></label>
+                      <label><?php echo lang("Please provide your image"); ?></label>
                       <input type="hidden" class="form-control"  name="image_reply_field_<?php echo $k; ?>" id="image_reply_field_<?php echo $k; ?>">
-                      <div id="image_reply_<?php echo $k; ?>"><?php echo $this->lang->line("upload") ?></div>
+                      <div id="image_reply_<?php echo $k; ?>"><?php echo lang("upload") ?></div>
                       <img id="image_reply_div_<?php echo $k; ?>" style="display: none;" height="200px;" width="400px;">
                     </div>       
                   </div>             
@@ -286,9 +286,9 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                 <div class="row" id="audio_div_<?php echo $k; ?>" style="display: none;">  
                   <div class="col-12">             
                     <div class="form-group">
-                      <label><?php echo $this->lang->line("Please provide your audio"); ?></label>
+                      <label><?php echo lang("Please provide your audio"); ?></label>
                       <input type="hidden" class="form-control"  name="audio_reply_field_<?php echo $k; ?>" id="audio_reply_field_<?php echo $k; ?>">
-                      <div id="audio_reply_<?php echo $k; ?>"><?php echo $this->lang->line("upload") ?></div>                      
+                      <div id="audio_reply_<?php echo $k; ?>"><?php echo lang("upload") ?></div>                      
                       <audio controls id="audio_tag_<?php echo $k; ?>" style="display: none;">
                         <source src="" id="audio_reply_div_<?php echo $k; ?>" type="audio/mpeg">
                           Your browser does not support the audio tag.
@@ -300,9 +300,9 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                 <div class="row" id="video_div_<?php echo $k; ?>" style="display: none;">  
                   <div class="col-12">             
                     <div class="form-group">
-                      <label><?php echo $this->lang->line("Please provide your video"); ?></label>
+                      <label><?php echo lang("Please provide your video"); ?></label>
                       <input type="hidden" class="form-control"  name="video_reply_field_<?php echo $k; ?>" id="video_reply_field_<?php echo $k; ?>">
-                      <div id="video_reply_<?php echo $k; ?>"><?php echo $this->lang->line("upload") ?></div>                      
+                      <div id="video_reply_<?php echo $k; ?>"><?php echo lang("upload") ?></div>                      
                       <video width="400" height="200" controls id="video_tag_<?php echo $k; ?>" style="display: none;">
                         <source src="" id="video_reply_div_<?php echo $k; ?>" type="video/mp4">
                           Your browser does not support the video tag.
@@ -314,9 +314,9 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                 <div class="row" id="file_div_<?php echo $k; ?>" style="display: none;">  
                   <div class="col-12">             
                     <div class="form-group">
-                      <label><?php echo $this->lang->line("Please provide your file"); ?></label>
+                      <label><?php echo lang("Please provide your file"); ?></label>
                       <input type="hidden" class="form-control"  name="file_reply_field_<?php echo $k; ?>" id="file_reply_field_<?php echo $k; ?>">
-                      <div id="file_reply_<?php echo $k; ?>"><?php echo $this->lang->line("upload") ?></div> 
+                      <div id="file_reply_<?php echo $k; ?>"><?php echo lang("upload") ?></div> 
                     </div>           
                   </div>
                 </div>
@@ -326,8 +326,8 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                   <div class="col-12"> 
 
                     <div class="form-group">
-                      <label><?php echo $this->lang->line("Please provide your media URL"); ?>
-                        <a href="#" class="media_template_modal" title="<?php echo $this->lang->line("How to get meida URL?"); ?>"><i class='fa fa-info-circle'></i> </a>
+                      <label><?php echo lang("Please provide your media URL"); ?>
+                        <a href="#" class="media_template_modal" title="<?php echo lang("How to get meida URL?"); ?>"><i class='fa fa-info-circle'></i> </a>
                       </label>
                 
                       <div class="clearfix"></div>
@@ -338,42 +338,42 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                     <div class="row button_border" id="media_row_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
                       <div class="col-12 col-md-4">
                         <div class="form-group">
-                          <label><?php echo $this->lang->line("button text"); ?></label>
+                          <label><?php echo lang("button text"); ?></label>
                           <input type="text" class="form-control"  name="media_text_<?php echo $i; ?>_<?php echo $k; ?>" id="media_text_<?php echo $i; ?>_<?php echo $k; ?>">
                         </div>
                       </div>
                       <div class="col-12 col-md-4">
                         <div class="form-group">
-                          <label><?php echo $this->lang->line("button type"); ?></label>
+                          <label><?php echo lang("button type"); ?></label>
                           <select class="form-control media_type_class" id="media_type_<?php echo $i; ?>_<?php echo $k; ?>" name="media_type_<?php echo $i; ?>_<?php echo $k; ?>">
-                            <option value=""><?php echo $this->lang->line('please select a type'); ?></option>
-                            <option value="post_back"><?php echo $this->lang->line("Post Back"); ?></option>
-                            <option value="web_url"><?php echo $this->lang->line("Web URL"); ?></option>
+                            <option value=""><?php echo lang('please select a type'); ?></option>
+                            <option value="post_back"><?php echo lang("Post Back"); ?></option>
+                            <option value="web_url"><?php echo lang("Web URL"); ?></option>
 
-                            <option value="web_url_compact"><?php echo $this->lang->line("WebView [Compact]"); ?></option>
-                            <option value="web_url_tall"><?php echo $this->lang->line("WebView [Tall]"); ?></option>
-                            <option value="web_url_full"><?php echo $this->lang->line("WebView [Full]"); ?></option>
-                            <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                            <option value="web_url_compact"><?php echo lang("WebView [Compact]"); ?></option>
+                            <option value="web_url_tall"><?php echo lang("WebView [Tall]"); ?></option>
+                            <option value="web_url_full"><?php echo lang("WebView [Full]"); ?></option>
+                            <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                            <option value="phone_number"><?php echo $this->lang->line("Call Us"); ?></option>
+                            <option value="phone_number"><?php echo lang("Call Us"); ?></option>
                           </select>
                         </div>
                       </div>
                       <div class="col-12 col-md-3">
                         
                         <div class="form-group" id="media_postid_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                          <label><?php echo $this->lang->line("PostBack id"); ?></label>
-                          <select class="form-control push_postback"  name="media_post_id_<?php echo $i; ?>_<?php echo $k; ?>" id="media_post_id_<?php echo $i; ?>_<?php echo $k; ?>"><option value=""><?php echo $this->lang->line("Select");?></option></select>
-                          <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo $this->lang->line("Add");?></a>
-                          <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo $this->lang->line("Refresh");?></a>
+                          <label><?php echo lang("PostBack id"); ?></label>
+                          <select class="form-control push_postback"  name="media_post_id_<?php echo $i; ?>_<?php echo $k; ?>" id="media_post_id_<?php echo $i; ?>_<?php echo $k; ?>"><option value=""><?php echo lang("Select");?></option></select>
+                          <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo lang("Add");?></a>
+                          <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo lang("Refresh");?></a>
                         </div>
                         
                         <div class="form-group" id="media_web_url_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                          <label><?php echo $this->lang->line("web url"); ?></label>
+                          <label><?php echo lang("web url"); ?></label>
                           <input type="text" class="form-control"  name="media_web_url_<?php echo $i; ?>_<?php echo $k; ?>" id="media_web_url_<?php echo $i; ?>_<?php echo $k; ?>">
                         </div>
                         <div class="form-group" id="media_call_us_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                          <label><?php echo $this->lang->line("phone number"); ?></label>
+                          <label><?php echo lang("phone number"); ?></label>
                           <input type="text" class="form-control"  name="media_call_us_<?php echo $i; ?>_<?php echo $k; ?>" id="media_call_us_<?php echo $i; ?>_<?php echo $k; ?>">
                         </div>
                       </div>
@@ -381,7 +381,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                       <?php if($i != 1) : ?>
                         <div class="col-12 col-md-1" >
                           <br/>
-                          <i class="fa fa-2x fa-times-circle red item_remove" row_id="media_row_<?php echo $i; ?>_<?php echo $k; ?>" first_column_id="media_text_<?php echo $i; ?>_<?php echo $k; ?>" second_column_id="media_type_<?php echo $i; ?>_<?php echo $k; ?>" third_postback="media_post_id_<?php echo $i; ?>_<?php echo $k; ?>" third_weburl="media_web_url_<?php echo $i; ?>_<?php echo $k; ?>" third_callus="media_call_us_<?php echo $i; ?>_<?php echo $k; ?>" counter_variable="media_counter_<?php echo $k; ?>" add_more_button_id="media_add_button_<?php echo $k; ?>" title="<?php echo $this->lang->line('Remove this item'); ?>"></i>
+                          <i class="fa fa-2x fa-times-circle red item_remove" row_id="media_row_<?php echo $i; ?>_<?php echo $k; ?>" first_column_id="media_text_<?php echo $i; ?>_<?php echo $k; ?>" second_column_id="media_type_<?php echo $i; ?>_<?php echo $k; ?>" third_postback="media_post_id_<?php echo $i; ?>_<?php echo $k; ?>" third_weburl="media_web_url_<?php echo $i; ?>_<?php echo $k; ?>" third_callus="media_call_us_<?php echo $i; ?>_<?php echo $k; ?>" counter_variable="media_counter_<?php echo $k; ?>" add_more_button_id="media_add_button_<?php echo $k; ?>" title="<?php echo lang('Remove this item'); ?>"></i>
                         </div>
                       <?php endif; ?>
 
@@ -389,7 +389,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                     <?php endfor; ?>
 
                     <div class="row clearfix">
-                      <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="media_add_button_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("add more button");?></button></div>
+                      <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="media_add_button_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo lang("add more button");?></button></div>
                     </div>
 
                   </div> 
@@ -400,13 +400,13 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                   <div class="col-12">  
 
                     <div class="form-group">
-                      <label><?php echo $this->lang->line("Please provide your message"); ?></label>
+                      <label><?php echo lang("Please provide your message"); ?></label>
 
                       <span class='float-right'> 
-                        <a title="<?php echo $this->lang->line("You can include {{last_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_last_name button-outline'><i class='fa fa-user'></i> <?php echo $this->lang->line("last name") ?></a>
+                        <a title="<?php echo lang("You can include {{last_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_last_name button-outline'><i class='fa fa-user'></i> <?php echo lang("last name") ?></a>
                       </span>
                       <span class='float-right'> 
-                        <a title="<?php echo $this->lang->line("You can include {{first_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_first_name button-outline'><i class='fa fa-user'></i> <?php echo $this->lang->line("first name") ?></a>
+                        <a title="<?php echo lang("You can include {{first_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_first_name button-outline'><i class='fa fa-user'></i> <?php echo lang("first name") ?></a>
                       </span> 
                       <div class="clearfix"></div>
                       <textarea class="form-control" name="quick_reply_text_<?php echo $k; ?>" id="quick_reply_text_<?php echo $k; ?>"></textarea>
@@ -416,35 +416,35 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                       <div class="row button_border" id="quick_reply_row_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
                         <div class="col-12 col-md-4">
                           <div class="form-group">
-                            <label><?php echo $this->lang->line("button text"); ?></label>
+                            <label><?php echo lang("button text"); ?></label>
                             <input type="text" class="form-control" name="quick_reply_button_text_<?php echo $i; ?>_<?php echo $k; ?>" id="quick_reply_button_text_<?php echo $i; ?>_<?php echo $k; ?>">
                           </div>
                         </div>
                         <!-- 28/02/2018 -->
                         <div class="col-12 col-md-4">
                           <div class="form-group">
-                            <label><?php echo $this->lang->line("button type"); ?></label>
+                            <label><?php echo lang("button type"); ?></label>
                             <select class="form-control quick_reply_button_type_class" id="quick_reply_button_type_<?php echo $i; ?>_<?php echo $k; ?>" name="quick_reply_button_type_<?php echo $i; ?>_<?php echo $k; ?>">
-                              <option value=""><?php echo $this->lang->line('please select a type'); ?></option>
-                              <option value="post_back"><?php echo $this->lang->line("Post Back"); ?></option>
-                              <option value="phone_number"><?php echo $this->lang->line("user phone number"); ?></option>
-                              <option value="user_email"><?php echo $this->lang->line("user email address"); ?></option>
+                              <option value=""><?php echo lang('please select a type'); ?></option>
+                              <option value="post_back"><?php echo lang("Post Back"); ?></option>
+                              <option value="phone_number"><?php echo lang("user phone number"); ?></option>
+                              <option value="user_email"><?php echo lang("user email address"); ?></option>
                             </select>
                           </div>
                         </div>
                         <div class="col-12 col-md-3">
                           <div class="form-group" id="quick_reply_postid_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                            <label><?php echo $this->lang->line("PostBack id"); ?></label>
-                            <select class="form-control push_postback"  name="quick_reply_post_id_<?php echo $i; ?>_<?php echo $k; ?>" id="quick_reply_post_id_<?php echo $i; ?>_<?php echo $k; ?>"><option value=""><?php echo $this->lang->line("Select");?></option></select>
-                            <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo $this->lang->line("Add");?></a>
-                            <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo $this->lang->line("Refresh");?></a>
+                            <label><?php echo lang("PostBack id"); ?></label>
+                            <select class="form-control push_postback"  name="quick_reply_post_id_<?php echo $i; ?>_<?php echo $k; ?>" id="quick_reply_post_id_<?php echo $i; ?>_<?php echo $k; ?>"><option value=""><?php echo lang("Select");?></option></select>
+                            <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo lang("Add");?></a>
+                            <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo lang("Refresh");?></a>
                           </div>
                         </div>
 
                         <?php if($i != 1) : ?>
                           <div class="hidden-xs col-sm-2 col-md-1">
                             <br/>
-                            <i class="fa fa-2x fa-times-circle red item_remove" row_id="quick_reply_row_<?php echo $i; ?>_<?php echo $k; ?>" first_column_id="quick_reply_button_text_<?php echo $i; ?>_<?php echo $k; ?>" second_column_id="quick_reply_button_type_<?php echo $i; ?>_<?php echo $k; ?>" third_postback="quick_reply_post_id_<?php echo $i; ?>_<?php echo $k; ?>" third_weburl="" third_callus="" counter_variable="quick_reply_button_counter_<?php echo $k; ?>" add_more_button_id="quick_reply_add_button_<?php echo $k; ?>" title="<?php echo $this->lang->line('Remove this item'); ?>"></i>
+                            <i class="fa fa-2x fa-times-circle red item_remove" row_id="quick_reply_row_<?php echo $i; ?>_<?php echo $k; ?>" first_column_id="quick_reply_button_text_<?php echo $i; ?>_<?php echo $k; ?>" second_column_id="quick_reply_button_type_<?php echo $i; ?>_<?php echo $k; ?>" third_postback="quick_reply_post_id_<?php echo $i; ?>_<?php echo $k; ?>" third_weburl="" third_callus="" counter_variable="quick_reply_button_counter_<?php echo $k; ?>" add_more_button_id="quick_reply_add_button_<?php echo $k; ?>" title="<?php echo lang('Remove this item'); ?>"></i>
                           </div>
                         <?php endif; ?>
 
@@ -452,7 +452,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                   <?php endfor; ?>
 
                   <div class="row clearfix">
-                    <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="quick_reply_add_button_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("add more button");?></button></div>
+                    <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="quick_reply_add_button_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo lang("add more button");?></button></div>
                   </div>
 
                   </div> 
@@ -462,13 +462,13 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                   <div class="col-12"> 
 
                     <div class="form-group">
-                      <label><?php echo $this->lang->line("Please provide your message"); ?></label>
+                      <label><?php echo lang("Please provide your message"); ?></label>
 
                       <span class='float-right'> 
-                        <a title="<?php echo $this->lang->line("You can include {{last_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_last_name button-outline'><i class='fa fa-user'></i> <?php echo $this->lang->line("last name") ?></a>
+                        <a title="<?php echo lang("You can include {{last_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_last_name button-outline'><i class='fa fa-user'></i> <?php echo lang("last name") ?></a>
                       </span>
                       <span class='float-right'> 
-                        <a title="<?php echo $this->lang->line("You can include {{first_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_first_name button-outline'><i class='fa fa-user'></i> <?php echo $this->lang->line("first name") ?></a>
+                        <a title="<?php echo lang("You can include {{first_name}} variable inside your message. The variable will be replaced by real names when we will send it.") ?>" data-toggle="tooltip" data-placement="top" class='btn-sm lead_first_name button-outline'><i class='fa fa-user'></i> <?php echo lang("first name") ?></a>
                       </span> 
                       <div class="clearfix"></div>
                       <textarea class="form-control"  name="text_with_buttons_input_<?php echo $k; ?>" id="text_with_buttons_input_<?php echo $k; ?>"></textarea>
@@ -478,41 +478,41 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                       <div class="row button_border" id="text_with_buttons_row_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
                         <div class="col-12 col-md-4">
                           <div class="form-group">
-                            <label><?php echo $this->lang->line("button text"); ?></label>
+                            <label><?php echo lang("button text"); ?></label>
                             <input type="text" class="form-control"  name="text_with_buttons_text_<?php echo $i; ?>_<?php echo $k; ?>" id="text_with_buttons_text_<?php echo $i; ?>_<?php echo $k; ?>">
                           </div>
                         </div>
                         <div class="col-12 col-md-4">
                           <div class="form-group">
-                            <label><?php echo $this->lang->line("button type"); ?></label>
+                            <label><?php echo lang("button type"); ?></label>
                             <select class="form-control text_with_button_type_class" id="text_with_button_type_<?php echo $i; ?>_<?php echo $k; ?>" name="text_with_button_type_<?php echo $i; ?>_<?php echo $k; ?>">
-                              <option value=""><?php echo $this->lang->line('please select a type'); ?></option>
-                              <option value="post_back"><?php echo $this->lang->line("Post Back"); ?></option>
-                              <option value="web_url"><?php echo $this->lang->line("Web URL"); ?></option>
+                              <option value=""><?php echo lang('please select a type'); ?></option>
+                              <option value="post_back"><?php echo lang("Post Back"); ?></option>
+                              <option value="web_url"><?php echo lang("Web URL"); ?></option>
 
-                              <option value="web_url_compact"><?php echo $this->lang->line("WebView [Compact]"); ?></option>
-                              <option value="web_url_tall"><?php echo $this->lang->line("WebView [Tall]"); ?></option>
-                              <option value="web_url_full"><?php echo $this->lang->line("WebView [Full]"); ?></option>
-                              <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                              <option value="web_url_compact"><?php echo lang("WebView [Compact]"); ?></option>
+                              <option value="web_url_tall"><?php echo lang("WebView [Tall]"); ?></option>
+                              <option value="web_url_full"><?php echo lang("WebView [Full]"); ?></option>
+                              <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                              <option value="phone_number"><?php echo $this->lang->line("Call Us"); ?></option>
-                              <option value="post_back" id="unsubscribe_postback"><?php echo $this->lang->line("unsubscribe"); ?></option>
+                              <option value="phone_number"><?php echo lang("Call Us"); ?></option>
+                              <option value="post_back" id="unsubscribe_postback"><?php echo lang("unsubscribe"); ?></option>
                             </select>
                           </div>
                         </div>
                         <div class="col-12 col-md-3">
                           <div class="form-group" id="text_with_button_postid_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                            <label><?php echo $this->lang->line("PostBack id"); ?></label>
-                            <select class="form-control push_postback"  name="text_with_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>" id="text_with_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>"><option value=""><?php echo $this->lang->line("Select");?></option></select>
-                            <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo $this->lang->line("Add");?></a>
-                            <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo $this->lang->line("Refresh");?></a>
+                            <label><?php echo lang("PostBack id"); ?></label>
+                            <select class="form-control push_postback"  name="text_with_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>" id="text_with_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>"><option value=""><?php echo lang("Select");?></option></select>
+                            <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo lang("Add");?></a>
+                            <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo lang("Refresh");?></a>
                           </div>
                           <div class="form-group" id="text_with_button_web_url_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                            <label><?php echo $this->lang->line("web url"); ?></label>
+                            <label><?php echo lang("web url"); ?></label>
                             <input type="text" class="form-control"  name="text_with_button_web_url_<?php echo $i; ?>_<?php echo $k; ?>" id="text_with_button_web_url_<?php echo $i; ?>_<?php echo $k; ?>">
                           </div>
                           <div class="form-group" id="text_with_button_call_us_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                            <label><?php echo $this->lang->line("phone number"); ?></label>
+                            <label><?php echo lang("phone number"); ?></label>
                             <input type="text" class="form-control"  name="text_with_button_call_us_<?php echo $i; ?>_<?php echo $k; ?>" id="text_with_button_call_us_<?php echo $i; ?>_<?php echo $k; ?>">
                           </div>
                         </div>
@@ -520,7 +520,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                         <?php if($i != 1) : ?>
                           <div class="hidden-xs col-sm-2 col-md-1" >
                             <br/>
-                            <i class="fa fa-2x fa-times-circle red item_remove" row_id="text_with_buttons_row_<?php echo $i; ?>_<?php echo $k; ?>" first_column_id="text_with_buttons_text_<?php echo $i; ?>_<?php echo $k; ?>" second_column_id="text_with_button_type_<?php echo $i; ?>_<?php echo $k; ?>" third_postback="text_with_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>" third_weburl="text_with_button_web_url_<?php echo $i; ?>_<?php echo $k; ?>" third_callus="text_with_button_call_us_<?php echo $i; ?>_<?php echo $k; ?>" counter_variable="text_with_button_counter_<?php echo $k; ?>" add_more_button_id="text_with_button_add_button_<?php echo $k; ?>" title="<?php echo $this->lang->line('Remove this item'); ?>"></i>
+                            <i class="fa fa-2x fa-times-circle red item_remove" row_id="text_with_buttons_row_<?php echo $i; ?>_<?php echo $k; ?>" first_column_id="text_with_buttons_text_<?php echo $i; ?>_<?php echo $k; ?>" second_column_id="text_with_button_type_<?php echo $i; ?>_<?php echo $k; ?>" third_postback="text_with_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>" third_weburl="text_with_button_web_url_<?php echo $i; ?>_<?php echo $k; ?>" third_callus="text_with_button_call_us_<?php echo $i; ?>_<?php echo $k; ?>" counter_variable="text_with_button_counter_<?php echo $k; ?>" add_more_button_id="text_with_button_add_button_<?php echo $k; ?>" title="<?php echo lang('Remove this item'); ?>"></i>
                           </div>
                         <?php endif; ?>
 
@@ -528,7 +528,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                     <?php endfor; ?>
 
                     <div class="row clearfix">
-                      <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="text_with_button_add_button_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("add more button");?></button></div>
+                      <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="text_with_button_add_button_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo lang("add more button");?></button></div>
                     </div>
 
                   </div> 
@@ -539,14 +539,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                     <div class="row">
                       <div class="col-12 col-md-6">
                         <div class="form-group">
-                          <label><?php echo $this->lang->line("Please provide your image"); ?> <span style='color:orange !important;'>(<?php echo $this->lang->line("optional"); ?>)</span></label>
+                          <label><?php echo lang("Please provide your image"); ?> <span style='color:orange !important;'>(<?php echo lang("optional"); ?>)</span></label>
                           <input type="hidden" class="form-control"  name="generic_template_image_<?php echo $k; ?>" id="generic_template_image_<?php echo $k; ?>" />
-                          <div id="generic_image_<?php echo $k; ?>"><?php echo $this->lang->line('upload'); ?></div>
+                          <div id="generic_image_<?php echo $k; ?>"><?php echo lang('upload'); ?></div>
                         </div>                         
                       </div>
                       <div class="col-12 col-md-6">
                         <div class="form-group">
-                          <label><?php echo $this->lang->line("image click destination link"); ?> <span style='color:orange !important;'>(<?php echo $this->lang->line("optional"); ?>)</span></label>
+                          <label><?php echo lang("image click destination link"); ?> <span style='color:orange !important;'>(<?php echo lang("optional"); ?>)</span></label>
                           <input type="text" class="form-control"  name="generic_template_image_destination_link_<?php echo $k; ?>" id="generic_template_image_destination_link_<?php echo $k; ?>" />
                         </div> 
                       </div>                      
@@ -555,58 +555,58 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                     <div class="row">
                       <div class="col-12 col-md-6">
                         <div class="form-group">
-                          <label><?php echo $this->lang->line("title"); ?></label>
+                          <label><?php echo lang("title"); ?></label>
                           <input type="text" class="form-control"  name="generic_template_title_<?php echo $k; ?>" id="generic_template_title_<?php echo $k; ?>" />
                         </div>
                       </div>  
                       <div class="col-12 col-md-6">
                         <div class="form-group">
-                          <label><?php echo $this->lang->line("sub-title"); ?></label>
+                          <label><?php echo lang("sub-title"); ?></label>
                           <input type="text" class="form-control"  name="generic_template_subtitle_<?php echo $k; ?>" id="generic_template_subtitle_<?php echo $k; ?>" />
                         </div>
                       </div>  
                     </div>
 
-                    <span class="float-right"><span style='color:orange !important;'>(<?php echo $this->lang->line("optional"); ?>)</span></span><div class="clearfix"></div>
+                    <span class="float-right"><span style='color:orange !important;'>(<?php echo lang("optional"); ?>)</span></span><div class="clearfix"></div>
                     <?php for ($i=1; $i <=3 ; $i++) : ?>
                       <div class="row button_border" id="generic_template_row_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
                         <div class="col-12 col-md-4">
                           <div class="form-group">
-                            <label><?php echo $this->lang->line("button text"); ?></label>
+                            <label><?php echo lang("button text"); ?></label>
                             <input type="text" class="form-control"  name="generic_template_button_text_<?php echo $i; ?>_<?php echo $k; ?>" id="generic_template_button_text_<?php echo $i; ?>_<?php echo $k; ?>">
                           </div>
                         </div>
                         <div class="col-12 col-md-4">
                           <div class="form-group">
-                            <label><?php echo $this->lang->line("button type"); ?></label>
+                            <label><?php echo lang("button type"); ?></label>
                             <select class="form-control generic_template_button_type_class" id="generic_template_button_type_<?php echo $i; ?>_<?php echo $k; ?>" name="generic_template_button_type_<?php echo $i; ?>_<?php echo $k; ?>">
-                              <option value=""><?php echo $this->lang->line('please select a type'); ?></option>
-                              <option value="post_back"><?php echo $this->lang->line("Post Back"); ?></option>
-                              <option value="web_url"><?php echo $this->lang->line("Web URL"); ?></option>
+                              <option value=""><?php echo lang('please select a type'); ?></option>
+                              <option value="post_back"><?php echo lang("Post Back"); ?></option>
+                              <option value="web_url"><?php echo lang("Web URL"); ?></option>
 
-                              <option value="web_url_compact"><?php echo $this->lang->line("WebView [Compact]"); ?></option>
-                              <option value="web_url_tall"><?php echo $this->lang->line("WebView [Tall]"); ?></option>
-                              <option value="web_url_full"><?php echo $this->lang->line("WebView [Full]"); ?></option>
-                              <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                              <option value="web_url_compact"><?php echo lang("WebView [Compact]"); ?></option>
+                              <option value="web_url_tall"><?php echo lang("WebView [Tall]"); ?></option>
+                              <option value="web_url_full"><?php echo lang("WebView [Full]"); ?></option>
+                              <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                              <option value="phone_number"><?php echo $this->lang->line("Call Us"); ?></option>
-                              <option value="post_back" id="unsubscribe_postback"><?php echo $this->lang->line("unsubscribe"); ?></option>
+                              <option value="phone_number"><?php echo lang("Call Us"); ?></option>
+                              <option value="post_back" id="unsubscribe_postback"><?php echo lang("unsubscribe"); ?></option>
                             </select>
                           </div>
                         </div>
                         <div class="col-12 col-md-3">
                           <div class="form-group" id="generic_template_button_postid_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                            <label><?php echo $this->lang->line("PostBack id"); ?></label>
-                            <select class="form-control push_postback"  name="generic_template_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>" id="generic_template_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>"><option value=""><?php echo $this->lang->line("Select");?></option></select>
-                            <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo $this->lang->line("Add");?></a>
-                            <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo $this->lang->line("Refresh");?></a>
+                            <label><?php echo lang("PostBack id"); ?></label>
+                            <select class="form-control push_postback"  name="generic_template_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>" id="generic_template_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>"><option value=""><?php echo lang("Select");?></option></select>
+                            <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo lang("Add");?></a>
+                            <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo lang("Refresh");?></a>
                           </div>
                           <div class="form-group" id="generic_template_button_web_url_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                            <label><?php echo $this->lang->line("web url"); ?></label>
+                            <label><?php echo lang("web url"); ?></label>
                             <input type="text" class="form-control"  name="generic_template_button_web_url_<?php echo $i; ?>_<?php echo $k; ?>" id="generic_template_button_web_url_<?php echo $i; ?>_<?php echo $k; ?>">
                           </div>
                           <div class="form-group" id="generic_template_button_call_us_div_<?php echo $i; ?>_<?php echo $k; ?>" style="display: none;">
-                            <label><?php echo $this->lang->line("phone number"); ?></label>
+                            <label><?php echo lang("phone number"); ?></label>
                             <input type="text" class="form-control"  name="generic_template_button_call_us_<?php echo $i; ?>_<?php echo $k; ?>" id="generic_template_button_call_us_<?php echo $i; ?>_<?php echo $k; ?>">
                           </div>
                         </div>
@@ -614,7 +614,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                         <?php if($i != 1) : ?>
                           <div class="hidden-xs col-sm-2 col-md-1">
                             <br/>
-                            <i class="fa fa-2x fa-times-circle red item_remove" row_id="generic_template_row_<?php echo $i; ?>_<?php echo $k; ?>" first_column_id="generic_template_button_text_<?php echo $i; ?>_<?php echo $k; ?>" second_column_id="generic_template_button_type_<?php echo $i; ?>_<?php echo $k; ?>" third_postback="generic_template_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>" third_weburl="generic_template_button_web_url_<?php echo $i; ?>_<?php echo $k; ?>" third_callus="generic_template_button_call_us_<?php echo $i; ?>_<?php echo $k; ?>" counter_variable="generic_with_button_counter_<?php echo $k; ?>" add_more_button_id="generic_template_add_button_<?php echo $k; ?>" title="<?php echo $this->lang->line('Remove this item'); ?>"></i>
+                            <i class="fa fa-2x fa-times-circle red item_remove" row_id="generic_template_row_<?php echo $i; ?>_<?php echo $k; ?>" first_column_id="generic_template_button_text_<?php echo $i; ?>_<?php echo $k; ?>" second_column_id="generic_template_button_type_<?php echo $i; ?>_<?php echo $k; ?>" third_postback="generic_template_button_post_id_<?php echo $i; ?>_<?php echo $k; ?>" third_weburl="generic_template_button_web_url_<?php echo $i; ?>_<?php echo $k; ?>" third_callus="generic_template_button_call_us_<?php echo $i; ?>_<?php echo $k; ?>" counter_variable="generic_with_button_counter_<?php echo $k; ?>" add_more_button_id="generic_template_add_button_<?php echo $k; ?>" title="<?php echo lang('Remove this item'); ?>"></i>
                           </div>
                         <?php endif; ?>
 
@@ -622,7 +622,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                     <?php endfor; ?>
 
                     <div class="row clearfix">
-                      <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="generic_template_add_button_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("add more button");?></button></div>
+                      <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="generic_template_add_button_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo lang("add more button");?></button></div>
                     </div>
 
                   </div>
@@ -633,21 +633,21 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                     <div class="col-12" id="carousel_div_<?php echo $j; ?>_<?php echo $k; ?>" style="display: none;"> 
                       <div class="card card-secondary">
                         <div class="card-header">
-                          <h4><?php echo $this->lang->line('Carousel Template').' '.$j; ?></h4>
+                          <h4><?php echo lang('Carousel Template').' '.$j; ?></h4>
                         </div>
                         <div class="card-body">
 
                           <div class="row">
                             <div class="col-12 col-md-6">
                               <div class="form-group">
-                                <label><?php echo $this->lang->line("Please provide your image"); ?> <span style='color:orange !important;'>(<?php echo $this->lang->line("optional"); ?>)</span></label>
+                                <label><?php echo lang("Please provide your image"); ?> <span style='color:orange !important;'>(<?php echo lang("optional"); ?>)</span></label>
                                 <input type="hidden" class="form-control"  name="carousel_image_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_image_<?php echo $j; ?>_<?php echo $k; ?>" />
-                                <div id="generic_imageupload_<?php echo $j; ?>_<?php echo $k; ?>"><?php echo $this->lang->line('upload'); ?></div>
+                                <div id="generic_imageupload_<?php echo $j; ?>_<?php echo $k; ?>"><?php echo lang('upload'); ?></div>
                               </div>                         
                             </div>
                             <div class="col-12 col-md-6">
                               <div class="form-group">
-                                <label><?php echo $this->lang->line("image click destination link"); ?> <span style='color:orange !important;'>(<?php echo $this->lang->line("optional"); ?>)</span></label>
+                                <label><?php echo lang("image click destination link"); ?> <span style='color:orange !important;'>(<?php echo lang("optional"); ?>)</span></label>
                                 <input type="text" class="form-control"  name="carousel_image_destination_link_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_image_destination_link_<?php echo $j; ?>_<?php echo $k; ?>" />
                               </div> 
                             </div>                      
@@ -656,58 +656,58 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                           <div class="row">
                             <div class="col-12 col-md-6">
                               <div class="form-group">
-                                <label><?php echo $this->lang->line("title"); ?></label>
+                                <label><?php echo lang("title"); ?></label>
                                 <input type="text" class="form-control"  name="carousel_title_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_title_<?php echo $j; ?>_<?php echo $k; ?>" />
                               </div>
                             </div>  
                             <div class="col-12 col-md-6">
                               <div class="form-group">
-                                <label><?php echo $this->lang->line("sub-title"); ?></label>
+                                <label><?php echo lang("sub-title"); ?></label>
                                 <input type="text" class="form-control"  name="carousel_subtitle_<?php echo $j; ?>_<?php echo $k; ?>" id="carousel_subtitle_<?php echo $j; ?>_<?php echo $k; ?>" />
                               </div>
                             </div>  
                           </div>
 
-                          <span class="float-right"><span style='color:orange !important;'>(<?php echo $this->lang->line("optional"); ?>)</span></span><div class="clearfix"></div>                        
+                          <span class="float-right"><span style='color:orange !important;'>(<?php echo lang("optional"); ?>)</span></span><div class="clearfix"></div>                        
                           <?php for ($i=1; $i <=3 ; $i++) : ?>
                             <div class="row button_border" id="carousel_row_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" style="display: none;">
                               <div class="col-12 col-md-4">
                                 <div class="form-group">
-                                  <label><?php echo $this->lang->line("button text"); ?></label>
+                                  <label><?php echo lang("button text"); ?></label>
                                   <input type="text" class="form-control"  name="carousel_button_text_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" id="carousel_button_text_<?php echo $j."_".$i; ?>_<?php echo $k; ?>">
                                 </div>
                               </div>
                               <div class="col-12 col-md-4">
                                 <div class="form-group">
-                                  <label><?php echo $this->lang->line("button type"); ?></label>
+                                  <label><?php echo lang("button type"); ?></label>
                                   <select class="form-control carousel_button_type_class" id="carousel_button_type_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" name="carousel_button_type_<?php echo $j."_".$i; ?>_<?php echo $k; ?>">
-                                    <option value=""><?php echo $this->lang->line('please select a type'); ?></option>
-                                    <option value="post_back"><?php echo $this->lang->line("Post Back"); ?></option>
-                                    <option value="web_url"><?php echo $this->lang->line("Web URL"); ?></option>
+                                    <option value=""><?php echo lang('please select a type'); ?></option>
+                                    <option value="post_back"><?php echo lang("Post Back"); ?></option>
+                                    <option value="web_url"><?php echo lang("Web URL"); ?></option>
 
-                                    <option value="web_url_compact"><?php echo $this->lang->line("WebView [Compact]"); ?></option>
-                                    <option value="web_url_tall"><?php echo $this->lang->line("WebView [Tall]"); ?></option>
-                                    <option value="web_url_full"><?php echo $this->lang->line("WebView [Full]"); ?></option>
-                                    <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                                    <option value="web_url_compact"><?php echo lang("WebView [Compact]"); ?></option>
+                                    <option value="web_url_tall"><?php echo lang("WebView [Tall]"); ?></option>
+                                    <option value="web_url_full"><?php echo lang("WebView [Full]"); ?></option>
+                                    <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                                    <option value="phone_number"><?php echo $this->lang->line("Call Us"); ?></option>
-                                    <option value="post_back" id="unsubscribe_postback"><?php echo $this->lang->line("unsubscribe"); ?></option>
+                                    <option value="phone_number"><?php echo lang("Call Us"); ?></option>
+                                    <option value="post_back" id="unsubscribe_postback"><?php echo lang("unsubscribe"); ?></option>
                                   </select>
                                 </div>
                               </div>
                               <div class="col-12 col-md-3">
                                 <div class="form-group" id="carousel_button_postid_div_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" style="display: none;">
-                                  <label><?php echo $this->lang->line("PostBack id"); ?></label>
-                                  <select class="form-control push_postback"  name="carousel_button_post_id_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" id="carousel_button_post_id_<?php echo $j."_".$i; ?>_<?php echo $k; ?>"><option value=""><?php echo $this->lang->line("Select");?></option></select>
-                                  <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo $this->lang->line("Add");?></a>
-                                  <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo $this->lang->line("Refresh");?></a>
+                                  <label><?php echo lang("PostBack id"); ?></label>
+                                  <select class="form-control push_postback"  name="carousel_button_post_id_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" id="carousel_button_post_id_<?php echo $j."_".$i; ?>_<?php echo $k; ?>"><option value=""><?php echo lang("Select");?></option></select>
+                                  <a href="" class="add_template float-left"><i class="fa fa-plus-circle"></i>     <?php echo lang("Add");?></a>
+                                  <a href="" class="ref_template float-right"><i class="fa fa-refresh"></i> <?php echo lang("Refresh");?></a>
                                 </div>
                                 <div class="form-group" id="carousel_button_web_url_div_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" style="display: none;">
-                                  <label><?php echo $this->lang->line("web url"); ?></label>
+                                  <label><?php echo lang("web url"); ?></label>
                                   <input type="text" class="form-control"  name="carousel_button_web_url_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" id="carousel_button_web_url_<?php echo $j."_".$i; ?>_<?php echo $k; ?>">
                                 </div>
                                 <div class="form-group" id="carousel_button_call_us_div_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" style="display: none;">
-                                  <label><?php echo $this->lang->line("phone number"); ?></label>
+                                  <label><?php echo lang("phone number"); ?></label>
                                   <input type="text" class="form-control"  name="carousel_button_call_us_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" id="carousel_button_call_us_<?php echo $j."_".$i; ?>_<?php echo $k; ?>">
                                 </div>
                               </div>
@@ -715,7 +715,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                               <?php if($i != 1) : ?>
                                 <div class="hidden-xs col-sm-2 col-md-1">
                                   <br/>
-                                  <i class="fa fa-2x fa-times-circle red item_remove" row_id="carousel_row_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" first_column_id="carousel_button_text_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" second_column_id="carousel_button_type_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" third_postback="carousel_button_post_id_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" third_weburl="carousel_button_web_url_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" third_callus="carousel_button_call_us_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" counter_variable="carousel_add_button_counter_<?php echo $j; ?>_<?php echo $k; ?>" add_more_button_id="carousel_add_button_<?php echo $j; ?>_<?php echo $k; ?>" title="<?php echo $this->lang->line('Remove this item'); ?>"></i>
+                                  <i class="fa fa-2x fa-times-circle red item_remove" row_id="carousel_row_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" first_column_id="carousel_button_text_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" second_column_id="carousel_button_type_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" third_postback="carousel_button_post_id_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" third_weburl="carousel_button_web_url_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" third_callus="carousel_button_call_us_<?php echo $j."_".$i; ?>_<?php echo $k; ?>" counter_variable="carousel_add_button_counter_<?php echo $j; ?>_<?php echo $k; ?>" add_more_button_id="carousel_add_button_<?php echo $j; ?>_<?php echo $k; ?>" title="<?php echo lang('Remove this item'); ?>"></i>
                                 </div>
                               <?php endif; ?>
 
@@ -723,7 +723,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                           <?php endfor; ?>
 
                           <div class="row clearfix" style="padding-bottom: 10px;">
-                            <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="carousel_add_button_<?php echo $j; ?>_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("add more button");?></button></div>
+                            <div class="col-12 text-center"><button class="btn btn-outline-primary float-right no_radius btn-xs" id="carousel_add_button_<?php echo $j; ?>_<?php echo $k; ?>"><i class="fa fa-plus-circle"></i> <?php echo lang("add more button");?></button></div>
                           </div>
 
                         </div> <!-- end of card body -->
@@ -732,7 +732,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                   <?php endfor; ?>
 
                   <div class="col-12 clearfix">
-                    <button id="carousel_template_add_button_<?php echo $k; ?>" class="btn btn-sm btn-outline-primary float-right no_radius"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("add more template");?></button>
+                    <button id="carousel_template_add_button_<?php echo $k; ?>" class="btn btn-sm btn-outline-primary float-right no_radius"><i class="fa fa-plus-circle"></i> <?php echo lang("add more template");?></button>
                   </div>
 
                 </div>
@@ -743,38 +743,38 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                     <div class="row" id="list_with_buttons_row">
                       <div class="col-12 col-sm-4 col-md-4">
                         <div class="form-group">
-                          <label><?php echo $this->lang->line("bottom button text"); ?></label>
+                          <label><?php echo lang("bottom button text"); ?></label>
                           <input type="text" class="form-control"  name="list_with_buttons_text_<?php echo $k; ?>" id="list_with_buttons_text_<?php echo $k; ?>">
                         </div>
                       </div>
                       <div class="col-12 col-sm-4 col-md-4">
                         <div class="form-group">
-                          <label><?php echo $this->lang->line("bottom button type"); ?></label>
+                          <label><?php echo lang("bottom button type"); ?></label>
                           <select class="form-control list_with_button_type_class" id="list_with_button_type_<?php echo $k; ?>" name="list_with_button_type_<?php echo $k; ?>">
-                            <option value=""><?php echo $this->lang->line('please select a type'); ?></option>
-                            <option value="post_back"><?php echo $this->lang->line("Post Back"); ?></option>
-                            <option value="web_url"><?php echo $this->lang->line("Web URL"); ?></option>
+                            <option value=""><?php echo lang('please select a type'); ?></option>
+                            <option value="post_back"><?php echo lang("Post Back"); ?></option>
+                            <option value="web_url"><?php echo lang("Web URL"); ?></option>
 
-                            <option value="web_url_compact"><?php echo $this->lang->line("WebView [Compact]"); ?></option>
-                            <option value="web_url_tall"><?php echo $this->lang->line("WebView [Tall]"); ?></option>
-                            <option value="web_url_full"><?php echo $this->lang->line("WebView [Full]"); ?></option>
-                            <option value="web_url_birthday"><?php echo $this->lang->line("User's Birthday"); ?></option>
+                            <option value="web_url_compact"><?php echo lang("WebView [Compact]"); ?></option>
+                            <option value="web_url_tall"><?php echo lang("WebView [Tall]"); ?></option>
+                            <option value="web_url_full"><?php echo lang("WebView [Full]"); ?></option>
+                            <option value="web_url_birthday"><?php echo lang("User's Birthday"); ?></option>
 
-                            <option value="phone_number"><?php echo $this->lang->line("Call Us"); ?></option>
+                            <option value="phone_number"><?php echo lang("Call Us"); ?></option>
                           </select>
                         </div>
                       </div>
                       <div class="col-12 col-sm-4 col-md-4">
                         <div class="form-group" id="list_with_button_postid_div_<?php echo $k; ?>" style="display: none;">
-                          <label><?php echo $this->lang->line("PostBack id"); ?></label>
+                          <label><?php echo lang("PostBack id"); ?></label>
                           <input type="text" class="form-control push_postback"  name="list_with_button_post_id_<?php echo $k; ?>" id="list_with_button_post_id_<?php echo $k; ?>" >
                         </div>
                         <div class="form-group" id="list_with_button_web_url_div_<?php echo $k; ?>" style="display: none;">
-                          <label><?php echo $this->lang->line("web url"); ?></label>
+                          <label><?php echo lang("web url"); ?></label>
                           <input type="text" class="form-control"  name="list_with_button_web_url_<?php echo $k; ?>" id="list_with_button_web_url_<?php echo $k; ?>">
                         </div>
                         <div class="form-group" id="list_with_button_call_us_div_<?php echo $k; ?>" style="display: none;">
-                          <label><?php echo $this->lang->line("phone number"); ?></label>
+                          <label><?php echo lang("phone number"); ?></label>
                           <input type="text" class="form-control"  name="list_with_button_call_us_<?php echo $k; ?>" id="list_with_button_call_us_<?php echo $k; ?>">
                         </div>
                       </div>
@@ -787,14 +787,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                         <div class="row">
                           <div class="col-12 col-md-6">
                             <div class="form-group">
-                              <label><?php echo $this->lang->line("Please provide your reply image"); ?></label>
+                              <label><?php echo lang("Please provide your reply image"); ?></label>
                               <input type="hidden" class="form-control"  name="list_image_<?php echo $j; ?>_<?php echo $k; ?>" id="list_image_<?php echo $j; ?>_<?php echo $k; ?>" />
-                              <div id="list_imageupload_<?php echo $j; ?>_<?php echo $k; ?>"><?php echo $this->lang->line('upload'); ?></div>
+                              <div id="list_imageupload_<?php echo $j; ?>_<?php echo $k; ?>"><?php echo lang('upload'); ?></div>
                             </div>                         
                           </div>
                           <div class="col-12 col-md-6">
                             <div class="form-group">
-                              <label><?php echo $this->lang->line("image click destination link"); ?></label>
+                              <label><?php echo lang("image click destination link"); ?></label>
                               <input type="text" class="form-control"  name="list_image_destination_link_<?php echo $j; ?>_<?php echo $k; ?>" id="list_image_destination_link_<?php echo $j; ?>_<?php echo $k; ?>" />
                             </div> 
                           </div>                      
@@ -803,13 +803,13 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                         <div class="row">
                           <div class="col-12 col-md-6">
                             <div class="form-group">
-                              <label><?php echo $this->lang->line("title"); ?></label>
+                              <label><?php echo lang("title"); ?></label>
                               <input type="text" class="form-control"  name="list_title_<?php echo $j; ?>_<?php echo $k; ?>" id="list_title_<?php echo $j; ?>_<?php echo $k; ?>" />
                             </div>
                           </div>  
                           <div class="col-12 col-md-6">
                             <div class="form-group">
-                              <label><?php echo $this->lang->line("sub-title"); ?></label>
+                              <label><?php echo lang("sub-title"); ?></label>
                               <input type="text" class="form-control"  name="list_subtitle_<?php echo $j; ?>_<?php echo $k; ?>" id="list_subtitle_<?php echo $j; ?>_<?php echo $k; ?>" />
                             </div>
                           </div>  
@@ -819,7 +819,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                   <?php endfor; ?>
 
                   <div class="col-12 clearfix">
-                    <button id="list_template_add_button_<?php echo $k; ?>" class="btn btn-sm btn-outline-primary float-right no_radius"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line("add more template");?></button>
+                    <button id="list_template_add_button_<?php echo $k; ?>" class="btn btn-sm btn-outline-primary float-right no_radius"><i class="fa fa-plus-circle"></i> <?php echo lang("add more template");?></button>
                   </div>
 
                 </div>
@@ -833,14 +833,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
           <div class="row" id="schedule_time_block">
             <div class="form-group col-12">
               <label>
-                <?php echo $this->lang->line("Sending Time") ?>
-                 <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("Sending Time") ?>" data-content="<?php echo $this->lang->line("If you schedule a campaign, system will automatically process this campaign at mentioned time and time zone. Schduled campaign may take upto 1 hour longer than your schedule time depending on server load.") ?>"><i class='fa fa-info-circle'></i> </a>
+                <?php echo lang("Sending Time") ?>
+                 <a href="#" data-placement="top" data-toggle="popover" data-trigger="focus" title="<?php echo lang("Sending Time") ?>" data-content="<?php echo lang("If you schedule a campaign, system will automatically process this campaign at mentioned time and time zone. Schduled campaign may take upto 1 hour longer than your schedule time depending on server load.") ?>"><i class='fa fa-info-circle'></i> </a>
               </label><br>
 
               <label class="custom-switch mt-2">
                 <input type="checkbox" name="schedule_type" value="later" class="custom-switch-input">
                 <span class="custom-switch-indicator"></span>
-                <span class="custom-switch-description"><?php echo $this->lang->line('Send Later');?></span>
+                <span class="custom-switch-description"><?php echo lang('Send Later');?></span>
                 <span class="red"><?php echo form_error('schedule_type'); ?></span>
               </label>
             </div>
@@ -848,15 +848,15 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
           <div class="row">
             <div class="form-group schedule_block_item col-12 col-md-6">
-              <label><?php echo $this->lang->line("schedule time") ?>  <a href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="<?php echo $this->lang->line("schedule time") ?>" data-content="<?php echo $this->lang->line("Select date, time and time zone when you want to start this campaign.") ?>"><i class='fa fa-info-circle'></i> </a></label>
-              <input placeholder="<?php echo $this->lang->line("Choose Time");?>"  name="schedule_time" id="schedule_time" class="form-control datepicker_x" type="text"/>
+              <label><?php echo lang("schedule time") ?>  <a href="#" data-placement="top"  data-toggle="popover" data-trigger="focus" title="<?php echo lang("schedule time") ?>" data-content="<?php echo lang("Select date, time and time zone when you want to start this campaign.") ?>"><i class='fa fa-info-circle'></i> </a></label>
+              <input placeholder="<?php echo lang("Choose Time");?>"  name="schedule_time" id="schedule_time" class="form-control datepicker_x" type="text"/>
             </div>
 
             <div class="form-group schedule_block_item col-12 col-md-6">
-              <label><?php echo $this->lang->line("time zone") ?></label>
+              <label><?php echo lang("time zone") ?></label>
               <?php
-              $time_zone[''] = $this->lang->line("Select");
-              echo form_dropdown('time_zone',$time_zone,$this->config->item('time_zone'),' class="form-control select2" id="time_zone"'); 
+              $time_zone[''] = lang("Select");
+              echo form_dropdown('time_zone',$time_zone,(config('MyConfig')->time_zone ?? ''),' class="form-control select2" id="time_zone"'); 
               ?>
             </div>
           </div>  
@@ -864,7 +864,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
         </div>
 
         <div class="card-footer">
-          <button class="btn btn-lg btn-primary" id="submit" name="submit" type="button"><i class="fas fa-paper-plane"></i> <?php echo $this->lang->line("Create Campaign") ?> </button>
+          <button class="btn btn-lg btn-primary" id="submit" name="submit" type="button"><i class="fas fa-paper-plane"></i> <?php echo lang("Create Campaign") ?> </button>
         </div>
       </div>  
     </form>       
@@ -873,17 +873,17 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
   <div class="col-12 col-md-4 col-lg-4 colmid" id="middle_column">
       <div class="card main_card">
         <div class="card-header">
-          <h4><i class="fas fa-eye"></i> <?php echo $this->lang->line("Summary"); ?></h4>
+          <h4><i class="fas fa-eye"></i> <?php echo lang("Summary"); ?></h4>
         </div>
         <div class="card-body">
-          <?php include(FCPATH."application/modules/messenger_bot_enhancers/views/messenger_broadcaster/summary.php") ?>            
+          <?php include(APPPATH."modules/messenger_bot_enhancers/views/messenger_broadcaster/summary.php") ?>            
         </div>
      </div>
   </div>
 </div>
 
   <?php 
-  $areyousure=$this->lang->line("Are you sure?"); 
+  $areyousure=lang("Are you sure?"); 
   ?>
 
   <script type="text/javascript">
@@ -933,7 +933,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
   <script type="text/javascript">
 
 
-  var user_id = "<?php echo $this->session->userdata('user_id'); ?>";
+  var user_id = "<?php echo session()->get('user_id'); ?>";
   var base_url="<?php echo site_url(); ?>";
 
   var js_array = [<?php echo '"'.implode('","', $postback_id_array ).'"' ?>];
@@ -946,7 +946,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
   function showerror(error_message)
   {
-    swal('<?php echo $this->lang->line("Warning"); ?>', error_message, 'warning');
+    swal('<?php echo lang("Warning"); ?>', error_message, 'warning');
   }
 
   $(document).ready(function() {
@@ -1266,14 +1266,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
      var media_text_check = $(media_text).val();
      if(media_text_check == ''){
-       showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+       showerror("<?php echo lang('Please Provide Your Button Text')?>");
        
        return;
      }
 
      var media_type_check = $(media_type).val();
      if(media_type_check == ''){
-       showerror("<?php echo $this->lang->line('Please Provide Your Button Type')?>");
+       showerror("<?php echo lang('Please Provide Your Button Type')?>");
        
        return;
      }else if(media_type_check == 'post_back'){
@@ -1281,7 +1281,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
        var media_post_id = "#media_post_id_"+button_id+"_<?php echo $template_type; ?>";
        var media_post_id_check = $(media_post_id).val();
        if(media_post_id_check == ''){
-         showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+         showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
          
          return;
        }
@@ -1291,7 +1291,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
        var media_web_url = "#media_web_url_"+button_id+"_<?php echo $template_type; ?>";
        var media_web_url_check = $(media_web_url).val();
        if(media_web_url_check == ''){
-         showerror("<?php echo $this->lang->line('Please Provide Your Web Url')?>");
+         showerror("<?php echo lang('Please Provide Your Web Url')?>");
          
          return;
        }
@@ -1299,7 +1299,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
        var media_call_us = "#media_call_us_"+button_id+"_<?php echo $template_type; ?>";
        var media_call_us_check = $(media_call_us).val();
        if(media_call_us_check == ''){
-         showerror("<?php echo $this->lang->line('Please Provide Your Phone Number')?>");
+         showerror("<?php echo lang('Please Provide Your Phone Number')?>");
          
          return;
        }
@@ -1337,7 +1337,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     if(quick_reply_button_type == 'post_back')
     {        
       if(quick_reply_post_id_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+        showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
         
         return;
       }
@@ -1345,7 +1345,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var quick_reply_button_text_check = $(quick_reply_button_text).val();
 
       if(quick_reply_button_text_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+        showerror("<?php echo lang('Please Provide Your Button Text')?>");
         
         return;
       }
@@ -1353,7 +1353,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     }
     if(quick_reply_button_type == '')
     {
-      showerror("<?php echo $this->lang->line('Please Provide Your Button Type')?>");
+      showerror("<?php echo lang('Please Provide Your Button Type')?>");
       
       return;
     }
@@ -1387,14 +1387,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
     var text_with_buttons_text_check = $(text_with_buttons_text).val();
     if(text_with_buttons_text_check == ''){
-      showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+      showerror("<?php echo lang('Please Provide Your Button Text')?>");
       
       return;
     }
 
     var text_with_button_type_check = $(text_with_button_type).val();
     if(text_with_button_type_check == ''){
-      showerror("<?php echo $this->lang->line('Please Provide Your Button Type')?>");
+      showerror("<?php echo lang('Please Provide Your Button Type')?>");
       
       return;
     }else if(text_with_button_type_check == 'post_back'){
@@ -1402,7 +1402,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var text_with_button_post_id = "#text_with_button_post_id_"+button_id+"_<?php echo $template_type; ?>";
       var text_with_button_post_id_check = $(text_with_button_post_id).val();
       if(text_with_button_post_id_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+        showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
         
         return;
       }
@@ -1410,7 +1410,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var text_with_button_web_url = "#text_with_button_web_url_"+button_id+"_<?php echo $template_type; ?>";
       var text_with_button_web_url_check = $(text_with_button_web_url).val();
       if(text_with_button_web_url_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your Web Url')?>");
+        showerror("<?php echo lang('Please Provide Your Web Url')?>");
         
         return;
       }
@@ -1418,7 +1418,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var text_with_button_call_us = "#text_with_button_call_us_"+button_id+"_<?php echo $template_type; ?>";
       var text_with_button_call_us_check = $(text_with_button_call_us).val();
       if(text_with_button_call_us_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your Phone Number')?>");
+        showerror("<?php echo lang('Please Provide Your Phone Number')?>");
         
         return;
       }
@@ -1450,14 +1450,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
     var generic_template_button_text_check = $(generic_template_button_text).val();
     if(generic_template_button_text_check == ''){
-      showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+      showerror("<?php echo lang('Please Provide Your Button Text')?>");
       
       return;
     }
 
     var generic_template_button_type_check = $(generic_template_button_type).val();
     if(generic_template_button_type_check == ''){
-      showerror("<?php echo $this->lang->line('Please Provide Your Button Type')?>");
+      showerror("<?php echo lang('Please Provide Your Button Type')?>");
       
       return;
     }else if(generic_template_button_type_check == 'post_back'){
@@ -1465,7 +1465,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var generic_template_button_post_id = "#generic_template_button_post_id_"+button_id+"_<?php echo $template_type; ?>";
       var generic_template_button_post_id_check = $(generic_template_button_post_id).val();
       if(generic_template_button_post_id_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+        showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
         
         return;
       }
@@ -1475,7 +1475,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var generic_template_button_web_url = "#generic_template_button_web_url_"+button_id+"_<?php echo $template_type; ?>";
       var generic_template_button_web_url_check = $(generic_template_button_web_url).val();
       if(generic_template_button_web_url_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your Web Url')?>");
+        showerror("<?php echo lang('Please Provide Your Web Url')?>");
         
         return;
       }
@@ -1483,7 +1483,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var generic_template_button_call_us = "#generic_template_button_call_us_"+button_id+"_<?php echo $template_type; ?>";
       var generic_template_button_call_us_check = $(generic_template_button_call_us).val();
       if(generic_template_button_call_us_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your Phone Number')?>");
+        showerror("<?php echo lang('Please Provide Your Phone Number')?>");
         
         return;
       }
@@ -1518,14 +1518,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
       var carousel_button_text_check = $(carousel_button_text).val();
       if(carousel_button_text_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+        showerror("<?php echo lang('Please Provide Your Button Text')?>");
         
         return;
       }
 
       var carousel_button_type_check = $(carousel_button_type).val();
       if(carousel_button_type_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your Button Type')?>");
+        showerror("<?php echo lang('Please Provide Your Button Type')?>");
         
         return;
       }else if(carousel_button_type_check == 'post_back'){
@@ -1533,7 +1533,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
         var carousel_button_post_id = "#carousel_button_post_id_<?php echo $j;?>_"+y+"_<?php echo $template_type; ?>";
         var carousel_button_post_id_check = $(carousel_button_post_id).val();
         if(carousel_button_post_id_check == ''){
-          showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+          showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
           
           return;
         }
@@ -1542,7 +1542,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
         var carousel_button_web_url = "#carousel_button_web_url_<?php echo $j;?>_"+y+"_<?php echo $template_type; ?>";
         var carousel_button_web_url_check = $(carousel_button_web_url).val();
         if(carousel_button_web_url_check == ''){
-          showerror("<?php echo $this->lang->line('Please Provide Your Web Url')?>");
+          showerror("<?php echo lang('Please Provide Your Web Url')?>");
           
           return;
         }
@@ -1550,7 +1550,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
         var carousel_button_call_us = "#carousel_button_call_us_<?php echo $j;?>_"+y+"_<?php echo $template_type; ?>";
         var carousel_button_call_us_check = $(carousel_button_call_us).val();
         if(carousel_button_call_us_check == ''){
-          showerror("<?php echo $this->lang->line('Please Provide Your Phone Number')?>");
+          showerror("<?php echo lang('Please Provide Your Phone Number')?>");
           
           return;
         }
@@ -1585,7 +1585,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     var carousel_title = "#carousel_title_"+carousel_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
     var carousel_title_check = $(carousel_title).val();
     if(carousel_title_check == ''){
-      showerror("<?php echo $this->lang->line('Please Provide carousel title')?>");
+      showerror("<?php echo lang('Please Provide carousel title')?>");
       
       return;
     }
@@ -1618,14 +1618,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
     var list_button_text_check = $(list_button_text).val();
     if(list_button_text_check == ''){
-      showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+      showerror("<?php echo lang('Please Provide Your Button Text')?>");
       
       return;
     }
 
     var list_button_type_check = $(list_button_type).val();
     if(list_button_type_check == ''){
-      showerror("<?php echo $this->lang->line('Please Provide Your Button Type')?>");
+      showerror("<?php echo lang('Please Provide Your Button Type')?>");
       
       return;
     }else if(list_button_type_check == 'post_back'){
@@ -1633,7 +1633,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var list_button_post_id = "#list_with_button_post_id_<?php echo $template_type; ?>";
       var list_button_post_id_check = $(list_button_post_id).val();
       if(list_button_post_id_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+        showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
         
         return;
       }
@@ -1642,7 +1642,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var list_button_web_url = "#list_with_button_web_url_<?php echo $template_type; ?>";
       var list_button_web_url_check = $(list_button_web_url).val();
       if(list_button_web_url_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your Web Url')?>");
+        showerror("<?php echo lang('Please Provide Your Web Url')?>");
         
         return;
       }
@@ -1650,7 +1650,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var list_button_call_us = "#list_with_button_call_us_<?php echo $template_type; ?>";
       var list_button_call_us_check = $(list_button_call_us).val();
       if(list_button_call_us_check == ''){
-        showerror("<?php echo $this->lang->line('Please Provide Your Phone Number')?>");
+        showerror("<?php echo lang('Please Provide Your Phone Number')?>");
         
         return;
       }
@@ -1661,7 +1661,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     var list_image_1 = "#list_image_"+prev_list_image_counter+"_"+<?php echo $template_type; ?>;
     var list_image_check_1 = $(list_image_1).val();
     if(list_image_check_1 == ''){
-      showerror("<?php echo $this->lang->line('Please provide your reply image')?>");
+      showerror("<?php echo lang('Please provide your reply image')?>");
       
       return;
     }
@@ -1669,7 +1669,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     var list_image = "#list_image_"+list_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
     var list_image_check = $(list_image).val();
     if(list_image_check == ''){
-      showerror("<?php echo $this->lang->line('Please provide your reply image')?>");
+      showerror("<?php echo lang('Please provide your reply image')?>");
       
       return;
     }
@@ -1678,7 +1678,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     var list_title_1 = "#list_title_"+prev_list_title_counter+"_"+<?php echo $template_type; ?>;
     var list_title_check_1 = $(list_title_1).val();
     if(list_title_check_1 == ''){
-      showerror("<?php echo $this->lang->line('Please Provide list title')?>");
+      showerror("<?php echo lang('Please Provide list title')?>");
       
       return;
     }
@@ -1686,7 +1686,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     var list_title = "#list_title_"+list_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
     var list_title_check = $(list_title).val();
     if(list_title_check == ''){
-      showerror("<?php echo $this->lang->line('Please Provide list title')?>");
+      showerror("<?php echo lang('Please Provide list title')?>");
       
       return;
     }
@@ -1695,7 +1695,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     var list_image_destination_link_1 = "#list_image_destination_link_"+prev_list_dest_counter+"_"+<?php echo $template_type; ?>;
     var list_image_destination_link_check_1 = $(list_image_destination_link_1).val();
     if(list_image_destination_link_check_1 == ''){
-      showerror("<?php echo $this->lang->line('Please Provide Image Click Destination Link')?>");
+      showerror("<?php echo lang('Please Provide Image Click Destination Link')?>");
       
       return;        
     }
@@ -1703,7 +1703,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     var list_image_destination_link = "#list_image_destination_link_"+list_template_counter_<?php echo $template_type; ?>+"_"+<?php echo $template_type; ?>;
     var list_image_destination_link_check = $(list_image_destination_link).val();
     if(list_image_destination_link_check == ''){
-      showerror("<?php echo $this->lang->line('Please Provide Image Click Destination Link')?>");
+      showerror("<?php echo lang('Please Provide Image Click Destination Link')?>");
       
       return;        
     }
@@ -1805,7 +1805,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var option_id=$(this).children(":selected").attr("id");
       if(option_id=="unsubscribe_postback")
       {
-         $("#text_with_button_postid_div_"+which_number_is_clicked+"_"+which_block_is_clicked+" select").append($("<option></option>").attr("value","UNSUBSCRIBE_QUICK_BOXER").text("<?php echo $this->lang->line('unsubscribe');?>")); 
+         $("#text_with_button_postid_div_"+which_number_is_clicked+"_"+which_block_is_clicked+" select").append($("<option></option>").attr("value","UNSUBSCRIBE_QUICK_BOXER").text("<?php echo lang('unsubscribe');?>")); 
          $("#text_with_button_postid_div_"+which_number_is_clicked+"_"+which_block_is_clicked+" select").val("UNSUBSCRIBE_QUICK_BOXER"); 
          $("#text_with_button_postid_div_"+which_number_is_clicked+"_"+which_block_is_clicked).hide();
       }
@@ -1848,7 +1848,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var option_id=$(this).children(":selected").attr("id");
       if(option_id=="unsubscribe_postback")
       {
-         $("#generic_template_button_postid_div_"+which_number_is_clicked+"_"+which_block_is_clicked+" select").append($("<option></option>").attr("value","UNSUBSCRIBE_QUICK_BOXER").text("<?php echo $this->lang->line('unsubscribe');?>")); 
+         $("#generic_template_button_postid_div_"+which_number_is_clicked+"_"+which_block_is_clicked+" select").append($("<option></option>").attr("value","UNSUBSCRIBE_QUICK_BOXER").text("<?php echo lang('unsubscribe');?>")); 
          $("#generic_template_button_postid_div_"+which_number_is_clicked+"_"+which_block_is_clicked+" select").val("UNSUBSCRIBE_QUICK_BOXER"); 
          $("#generic_template_button_postid_div_"+which_number_is_clicked+"_"+which_block_is_clicked).hide();
       }
@@ -1894,7 +1894,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       var option_id=$(this).children(":selected").attr("id");
       if(option_id=="unsubscribe_postback")
       {
-         $("#carousel_button_postid_div_"+second+"_"+first+"_"+block_template_third+" select").append($("<option></option>").attr("value","UNSUBSCRIBE_QUICK_BOXER").text("<?php echo $this->lang->line('unsubscribe');?>")); 
+         $("#carousel_button_postid_div_"+second+"_"+first+"_"+block_template_third+" select").append($("<option></option>").attr("value","UNSUBSCRIBE_QUICK_BOXER").text("<?php echo lang('unsubscribe');?>")); 
          $("#carousel_button_postid_div_"+second+"_"+first+"_"+block_template_third+" select").val("UNSUBSCRIBE_QUICK_BOXER"); 
          $("#carousel_button_postid_div_"+second+"_"+first+"_"+block_template_third).hide();
 
@@ -2019,26 +2019,26 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
     $("#error_message").addClass("hidden");
 
     if(campaign_name==""){
-      showerror("<?php echo $this->lang->line('Please give a campaign name')?>");
+      showerror("<?php echo lang('Please give a campaign name')?>");
       
       return;
     }
 
     if($("#page").val()==""){
-      showerror("<?php echo $this->lang->line('Please select a page first')?>");
+      showerror("<?php echo lang('Please select a page first')?>");
       
       return;
     }
 
     if($("#broadcast_type").val()=="Non Promo" && $("#message_tag").val()==""){
-      showerror("<?php echo $this->lang->line('Please select a message tag')?>");      
+      showerror("<?php echo lang('Please select a message tag')?>");      
       return;
     }
 
     var page_subscriber = parseInt($("#page_subscriber").html());     
     if(page_subscriber==0 || page_subscriber=="")
     {
-      swal('<?php echo $this->lang->line("Warning"); ?>', '<?php echo $this->lang->line("Page does not have any subscriber to send message."); ?>', 'warning');
+      swal('<?php echo lang("Warning"); ?>', '<?php echo lang("Page does not have any subscriber to send message."); ?>', 'warning');
       return;
     }
 
@@ -2050,7 +2050,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       {
         var text_reply = $("#text_reply_"+m).val();
         if(text_reply == ''){
-          showerror("<?php echo $this->lang->line('Please provide your message')?>");
+          showerror("<?php echo lang('Please provide your message')?>");
           
           return;
         }
@@ -2060,7 +2060,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       {
         var image_reply_field =$("#image_reply_field_"+m).val();
         if(image_reply_field == ''){
-          showerror("<?php echo $this->lang->line('Please provide your image')?>");
+          showerror("<?php echo lang('Please provide your image')?>");
           
           return;
         }
@@ -2070,7 +2070,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       {
         var audio_reply_field = $("#audio_reply_field_"+m).val();
         if(audio_reply_field == ''){
-          showerror("<?php echo $this->lang->line('Please provide your audio')?>");
+          showerror("<?php echo lang('Please provide your audio')?>");
           
           return;
         }
@@ -2080,7 +2080,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       {
         var video_reply_field = $("#video_reply_field_"+m).val();
         if(video_reply_field == ''){
-          showerror("<?php echo $this->lang->line('Please provide your video')?>");
+          showerror("<?php echo lang('Please provide your video')?>");
           
           return;          
         }
@@ -2091,7 +2091,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       {
         var file_reply_field = $("#file_reply_field_"+m).val();
         if(file_reply_field == ''){
-          showerror("<?php echo $this->lang->line('Please provide your file')?>");
+          showerror("<?php echo lang('Please provide your file')?>");
           
           return;          
         }
@@ -2102,7 +2102,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       {
         var media_input = $("#media_input_"+m).val();
         if(media_input == ''){
-          showerror("<?php echo $this->lang->line('Please Provide Your Media URL')?>");
+          showerror("<?php echo lang('Please Provide Your Media URL')?>");
           
           return;          
         }
@@ -2112,7 +2112,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
         if(facebook_url == null && facebook_url2 == null)
         {
-          showerror("<?php echo $this->lang->line('Please provide Facebook content URL as Media URL')?>");
+          showerror("<?php echo lang('Please provide Facebook content URL as Media URL')?>");
           
           return; 
         }
@@ -2127,14 +2127,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
           var media_text_check = $(media_text).val();
           if(media_text_check == ''){
-            showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+            showerror("<?php echo lang('Please Provide Your Button Text')?>");
             
             return;
           }
 
           var media_type_check = $(media_type).val();
           if(media_type_check == ''){
-            showerror("<?php echo $this->lang->line('Please Provide Your Button Type')?>");
+            showerror("<?php echo lang('Please Provide Your Button Type')?>");
             
             return;
           }else if(media_type_check == 'post_back'){
@@ -2142,7 +2142,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var media_post_id = "#media_post_id_"+n+"_"+m;
             var media_post_id_check = $(media_post_id).val();
             if(media_post_id_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+              showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
               
               return;
             }
@@ -2152,7 +2152,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var media_web_url = "#media_web_url_"+n+"_"+m;
             var media_web_url_check = $(media_web_url).val();
             if(media_web_url_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your Web Url')?>");
+              showerror("<?php echo lang('Please Provide Your Web Url')?>");
               
               return;
             }
@@ -2160,7 +2160,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var media_call_us = "#media_call_us_"+n+"_"+m;
             var media_call_us_check = $(media_call_us).val();
             if(media_call_us_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your Phone Number')?>");
+              showerror("<?php echo lang('Please Provide Your Phone Number')?>");
               
               return;
             }
@@ -2173,7 +2173,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       {
         var quick_reply_text = $("#quick_reply_text_"+m).val();
         if(quick_reply_text == ''){
-          showerror("<?php echo $this->lang->line('Please provide your message')?>");
+          showerror("<?php echo lang('Please provide your message')?>");
           
           return;
         }
@@ -2191,7 +2191,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
           if(quick_reply_button_type == 'post_back')
           {        
             if(quick_reply_post_id_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+              showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
               
               return;
             }
@@ -2199,7 +2199,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var quick_reply_button_text_check = $(quick_reply_button_text).val();
 
             if(quick_reply_button_text_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+              showerror("<?php echo lang('Please Provide Your Button Text')?>");
               
               return;
             }
@@ -2207,7 +2207,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
           }
           if(quick_reply_button_type == '')
           {
-            showerror("<?php echo $this->lang->line('Please Provide Your Button Type')?>");
+            showerror("<?php echo lang('Please Provide Your Button Type')?>");
             
             return;
           }
@@ -2219,7 +2219,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
       {
         var text_with_buttons_input = $("#text_with_buttons_input_"+m).val();
         if(text_with_buttons_input == ''){
-          showerror("<?php echo $this->lang->line('Please provide your message')?>");
+          showerror("<?php echo lang('Please provide your message')?>");
           
           return;          
         }
@@ -2234,14 +2234,14 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
           var text_with_buttons_text_check = $(text_with_buttons_text).val();
           if(text_with_buttons_text_check == ''){
-            showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+            showerror("<?php echo lang('Please Provide Your Button Text')?>");
             
             return;
           }
 
           var text_with_button_type_check = $(text_with_button_type).val();
           if(text_with_button_type_check == ''){
-            showerror("<?php echo $this->lang->line('Please Provide Your Button Type')?>");
+            showerror("<?php echo lang('Please Provide Your Button Type')?>");
             
             return;
           }else if(text_with_button_type_check == 'post_back'){
@@ -2249,7 +2249,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var text_with_button_post_id = "#text_with_button_post_id_"+n+"_"+m;
             var text_with_button_post_id_check = $(text_with_button_post_id).val();
             if(text_with_button_post_id_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+              showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
               
               return;
             }
@@ -2257,7 +2257,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var text_with_button_web_url = "#text_with_button_web_url_"+n+"_"+m;
             var text_with_button_web_url_check = $(text_with_button_web_url).val();
             if(text_with_button_web_url_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your Web Url')?>");
+              showerror("<?php echo lang('Please Provide Your Web Url')?>");
               
               return;
             }
@@ -2265,7 +2265,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var text_with_button_call_us = "#text_with_button_call_us_"+n+"_"+m;
             var text_with_button_call_us_check = $(text_with_button_call_us).val();
             if(text_with_button_call_us_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your Phone Number')?>");
+              showerror("<?php echo lang('Please Provide Your Phone Number')?>");
               
               return;
             }
@@ -2280,7 +2280,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
         var generic_template_title = $("#generic_template_title_"+m).val();
         if(generic_template_title == ''){
-          showerror("<?php echo $this->lang->line('Please give the title')?>");
+          showerror("<?php echo lang('Please give the title')?>");
           
           return;          
         }
@@ -2297,7 +2297,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
           var generic_template_button_type_check = $(generic_template_button_type).val();
 
           if(generic_template_button_text_check == '' && generic_template_button_type_check!=''){
-            showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+            showerror("<?php echo lang('Please Provide Your Button Text')?>");
             
             return;
           }
@@ -2307,7 +2307,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var generic_template_button_post_id = "#generic_template_button_post_id_"+n+"_"+m;
             var generic_template_button_post_id_check = $(generic_template_button_post_id).val();
             if(generic_template_button_post_id_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+              showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
               
               return;
             }
@@ -2317,7 +2317,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var generic_template_button_web_url = "#generic_template_button_web_url_"+n+"_"+m;
             var generic_template_button_web_url_check = $(generic_template_button_web_url).val();
             if(generic_template_button_web_url_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your Web Url')?>");
+              showerror("<?php echo lang('Please Provide Your Web Url')?>");
               
               return;
             }
@@ -2325,7 +2325,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
             var generic_template_button_call_us = "#generic_template_button_call_us_"+n+"_"+m;
             var generic_template_button_call_us_check = $(generic_template_button_call_us).val();
             if(generic_template_button_call_us_check == ''){
-              showerror("<?php echo $this->lang->line('Please Provide Your Phone Number')?>");
+              showerror("<?php echo lang('Please Provide Your Phone Number')?>");
               
               return;
             }
@@ -2347,7 +2347,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
           var carousel_title = "#carousel_title_"+n+"_"+m;
           var carousel_title_check = $(carousel_title).val();
           if(carousel_title_check == ''){
-            showerror("<?php echo $this->lang->line('Please Provide carousel title')?>");
+            showerror("<?php echo lang('Please Provide carousel title')?>");
             
             return;
           }
@@ -2373,7 +2373,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
               var carousel_button_type_check = $(carousel_button_type).val();
 
               if(carousel_button_text_check == '' && carousel_button_type_check!=""){
-                showerror("<?php echo $this->lang->line('Please Provide Your Button Text')?>");
+                showerror("<?php echo lang('Please Provide Your Button Text')?>");
                 
                 return;
               }
@@ -2384,7 +2384,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                 var carousel_button_post_id = "#carousel_button_post_id_<?php echo $j;?>_"+n+"_"+m;
                 var carousel_button_post_id_check = $(carousel_button_post_id).val();
                 if(carousel_button_post_id_check == ''){
-                  showerror("<?php echo $this->lang->line('Please Provide Your PostBack Id')?>");
+                  showerror("<?php echo lang('Please Provide Your PostBack Id')?>");
                   
                   return;
                 }
@@ -2393,7 +2393,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                 var carousel_button_web_url = "#carousel_button_web_url_<?php echo $j;?>_"+n+"_"+m;
                 var carousel_button_web_url_check = $(carousel_button_web_url).val();
                 if(carousel_button_web_url_check == ''){
-                  showerror("<?php echo $this->lang->line('Please Provide Your Web Url')?>");
+                  showerror("<?php echo lang('Please Provide Your Web Url')?>");
                   
                   return;
                 }
@@ -2401,7 +2401,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
                 var carousel_button_call_us = "#carousel_button_call_us_<?php echo $j;?>_"+n+"_"+m;
                 var carousel_button_call_us_check = $(carousel_button_call_us).val();
                 if(carousel_button_call_us_check == ''){
-                  showerror("<?php echo $this->lang->line('Please Provide Your Phone Number')?>");
+                  showerror("<?php echo lang('Please Provide Your Phone Number')?>");
                   
                   return;
                 }
@@ -2418,7 +2418,7 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
   var time_zone = $("#time_zone").val();
   if(schedule_type=='later' && (schedule_time=="" || time_zone==""))
   {
-    showerror("<?php echo $this->lang->line('Please select schedule time/time zone.')?>");
+    showerror("<?php echo lang('Please select schedule time/time zone.')?>");
     
     return;
   }
@@ -2445,12 +2445,12 @@ $file_upload_limit = $this->config->item('messengerbot_file_upload_limit');
 
       if(response.status=='1')
       {
-        var success_message = "<?php echo $this->lang->line('Campaign have been submitted successfully.'); ?> <a href='"+report_link+"'><?php echo $this->lang->line('See report here.'); ?></a>";
+        var success_message = "<?php echo lang('Campaign have been submitted successfully.'); ?> <a href='"+report_link+"'><?php echo lang('See report here.'); ?></a>";
         var span = document.createElement("span");
         span.innerHTML = success_message;
-        swal({ title:'<?php echo $this->lang->line("Campaign Submitted"); ?>', content:span,icon:'success'}).then((value) => {window.location.href=report_link;});
+        swal({ title:'<?php echo lang("Campaign Submitted"); ?>', content:span,icon:'success'}).then((value) => {window.location.href=report_link;});
       }
-      else swal('<?php echo $this->lang->line("Error"); ?>', response.message, 'error').then((value) => {window.location.href=report_link;});
+      else swal('<?php echo lang("Error"); ?>', response.message, 'error').then((value) => {window.location.href=report_link;});
 
       $("#submit").removeClass("btn-progress");
       $("#submit_status").hide();
@@ -2467,7 +2467,7 @@ $(document).on('click','.add_template',function(e){
       var page_id=$("#page").val();
       if(page_id=="")
       {
-        showerror("<?php echo $this->lang->line('Please select a page first')?>");
+        showerror("<?php echo lang('Please select a page first')?>");
         return false;
       }
       $("#add_template_modal").modal();
@@ -2495,7 +2495,7 @@ $(document).on('click','.add_template',function(e){
     var page_id=$("#page").val();
     if(page_id=="")
     {
-      showerror("<?php echo $this->lang->line('Please select a page first')?>");
+      showerror("<?php echo lang('Please select a page first')?>");
       return false;
     }
     $.ajax({
@@ -2585,14 +2585,14 @@ $(document).on('click','.add_template',function(e){
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fa fa-plus-circle"></i> <?php echo $this->lang->line('Add Template'); ?></h5>
+        <h5 class="modal-title"><i class="fa fa-plus-circle"></i> <?php echo lang('Add Template'); ?></h5>
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
       </div>
       <div class="modal-body"> 
         <iframe src="" frameborder="0" width="100%" onload="resizeIframe(this)"></iframe>
       </div>
       <div class="modal-footer">
-        <button data-dismiss="modal" type="button" class="btn-sm btn btn-outline-dark"><i class="fas fa-sync"></i> <?php echo $this->lang->line("Close & Refresh List");?></button>
+        <button data-dismiss="modal" type="button" class="btn-sm btn btn-outline-dark"><i class="fas fa-sync"></i> <?php echo lang("Close & Refresh List");?></button>
       </div>
     </div>
   </div>
@@ -2604,45 +2604,45 @@ $(document).on('click','.add_template',function(e){
   <div class="modal-dialog  modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-info-circle"></i> <?php echo $this->lang->line("How to get meida URL?"); ?></h5>
+        <h5 class="modal-title"><i class="fas fa-info-circle"></i> <?php echo lang("How to get meida URL?"); ?></h5>
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
       </div>
       <div class="modal-body">
         <div>
 
-          <p><?php echo $this->lang->line("To get the Facebook URL for an image or video, do the following:"); ?></p>
+          <p><?php echo lang("To get the Facebook URL for an image or video, do the following:"); ?></p>
           <ul>
-            <li><?php echo $this->lang->line("Click the image or video thumbnail to open the full-size view");?>.</li>
-            <li><?php echo $this->lang->line("Copy the URL from your browser's address bar.<");?>/li>
+            <li><?php echo lang("Click the image or video thumbnail to open the full-size view");?>.</li>
+            <li><?php echo lang("Copy the URL from your browser's address bar.<");?>/li>
           </ul>
-          <p><?php echo $this->lang->line("Facebook URLs should be in the following base format:");?></p>
+          <p><?php echo lang("Facebook URLs should be in the following base format:");?></p>
           <table class='table table-condensed table-bordered table-hover table-striped' >
            <thead>
              <tr>
-               <th><?php echo $this->lang->line("Media Type");?></th>
-               <th><?php echo $this->lang->line("Media Source");?></th>
-               <th><?php echo $this->lang->line("URL Format");?></th>
+               <th><?php echo lang("Media Type");?></th>
+               <th><?php echo lang("Media Source");?></th>
+               <th><?php echo lang("URL Format");?></th>
              </tr>
            </thead>
            <thead>
              <tr>
-               <td><?php echo $this->lang->line("Video");?></td>
-               <td><?php echo $this->lang->line("Facebook Page");?></td>
+               <td><?php echo lang("Video");?></td>
+               <td><?php echo lang("Facebook Page");?></td>
                <td>https://business.facebook.com/<b>PAGE_NAME</b>/videos/<b>NUMERIC_ID</b></td>
              </tr>
              <tr>
-               <td><?php echo $this->lang->line("Video");?></td>
-               <td><?php echo $this->lang->line("Facebook Account");?></td>
+               <td><?php echo lang("Video");?></td>
+               <td><?php echo lang("Facebook Account");?></td>
                <td>https://www.facebook.com/<b>USERNAME</b>/videos/<b>NUMERIC_ID</b>/</td>
              </tr>
              <tr>
-               <td><?php echo $this->lang->line("Image");?></td>
-               <td><?php echo $this->lang->line("Facebook Page");?></td>
+               <td><?php echo lang("Image");?></td>
+               <td><?php echo lang("Facebook Page");?></td>
                <td>https://business.facebook.com/<b>PAGE_NAME</b>/photos/<b>NUMERIC_ID</b></td>
              </tr>
              <tr>
-               <td><?php echo $this->lang->line("Image");?></td>
-               <td><?php echo $this->lang->line("Facebook Account");?></td>
+               <td><?php echo lang("Image");?></td>
+               <td><?php echo lang("Facebook Account");?></td>
                <td>https://www.facebook.com/photo.php?fbid=<b>NUMERIC_ID</b></td>
              </tr>
            </thead>

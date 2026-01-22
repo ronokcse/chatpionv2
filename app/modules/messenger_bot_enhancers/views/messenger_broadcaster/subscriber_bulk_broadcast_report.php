@@ -2,15 +2,15 @@
   <div class="section-header">
     <h1><i class="fas fa-users"></i> <?php echo $page_title;?></h1>
     <div class="section-header-button">
-      <a href="<?php echo base_url('messenger_bot_enhancers/create_subscriber_broadcast_campaign'); ?>" class="btn btn-primary"><i class="fas fa-plus-circle"></i> <?php echo $this->lang->line("Create Campaign"); ?></a>
+      <a href="<?php echo base_url('messenger_bot_enhancers/create_subscriber_broadcast_campaign'); ?>" class="btn btn-primary"><i class="fas fa-plus-circle"></i> <?php echo lang("Create Campaign"); ?></a>
     </div>
     <div class="section-header-breadcrumb">
-      <div class="breadcrumb-item active"><a href="<?php echo base_url('messenger_bot_broadcast'); ?>"><?php echo $this->lang->line("Broadcasting");?></a></div>
+      <div class="breadcrumb-item active"><a href="<?php echo base_url('messenger_bot_broadcast'); ?>"><?php echo lang("Broadcasting");?></a></div>
       <div class="breadcrumb-item"><?php echo $page_title;?></div>
     </div>
   </div>
 
-  <?php $this->load->view('admin/theme/message'); ?>
+  <?php echo view('admin/theme/message'); ?>
 
   <style type="text/css">
     #search_page_id{width: 145px;}
@@ -21,7 +21,7 @@
     }
   </style>
 
-  <?php $status_options = array(""=>$this->lang->line("Status"),"0"=>$this->lang->line("Pending"),"1"=>$this->lang->line("Processing"),"2"=>$this->lang->line("Completed")) ?>
+  <?php $status_options = array(""=>lang("Status"),"0"=>lang("Pending"),"1"=>lang("Processing"),"2"=>lang("Completed")) ?>
 
   <div class="section-body">
     <div class="row">
@@ -33,27 +33,27 @@
                 <?php echo 
                 '<div class="input-group mb-3" id="searchbox">
                   <div class="input-group-prepend">
-                    '.form_dropdown('search_page_id',$page_list,$this->session->userdata('selected_global_page_table_id'),'class="form-control select2" id="search_page_id"').'
+                    '.form_dropdown('search_page_id',$page_list,session()->get('selected_global_page_table_id'),'class="form-control select2" id="search_page_id"').'
                   </div>
                   <div class="input-group-prepend">'; ?>
 
                   <select name="search_status" id="search_status"  class="form-control select2">
-                  	<option value=""><?php echo $this->lang->line("status") ?></option>
-                  	<option value="0"><?php echo $this->lang->line("Pending") ?></option>
-                  	<option value="1"><?php echo $this->lang->line("Processing") ?></option>
-                  	<option value="2"><?php echo $this->lang->line("Completed") ?></option>
-                  	<option value="3"><?php echo $this->lang->line("Stopped") ?></option>
+                  	<option value=""><?php echo lang("status") ?></option>
+                  	<option value="0"><?php echo lang("Pending") ?></option>
+                  	<option value="1"><?php echo lang("Processing") ?></option>
+                  	<option value="2"><?php echo lang("Completed") ?></option>
+                  	<option value="3"><?php echo lang("Stopped") ?></option>
                   </select>
                   </div>
 
-                  <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $this->session->userdata('csrf_token_session'); ?>">
+                  <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo session()->get('csrf_token_session'); ?>">
 
 
                   <?php
                   echo 
-                  '<input type="text" class="form-control" id="search_value" autofocus name="search_value" placeholder="'.$this->lang->line("Search...").'" style="max-width:30%;">
+                  '<input type="text" class="form-control" id="search_value" autofocus name="search_value" placeholder="'.lang("Search...").'" style="max-width:30%;">
                   <div class="input-group-append">
-                    <button class="btn btn-primary" type="button" id="search_action"><i class="fas fa-search"></i> <span class="d-none d-sm-inline">'.$this->lang->line("Search").'</span></button>
+                    <button class="btn btn-primary" type="button" id="search_action"><i class="fas fa-search"></i> <span class="d-none d-sm-inline">'.lang("Search").'</span></button>
                   </div>
                 </div>'; ?>                                          
               </div>
@@ -61,7 +61,7 @@
               <div class="col-12 col-md-3">
 
               	<?php
-				echo $drop_menu ='<a href="javascript:;" id="campaign_date_range" class="btn btn-primary btn-lg float-right icon-left btn-icon"><i class="fas fa-calendar"></i> '.$this->lang->line("Choose Date").'</a><input type="hidden" id="campaign_date_range_val">';
+				echo $drop_menu ='<a href="javascript:;" id="campaign_date_range" class="btn btn-primary btn-lg float-right icon-left btn-icon"><i class="fas fa-calendar"></i> '.lang("Choose Date").'</a><input type="hidden" id="campaign_date_range_val">';
 				?>
 
                                          
@@ -77,19 +77,19 @@
                       <th style="vertical-align:middle;width:20px">
                           <input class="regular-checkbox" id="datatableSelectAllRows" type="checkbox"/><label for="datatableSelectAllRows"></label>        
                       </th>
-                      <th><?php echo $this->lang->line("Name"); ?></th>
-                      <th><?php echo $this->lang->line("Page Name")?></th>
-                      <th><?php echo $this->lang->line("Type")?></th>
-                      <th><?php echo $this->lang->line("Status"); ?></th>
-                      <th><?php echo $this->lang->line("Actions"); ?></th>
-                      <th><?php echo $this->lang->line("Media"); ?></th>
-                      <th><?php echo $this->lang->line("Subscriber"); ?></th>
-                      <th><?php echo $this->lang->line("Sent"); ?></th>
-                      <th><?php echo $this->lang->line("Delivered"); ?></th>
-                      <th><?php echo $this->lang->line("Open"); ?></th>
-                      <th><?php echo $this->lang->line("Scheduled at"); ?></th>
-                      <th><?php echo $this->lang->line("Created at"); ?></th>
-                      <th><?php echo $this->lang->line("Labels"); ?></th>
+                      <th><?php echo lang("Name"); ?></th>
+                      <th><?php echo lang("Page Name")?></th>
+                      <th><?php echo lang("Type")?></th>
+                      <th><?php echo lang("Status"); ?></th>
+                      <th><?php echo lang("Actions"); ?></th>
+                      <th><?php echo lang("Media"); ?></th>
+                      <th><?php echo lang("Subscriber"); ?></th>
+                      <th><?php echo lang("Sent"); ?></th>
+                      <th><?php echo lang("Delivered"); ?></th>
+                      <th><?php echo lang("Open"); ?></th>
+                      <th><?php echo lang("Scheduled at"); ?></th>
+                      <th><?php echo lang("Created at"); ?></th>
+                      <th><?php echo lang("Labels"); ?></th>
 
                     </tr>
                   </thead>
@@ -106,14 +106,14 @@
 
 
 <?php
-	$somethingwentwrong = $this->lang->line("Something went wrong.");
-	$Doyouwanttopausethiscampaign = $this->lang->line("Do you want to pause this campaign? Pause campaign may not stop the campaign immediately if it is currently processing by cron job. This will affect from next cron job run after it finish currently processing messages.");
-	$whenitpause = $this->lang->line("This will affect from next cron job run after it finish currently processing messages.");
-	$Doyouwanttostartthiscampaign = $this->lang->line("Do you want to resume this campaign?");
-	$doyoureallywanttodeletethiscampaign = $this->lang->line("Do you really want to delete this campaign?");
-	$alreadyEnabled = $this->lang->line("This campaign is already enabled for processing.");
-	$doyoureallywanttoReprocessthiscampaign = $this->lang->line("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?");
-	$wanttounsubscribe = $this->lang->line("Do you really want to unsubscribe this user?");
+	$somethingwentwrong = lang("Something went wrong.");
+	$Doyouwanttopausethiscampaign = lang("Do you want to pause this campaign? Pause campaign may not stop the campaign immediately if it is currently processing by cron job. This will affect from next cron job run after it finish currently processing messages.");
+	$whenitpause = lang("This will affect from next cron job run after it finish currently processing messages.");
+	$Doyouwanttostartthiscampaign = lang("Do you want to resume this campaign?");
+	$doyoureallywanttodeletethiscampaign = lang("Do you really want to delete this campaign?");
+	$alreadyEnabled = lang("This campaign is already enabled for processing.");
+	$doyoureallywanttoReprocessthiscampaign = lang("Force Reprocessing means you are going to process this campaign again from where it ended. You should do only if you think the campaign is hung for long time and didn't send message for long time. It may happen for any server timeout issue or server going down during last attempt or any other server issue. So only click OK if you think message is not sending. Are you sure to Reprocessing ?");
+	$wanttounsubscribe = lang("Do you really want to unsubscribe this user?");
 
  ?>
 <script>
@@ -131,9 +131,9 @@
 
 	$('#campaign_date_range').daterangepicker({
 	  ranges: {
-	    '<?php echo $this->lang->line("Last 30 Days");?>': [moment().subtract(29, 'days'), moment()],
-	    '<?php echo $this->lang->line("This Month");?>'  : [moment().startOf('month'), moment().endOf('month')],
-	    '<?php echo $this->lang->line("Last Month");?>'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+	    '<?php echo lang("Last 30 Days");?>': [moment().subtract(29, 'days'), moment()],
+	    '<?php echo lang("This Month");?>'  : [moment().startOf('month'), moment().endOf('month')],
+	    '<?php echo lang("Last Month");?>'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
 	  },
 	  startDate: moment().subtract(29, 'days'),
 	  endDate  : moment()
@@ -163,7 +163,7 @@
 	  },
 	  language: 
 	  {
-	    url: "<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json'); ?>"
+	    url: "<?php echo base_url('assets/modules/datatables/language/'.($language ?? (config('MyConfig')->language ?? 'english')).'.json'); ?>"
 	  },
 	  dom: '<"top"f>rt<"bottom"lip><"clear">',
 	  columnDefs: [
@@ -270,7 +270,7 @@
 	    			      },
 	    			      language: 
 	    			      {
-	    			        url: '<?php echo base_url('assets/modules/datatables/language/'.$this->language.'.json');?>'
+	    			        url: '<?php echo base_url('assets/modules/datatables/language/'.($language ?? (config('MyConfig')->language ?? 'english')).'.json');?>'
 	    			      },
 	    			      dom: '<"top"f>rt<"bottom"lip><"clear">',
 	    			      columnDefs: [
@@ -319,7 +319,7 @@
 		var csrf_token = $("#csrf_token").val();
 
 		swal({
-			title: '<?php echo $this->lang->line("Force Resume"); ?>',
+			title: '<?php echo lang("Force Resume"); ?>',
 			text: Doyouwanttostartthiscampaign,
 			icon: 'warning',
 			buttons: true,
@@ -340,7 +340,7 @@
 				       	if(response=='1') 
 				       	{
 				       		$("#sent_report_modal").modal('hide');
-				      		iziToast.success({title: '',message: '<?php echo $this->lang->line("Campaign has been resumed by force successfully."); ?>',position: 'bottomRight'});
+				      		iziToast.success({title: '',message: '<?php echo lang("Campaign has been resumed by force successfully."); ?>',position: 'bottomRight'});
 				       		table1.draw();
 				       	}      	
 				      	else iziToast.error({title: '',message: somethingwentwrong,position: 'bottomRight'});
@@ -359,7 +359,7 @@
 		var doyoureallywanttoReprocessthiscampaign = "<?php echo $doyoureallywanttoReprocessthiscampaign; ?>";
 
 		swal({
-			title: '<?php echo $this->lang->line("Force Re-process Campaign"); ?>',
+			title: '<?php echo lang("Force Re-process Campaign"); ?>',
 			text: doyoureallywanttoReprocessthiscampaign,
 			icon: 'warning',
 			buttons: true,
@@ -380,7 +380,7 @@
 
 				      	if(response=='1') 
 				       	{
-				      		iziToast.success({title: '',message: '<?php echo $this->lang->line("Campaign has been re-processed by force successfully."); ?>',position: 'bottomRight'});
+				      		iziToast.success({title: '',message: '<?php echo lang("Campaign has been re-processed by force successfully."); ?>',position: 'bottomRight'});
 				       		table1.draw();
 				       	}      	
 				      	else iziToast.error({title: '',message: alreadyEnabled,position: 'bottomRight'});
@@ -397,7 +397,7 @@
 		var csrf_token = $("#csrf_token").val();
 
 		swal({
-			title: '<?php echo $this->lang->line("Pause Campaign"); ?>',
+			title: '<?php echo lang("Pause Campaign"); ?>',
 			text: Doyouwanttopausethiscampaign,
 			icon: 'warning',
 			buttons: true,
@@ -418,7 +418,7 @@
 
 				      	if(response=='1') 
 				       	{
-				      		iziToast.success({title: '',message: '<?php echo $this->lang->line("Campaign has been paused successfully."); ?>',position: 'bottomRight'});
+				      		iziToast.success({title: '',message: '<?php echo lang("Campaign has been paused successfully."); ?>',position: 'bottomRight'});
 				       		table1.draw();
 				       	}      	
 				      	else iziToast.error({title: '',message: somethingwentwrong,position: 'bottomRight'});
@@ -435,7 +435,7 @@
 		var csrf_token = $("#csrf_token").val();
 
 		swal({
-			title: '<?php echo $this->lang->line("Resume Campaign"); ?>',
+			title: '<?php echo lang("Resume Campaign"); ?>',
 			text: Doyouwanttostartthiscampaign,
 			icon: 'warning',
 			buttons: true,
@@ -456,7 +456,7 @@
 
 				      	if(response=='1') 
 				       	{
-				      		iziToast.success({title: '',message: '<?php echo $this->lang->line("Campaign has been resumed successfully."); ?>',position: 'bottomRight'});
+				      		iziToast.success({title: '',message: '<?php echo lang("Campaign has been resumed successfully."); ?>',position: 'bottomRight'});
 				       		table1.draw();
 				       	}      	
 				      	else iziToast.error({title: '',message: somethingwentwrong,position: 'bottomRight'});
@@ -475,12 +475,12 @@
 		var csrf_token = $("#csrf_token").val();
 	    if (typeof(id)==='undefined')
 	    { 
-	    	swal('', '<?php echo $this->lang->line("This campaign is in processing state and can not be deleted.");?>', 'warning');
+	    	swal('', '<?php echo lang("This campaign is in processing state and can not be deleted.");?>', 'warning');
 	    	return;
 	    }
 
 		swal({
-			title: '<?php echo $this->lang->line("Delete Campaign"); ?>',
+			title: '<?php echo lang("Delete Campaign"); ?>',
 			text: doyoureallywanttodeletethiscampaign,
 			icon: 'warning',
 			buttons: true,
@@ -501,7 +501,7 @@
 
 				      	if(response=='1') 
 				       	{
-				      		iziToast.success({title: '',message: '<?php echo $this->lang->line("Campaign has been deleted successfully."); ?>',position: 'bottomRight'});
+				      		iziToast.success({title: '',message: '<?php echo lang("Campaign has been deleted successfully."); ?>',position: 'bottomRight'});
 				       		table1.draw();
 				       	}      	
 				      	else iziToast.error({title: '',message: somethingwentwrong,position: 'bottomRight'});
@@ -525,10 +525,10 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<?php 
-				$delete_junk_data_after_how_many_days = $this->config->item("delete_junk_data_after_how_many_days");
+				$delete_junk_data_after_how_many_days = config('MyConfig')->delete_junk_data_after_how_many_days ?? '';
 	    		if($delete_junk_data_after_how_many_days=="") $delete_junk_data_after_how_many_days = 30;
 				?>
-			  <h5 class="modal-title"><i class="fas fa-eye"></i> <?php echo $this->lang->line("Campaign Report"); ?> <small>(<?php echo $this->lang->line("Details data shows for last")." : ".$delete_junk_data_after_how_many_days." ".$this->lang->line("days"); ?>)</small></h5>
+			  <h5 class="modal-title"><i class="fas fa-eye"></i> <?php echo lang("Campaign Report"); ?> <small>(<?php echo lang("Details data shows for last")." : ".$delete_junk_data_after_how_many_days." ".lang("days"); ?>)</small></h5>
 			  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 				<span aria-hidden="true">&times;</span>
 			  </button>
@@ -545,13 +545,13 @@
 				          <th style="vertical-align:middle;width:20px">
 				              <input class="regular-checkbox" id="datatableSelectAllRows" type="checkbox"/><label for="datatableSelectAllRows"></label>        
 				          </th>
-				          <th><?php echo $this->lang->line("First Name"); ?></th>
-				          <th><?php echo $this->lang->line("Last Name"); ?></th>
-				          <th><?php echo $this->lang->line("Subscriber ID"); ?></th>
-				          <th><?php echo $this->lang->line("Sent at"); ?></th>
-				          <th><?php echo $this->lang->line("Delivered at"); ?></th>
-				          <th><?php echo $this->lang->line("Opened at"); ?></th>
-				          <th><?php echo $this->lang->line("Sent Response"); ?></th>
+				          <th><?php echo lang("First Name"); ?></th>
+				          <th><?php echo lang("Last Name"); ?></th>
+				          <th><?php echo lang("Subscriber ID"); ?></th>
+				          <th><?php echo lang("Sent at"); ?></th>
+				          <th><?php echo lang("Delivered at"); ?></th>
+				          <th><?php echo lang("Opened at"); ?></th>
+				          <th><?php echo lang("Sent Response"); ?></th>
 				        </tr>
 				      </thead>
 				    </table>
@@ -571,7 +571,7 @@ echo '
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-bug"></i> '.$this->lang->line("Common Error Message").'</h5>
+        <h5 class="modal-title"><i class="fas fa-bug"></i> '.lang("Common Error Message").'</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -580,17 +580,17 @@ echo '
 
      <div class="section">               
 
-        <h2 class="section-title"> '.$this->lang->line("(#551) This person isn't available right now").'</h2>
+        <h2 class="section-title"> '.lang("(#551) This person isn't available right now").'</h2>
         <p>
-        '.$this->lang->line("This error messages comes from Facebook. The possible reasons are below").' : 
+        '.lang("This error messages comes from Facebook. The possible reasons are below").' : 
          <ol>
-              <li>'.$this->lang->line("Subscriber deactivated their account.").'</li>
-              <li>'.$this->lang->line("Subscriber blocked your page.").'</li>
-              <li>'.$this->lang->line("Subscriber does not have activity for long days with your page.").'</li>
-              <li>'.$this->lang->line("The user may in conversation subscribers as got private reply of comment but never replied back.").'</li>
-              <li>'.$this->lang->line("APP may not have pages_messaging approval.").'</li>
+              <li>'.lang("Subscriber deactivated their account.").'</li>
+              <li>'.lang("Subscriber blocked your page.").'</li>
+              <li>'.lang("Subscriber does not have activity for long days with your page.").'</li>
+              <li>'.lang("The user may in conversation subscribers as got private reply of comment but never replied back.").'</li>
+              <li>'.lang("APP may not have pages_messaging approval.").'</li>
         </ol>
-        '.$this->lang->line("In this case system automatically mark the subscriber as unviable for future conversation broadcasting campaign. ").'
+        '.lang("In this case system automatically mark the subscriber as unviable for future conversation broadcasting campaign. ").'
         </p>
       </div>
       </div>
