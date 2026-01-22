@@ -6,7 +6,7 @@
 				<label class="custom-switch float-right">
 				  <input type="checkbox" name="selected_social_post_media_type" id="selected_social_post_media_type" value="1" class="custom-switch-input">
 				  <span class="custom-switch-indicator"></span>
-				  <span class="custom-switch-description"><?php echo $this->lang->line('Instagram')?></span>
+				  <span class="custom-switch-description"><?php echo lang('Instagram')?></span>
 				</label>
 			</h4>
 		</div>
@@ -18,7 +18,7 @@
 				  <div class="media-body">
 				    <h6 class="media-title mt-1 font-weight-bold"><a href="#"><?php echo isset($fb_user_info[0]['name'])?$fb_user_info[0]['name']:"Username";?></a></h6>
 				    <div class="text-small text-muted">
-				    	<!-- Published by <?php echo isset($app_info[0]['app_name']) ? $app_info[0]['app_name'] : $this->config->item("product_short_name");?>  -->
+				    	<!-- Published by <?php echo isset($app_info[0]['app_name']) ? $app_info[0]['app_name'] : (config('MyConfig')->product_short_name ?? '');?>  -->
 				    	1m <div class="bullet text-muted"></div> <i class="fas fa-globe-asia"></i>
 				    </div>
 				  </div>
@@ -63,7 +63,7 @@
 	      		  <div class="media-body">
 	      		    <h6 class="media-title mt-3 font-weight-bold"><a href="#"><?php echo isset($account_list[0]['insta_username'])?$account_list[0]['insta_username']:"Username";?></a></h6>
 	      		    <!-- <div class="text-small text-muted">
-	      		    	<?php echo isset($app_info[0]['app_name']) ? $app_info[0]['app_name'] : $this->config->item("product_short_name");?> 
+	      		    	<?php echo isset($app_info[0]['app_name']) ? $app_info[0]['app_name'] : (config('MyConfig')->product_short_name ?? '');?> 
 	      		    	<div class="bullet"></div> 
 	      		    	<span class="text-primary">Now</span>
 	      		    </div> -->
@@ -87,7 +87,7 @@
       			<div class="preview_message mt-1 px-2 mb-2"></div>
       		</div>
 
-      		<div id="not_supported" class="alert alert-light mt-4"><?php echo $this->lang->line("Media type not supported for Instagram"); ?></div>
+      		<div id="not_supported" class="alert alert-light mt-4"><?php echo lang("Media type not supported for Instagram"); ?></div>
 
       	</div>     
     </div>

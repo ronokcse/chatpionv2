@@ -12,20 +12,35 @@ Version: 1.0
 Description: 
 */
 
-require_once("application/controllers/Home.php"); // loading home controller
+namespace App\Modules\Instagram_poster\Controllers;
+
+use App\Controllers\Home;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Instagram_poster extends Home
 {
     public $addon_data=array();
-    public function __construct()
+    
+    /**
+     * CI4 fix: Use initController instead of __construct
+     */
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        parent::__construct();
-        if ($this->session->userdata('logged_in')!= 1) redirect('home/login', 'location');
+        parent::initController($request, $response, $logger);
+        
+        if (session()->get('logged_in') != 1) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
 
-        $addon_path=APPPATH."modules/".strtolower($this->router->fetch_class())."/controllers/".ucfirst($this->router->fetch_class()).".php"; // path of addon controller
+        // CI4: Use reflection to get controller name
+        $controller_name = (new \ReflectionClass($this))->getShortName();
+        $addon_path=APPPATH."modules/".strtolower($controller_name)."/controllers/".ucfirst($controller_name).".php"; // path of addon controller
         $this->addon_data=$this->get_addon_data($addon_path);
         $this->member_validity();
-        $this->user_id=$this->session->userdata('user_id'); // user_id of logged in user, we may need it 
+        $this->user_id=session()->get('user_id'); // user_id of logged in user, we may need it 
     }
 
     public function index()
@@ -35,16 +50,19 @@ class Instagram_poster extends Home
 
     public function image_video()
     {
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(296,$this->module_access) && !in_array(223,$this->module_access)) redirect('home/login', 'location');
+        if(session()->get('user_type') != 'Admin' && !in_array(296,$this->module_access) && !in_array(223,$this->module_access)) {
+            header('Location: ' . base_url('home/login_page'));
+            exit();
+        }
         $data['page_title'] = $this->lang->line("Multimedia Posting");
-        $data['account_list'] = $this->get_facebook_instagram_dropdown($this->session->userdata("facebook_rx_fb_user_info"), $dropdown_name = "page_id", $dropdown_id = "page_id", $dropdown_style="", $dropdown_class='select2 form-control',true,$social_posting=1);
+        $data['account_list'] = $this->get_facebook_instagram_dropdown(session()->get("facebook_rx_fb_user_info"), $dropdown_name = "page_id", $dropdown_id = "page_id", $dropdown_style="", $dropdown_class='select2 form-control',true,$social_posting=1);
         $data['body'] = 'image_video_post/auto_post_list';
         $this->_viewcontroller($data);
     }   
 
     public function image_video_auto_post_list_data()
     {
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(296,$this->module_access)  && !in_array(223,$this->module_access)) exit();
+        if(session()->get('user_type') != 'Admin' && !in_array(296,$this->module_access)  && !in_array(223,$this->module_access)) exit();
         $this->ajax_check();
 
         $pagename        = trim($this->input->post("page_id",true));
@@ -97,7 +115,7 @@ class Instagram_poster extends Home
         if($searching !="") $where_simple['facebook_rx_auto_post.campaign_name like'] = "%".$searching."%";
 
         $where_simple['facebook_rx_auto_post.user_id'] = $this->user_id;
-        $where_simple['facebook_rx_auto_post.facebook_rx_fb_user_info_id'] = $this->session->userdata("facebook_rx_fb_user_info");
+        $where_simple['facebook_rx_auto_post.facebook_rx_fb_user_info_id'] = session()->get("facebook_rx_fb_user_info");
         // $where_simple['facebook_rx_auto_post.media_type'] = 'instagram';
 
         $this->db->where("(is_child='0' or posting_status='2')");
@@ -311,7 +329,7 @@ class Instagram_poster extends Home
 
     public function image_video_poster()
     {
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(296,$this->module_access) && !in_array(223,$this->module_access)) exit();
+        if(session()->get('user_type') != 'Admin' && !in_array(296,$this->module_access) && !in_array(223,$this->module_access)) exit();
 
         $data['facebook_poster_group'] = '0';
 
@@ -320,14 +338,16 @@ class Instagram_poster extends Home
         $data["time_interval"] = $this->get_periodic_time();
         $data["time_zone"]= $this->_time_zone_list();
 
-        $user_infos = $this->basic->get_data("facebook_rx_fb_user_info",array("where"=>array("user_id"=>$this->user_id,"id"=>$this->session->userdata("facebook_rx_fb_user_info"))));
+        $user_infos = $this->basic->get_data("facebook_rx_fb_user_info",array("where"=>array("user_id"=>$this->user_id,"id"=>session()->get("facebook_rx_fb_user_info"))));
 
-        if ( count( $user_infos ) == 0 ) 
-            return redirect( base_url( 'social_accounts/index' ), 'location' );
+        if ( count( $user_infos ) == 0 ) {
+            header('Location: ' . base_url('social_accounts/index'));
+            exit();
+        }
 
         $data["fb_user_info"] = $user_infos;
-        if($this->config->item('facebook_poster_botenabled_pages') == '1'){
-            $where = array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),'bot_enabled'=>'1'));
+        if((config('MyConfig')->facebook_poster_botenabled_pages ?? '0') == '1'){
+            $where = array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),'bot_enabled'=>'1'));
             if(!empty($this->team_allowed_pages)){
                 $where['where_in'] = array("facebook_rx_fb_page_info.id"=>$this->team_allowed_pages);
             }
@@ -335,15 +355,15 @@ class Instagram_poster extends Home
             $data["fb_page_info"]=$this->basic->get_data("facebook_rx_fb_page_info",$where);
         }
         else{
-            $where = array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info")));
+            $where = array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info")));
             if(!empty($this->team_allowed_pages)){
                 $where['where_in'] = array("facebook_rx_fb_page_info.id"=>$this->team_allowed_pages);
             }
 
             $data["fb_page_info"]=$this->basic->get_data("facebook_rx_fb_page_info",$where);
         }
-        $data["fb_group_info"]=$this->basic->get_data("facebook_rx_fb_group_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"))));
-        $app_info=$this->basic->get_data("facebook_rx_config",array("where"=>array("id"=>$this->session->userdata("fb_rx_login_database_id"))));
+        $data["fb_group_info"]=$this->basic->get_data("facebook_rx_fb_group_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"))));
+        $app_info=$this->basic->get_data("facebook_rx_config",array("where"=>array("id"=>session()->get("fb_rx_login_database_id"))));
         $data["app_info"] = $app_info;
         $data['auto_reply_template'] = $this->basic->get_data('ultrapost_auto_reply',array("where"=>array('user_id'=>$this->user_id)),array('id','ultrapost_campaign_name'));
         $data['instagram_reply_template'] = $this->basic->get_data('instagram_reply_template',array("where"=>array('user_id'=>$this->user_id)),array('id','auto_reply_campaign_name'));
@@ -352,17 +372,17 @@ class Instagram_poster extends Home
         $table = "facebook_rx_fb_page_info";
         $where = [];
         if($this->config->item('facebook_poster_botenabled_pages') == '1')
-        $where['where'] = ['user_id'=>$this->user_id,"bot_enabled"=>"1","has_instagram"=>"1","facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info")];
+        $where['where'] = ['user_id'=>$this->user_id,"bot_enabled"=>"1","has_instagram"=>"1","facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info")];
         else
-        $where['where'] = ['user_id'=>$this->user_id,"has_instagram"=>"1","facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info")];
+        $where['where'] = ['user_id'=>$this->user_id,"has_instagram"=>"1","facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info")];
         $select = ['id','page_profile','insta_username','instagram_business_account_id','page_name'];
         $data['account_list'] = $this->basic->get_data($table,$where,$select);
 
-        $app_info=$this->basic->get_data("facebook_rx_config",array("where"=>array("id"=>$this->session->userdata("fb_rx_login_database_id"))));
+        $app_info=$this->basic->get_data("facebook_rx_config",array("where"=>array("id"=>session()->get("fb_rx_login_database_id"))));
         $data["app_info"] = $app_info;
 
         $this->load->library('fb_rx_login');
-        $this->fb_rx_login->app_initialize($this->session->userdata("fb_rx_login_database_id"));
+        $this->fb_rx_login->app_initialize(session()->get("fb_rx_login_database_id"));
         $app_id = isset($app_info[0]['api_id']) ? $app_info[0]['api_id'] : 0;
         $app_secret = isset($app_info[0]['api_secret']) ? $app_info[0]['api_secret'] : 0;
         $current_app_info = $this->fb_rx_login->app_info_graber($app_id,$app_secret);
@@ -372,7 +392,7 @@ class Instagram_poster extends Home
         $output_dir = FCPATH."upload_caster/image_video";
         $output_dir = $output_dir.'/'.$this->user_id;
         if(!file_exists($output_dir)) {
-            mkdir($output_dir,0777);
+            mkdir($output_dir, 0777, true);
         }
         $files=$this->_scanAll($output_dir);
         rsort($files);
@@ -545,7 +565,7 @@ class Instagram_poster extends Home
         //************************************************//
 
         $insert_data["user_id"] = $this->user_id;
-        $insert_data["facebook_rx_fb_user_info_id"] = $this->session->userdata("facebook_rx_fb_user_info");
+        $insert_data["facebook_rx_fb_user_info_id"] = session()->get("facebook_rx_fb_user_info");
 
         $page_ids = implode(',', $post_to_pages);
         $group_ids = implode(',', $post_to_groups);
@@ -584,11 +604,11 @@ class Instagram_poster extends Home
         $insert_data_batch=array();
 
         $user_id_array = array($this->user_id);
-        $account_switching_id = $this->session->userdata("facebook_rx_fb_user_info"); // table > facebook_rx_fb_user_info.id
+        $account_switching_id = session()->get("facebook_rx_fb_user_info"); // table > facebook_rx_fb_user_info.id
         $count=0;
 
         $page_info = !empty($page_list_fb_ig) ? $this->basic->get_data("facebook_rx_fb_page_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$account_switching_id),'where_in'=>array('id'=>$page_list_fb_ig))) : [];
-        $user_infos = $this->basic->get_data("facebook_rx_fb_user_info",array("where"=>array("user_id"=>$this->user_id,"id"=>$this->session->userdata("facebook_rx_fb_user_info"))));
+        $user_infos = $this->basic->get_data("facebook_rx_fb_user_info",array("where"=>array("user_id"=>$this->user_id,"id"=>session()->get("facebook_rx_fb_user_info"))));
         $user_access_token = isset($user_infos[0]['access_token']) ? $user_infos[0]['access_token'] : '';
 
         $batch_count = 0;
@@ -631,7 +651,7 @@ class Instagram_poster extends Home
                     {
                         $response = $this->fb_rx_login->feed_post($message,"","","","","",$page_access_token,$fb_page_id);
                     }
-                    catch(Exception $e)
+                    catch(\Exception $e)
                     {
                       $error_msg = $e->getMessage();
                       $return_val=array("status"=>"0","message"=>$error_msg);
@@ -646,7 +666,7 @@ class Instagram_poster extends Home
                     {
                         $response = $this->fb_rx_login->feed_post($message,$link,"","","","",$page_access_token,$fb_page_id);
                     }
-                    catch(Exception $e)
+                    catch(\Exception $e)
                     {
                       $error_msg = $e->getMessage();
                       $return_val=array("status"=>"0","message"=>$error_msg);
@@ -665,7 +685,7 @@ class Instagram_poster extends Home
                         {
                             $response = $this->fb_rx_login->photo_post($message,$image_list[0],"",$page_access_token,$fb_page_id);
                         }
-                        catch(Exception $e)
+                        catch(\Exception $e)
                         {
                             $error_msg = $e->getMessage();
                             $return_val=array("status"=>"0","message"=>$error_msg);
@@ -690,7 +710,7 @@ class Instagram_poster extends Home
                                 $attach_media_array['media_fbid'] = $response['id'];
                                 $multi_image_post_response_array[] = $attach_media_array;
                             }
-                            catch(Exception $e)
+                            catch(\Exception $e)
                             {
                                 $error_msg = $e->getMessage();
                             }
@@ -701,7 +721,7 @@ class Instagram_poster extends Home
                         {
                             $response = $this->fb_rx_login->multi_photo_post($message,$multi_image_post_response_array,"",$page_access_token,$fb_page_id);
                         }
-                        catch(Exception $e)
+                        catch(\Exception $e)
                         {
                             $error_msg = $e->getMessage();
                             $return_val=array("status"=>"0","message"=>$error_msg);
@@ -719,7 +739,7 @@ class Instagram_poster extends Home
                     {
                         $response = $this->fb_rx_login->post_video($message,"",$video_url,"",$video_thumb_url='',"",$page_access_token,$fb_page_id);
                     }
-                    catch(Exception $e)
+                    catch(\Exception $e)
                     {
                       $error_msg = $e->getMessage();
                       $return_val=array("status"=>"0","message"=>$error_msg);
@@ -829,7 +849,7 @@ class Instagram_poster extends Home
                         {
                             $response = $this->fb_rx_login->feed_post($message,"","","","","",$group_access_token,$fb_group_id);
                         }
-                        catch(Exception $e)
+                        catch(\Exception $e)
                         {
                           $error_msg = $e->getMessage();
                           $return_val=array("status"=>"0","message"=>$error_msg);
@@ -844,7 +864,7 @@ class Instagram_poster extends Home
                         {
                             $response = $this->fb_rx_login->feed_post($message,$link,"","","","",$group_access_token,$fb_group_id);
                         }
-                        catch(Exception $e)
+                        catch(\Exception $e)
                         {
                           $error_msg = $e->getMessage();
                           $return_val=array("status"=>"0","message"=>$error_msg);
@@ -862,7 +882,7 @@ class Instagram_poster extends Home
                             {
                                 $response = $this->fb_rx_login->photo_post($message,$image_list[0],"",$group_access_token,$fb_group_id);
                             }
-                            catch(Exception $e)
+                            catch(\Exception $e)
                             {
                                 $error_msg = $e->getMessage();
                                 $return_val=array("status"=>"0","message"=>$error_msg);
@@ -887,7 +907,7 @@ class Instagram_poster extends Home
                                     $attach_media_array['media_fbid'] = $response['id'];
                                     $multi_image_post_response_array[] = $attach_media_array;
                                 }
-                                catch(Exception $e)
+                                catch(\Exception $e)
                                 {
                                     $error_msg = $e->getMessage();
                                 }
@@ -898,7 +918,7 @@ class Instagram_poster extends Home
                             {
                                 $response = $this->fb_rx_login->multi_photo_post($message,$multi_image_post_response_array,"",$group_access_token,$fb_group_id);
                             }
-                            catch(Exception $e)
+                            catch(\Exception $e)
                             {
                                 $error_msg = $e->getMessage();
                                 $return_val=array("status"=>"0","message"=>$error_msg);
@@ -916,7 +936,7 @@ class Instagram_poster extends Home
                         {
                             $response = $this->fb_rx_login->post_video($message,"",$video_url,"",$video_thumb_url,"",$group_access_token,$fb_group_id);
                         }
-                        catch(Exception $e)
+                        catch(\Exception $e)
                         {
                           $error_msg = $e->getMessage();
                           $return_val=array("status"=>"0","message"=>$error_msg);
@@ -991,7 +1011,7 @@ class Instagram_poster extends Home
                                     exit();
                                 }
                             }
-                            catch(Exception $e)
+                            catch(\Exception $e)
                             {
                                 $error_msg = $e->getMessage();
                                 $return_val=array("status"=>"0","message"=>$error_msg);
@@ -1019,7 +1039,7 @@ class Instagram_poster extends Home
                                 exit();
                             }
                         }
-                        catch(Exception $e)
+                        catch(\Exception $e)
                         {
                             $error_msg = $e->getMessage();
                             $return_val=array("status"=>"0","message"=>$error_msg);
@@ -1159,7 +1179,7 @@ class Instagram_poster extends Home
                         $insert_data['parent_campaign_id']= $parent_id;
                         $this->basic->insert_data('facebook_rx_auto_post',$insert_data);
                         $batch_count++;
-                        $insert_id = $this->db->insert_id();
+                        $insert_id = db()->insertID();
                         if($insert_counter == 0) $parent_id = $insert_id;
                     }
                     else
@@ -1221,7 +1241,7 @@ class Instagram_poster extends Home
                             $insert_data['parent_campaign_id'] = $parent_id;
                             $this->basic->insert_data('facebook_rx_auto_post',$insert_data);
                             $batch_count1++;
-                            $insert_id = $this->db->insert_id();
+                            $insert_id = db()->insertID();
                             if($insert_counter == 0) $parent_id = $insert_id;            
                         }
                         else
@@ -1288,7 +1308,7 @@ class Instagram_poster extends Home
                             $insert_data['parent_campaign_id'] = $parent_id;                            
                             $this->basic->insert_data('facebook_rx_auto_post',$insert_data);
                             $batch_count2++;
-                            $insert_id = $this->db->insert_id();
+                            $insert_id = db()->insertID();
                             if($insert_counter == 0) $parent_id = $insert_id;
                         }
                         else
@@ -1430,9 +1450,9 @@ class Instagram_poster extends Home
 
     public function image_video_edit_auto_post($auto_post_id)
     {
-        if($this->session->userdata('user_type') != 'Admin' && !in_array(296,$this->module_access)  && !in_array(223,$this->module_access)) exit();
+        if(session()->get('user_type') != 'Admin' && !in_array(296,$this->module_access)  && !in_array(223,$this->module_access)) exit();
 
-        if ($this->config->item('facebook_poster_group_enable_disable') == '' || $this->config->item('facebook_poster_group_enable_disable')=='0') $data['facebook_poster_group'] = '0';
+        if ((config('MyConfig')->facebook_poster_group_enable_disable ?? '0') == '' || (config('MyConfig')->facebook_poster_group_enable_disable ?? '0')=='0') $data['facebook_poster_group'] = '0';
         else $data['facebook_poster_group'] = '1';
         
         $table2 = "facebook_rx_auto_post";
@@ -1464,10 +1484,10 @@ class Instagram_poster extends Home
         $data['page_title'] = $this->lang->line('Multimedia Post');
         $data["time_zone"]= $this->_time_zone_list();
         $data["time_interval"] = $this->get_periodic_time();
-        $data["fb_user_info"]=$this->basic->get_data("facebook_rx_fb_user_info",array("where"=>array("user_id"=>$this->user_id,"id"=>$this->session->userdata("facebook_rx_fb_user_info"))));
+        $data["fb_user_info"]=$this->basic->get_data("facebook_rx_fb_user_info",array("where"=>array("user_id"=>$this->user_id,"id"=>session()->get("facebook_rx_fb_user_info"))));
 
-         if($this->config->item('facebook_poster_botenabled_pages') == '1'){
-            $where = array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"),'bot_enabled'=>'1'));
+         if((config('MyConfig')->facebook_poster_botenabled_pages ?? '0') == '1'){
+            $where = array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"),'bot_enabled'=>'1'));
             if(!empty($this->team_allowed_pages)){
                 $where['where_in'] = array("facebook_rx_fb_page_info.id"=>$this->team_allowed_pages);
             }
@@ -1475,15 +1495,15 @@ class Instagram_poster extends Home
             $data["fb_page_info"]=$this->basic->get_data("facebook_rx_fb_page_info",$where);
          }
         else{
-            $where = array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info")));
+            $where = array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info")));
             if(!empty($this->team_allowed_pages)){
                 $where['where_in'] = array("facebook_rx_fb_page_info.id"=>$this->team_allowed_pages);
             }
 
             $data["fb_page_info"]=$this->basic->get_data("facebook_rx_fb_page_info",$where);
         }
-        $data["fb_group_info"]=$this->basic->get_data("facebook_rx_fb_group_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info"))));
-        $app_info=$this->basic->get_data("facebook_rx_config",array("where"=>array("id"=>$this->session->userdata("fb_rx_login_database_id"))));
+        $data["fb_group_info"]=$this->basic->get_data("facebook_rx_fb_group_info",array("where"=>array("user_id"=>$this->user_id,"facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info"))));
+        $app_info=$this->basic->get_data("facebook_rx_config",array("where"=>array("id"=>session()->get("fb_rx_login_database_id"))));
         $data["app_info"] = $app_info;
         $data['auto_reply_template'] = $this->basic->get_data('ultrapost_auto_reply',array("where"=>array('user_id'=>$this->user_id)),array('id','ultrapost_campaign_name'));
         $data['instagram_reply_template'] = $this->basic->get_data('instagram_reply_template',array("where"=>array('user_id'=>$this->user_id)),array('id','auto_reply_campaign_name'));
@@ -1492,19 +1512,19 @@ class Instagram_poster extends Home
         $table = "facebook_rx_fb_page_info";
         $where = [];
         if($this->config->item('facebook_poster_botenabled_pages') == '1')
-        $where['where'] = ['user_id'=>$this->user_id,"bot_enabled"=>"1","has_instagram"=>"1","facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info")];
+        $where['where'] = ['user_id'=>$this->user_id,"bot_enabled"=>"1","has_instagram"=>"1","facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info")];
         else
-        $where['where'] = ['user_id'=>$this->user_id,"has_instagram"=>"1","facebook_rx_fb_user_info_id"=>$this->session->userdata("facebook_rx_fb_user_info")];
+        $where['where'] = ['user_id'=>$this->user_id,"has_instagram"=>"1","facebook_rx_fb_user_info_id"=>session()->get("facebook_rx_fb_user_info")];
         $select = ['id','page_profile','insta_username','instagram_business_account_id','page_name'];
         $data['account_list'] = $this->basic->get_data($table,$where,$select);
 
-        $app_info=$this->basic->get_data("facebook_rx_config",array("where"=>array("id"=>$this->session->userdata("fb_rx_login_database_id"))));
+        $app_info=$this->basic->get_data("facebook_rx_config",array("where"=>array("id"=>session()->get("fb_rx_login_database_id"))));
         $data["app_info"] = $app_info;
 
         $data["all_data"] = $this->basic->get_data("facebook_rx_auto_post",array("where"=>array("id"=>$auto_post_id)));
         
         $this->load->library('fb_rx_login');
-        $this->fb_rx_login->app_initialize($this->session->userdata("fb_rx_login_database_id"));
+        $this->fb_rx_login->app_initialize(session()->get("fb_rx_login_database_id"));
         $app_id = isset($app_info[0]['api_id']) ? $app_info[0]['api_id'] : 0;
         $app_secret = isset($app_info[0]['api_secret']) ? $app_info[0]['api_secret'] : 0;
         $current_app_info = $this->fb_rx_login->app_info_graber($app_id,$app_secret);
@@ -1514,7 +1534,7 @@ class Instagram_poster extends Home
         $output_dir = FCPATH."upload_caster/image_video";
         $output_dir = $output_dir.'/'.$this->user_id;
         if(!file_exists($output_dir)) {
-            mkdir($output_dir,0777);
+            mkdir($output_dir, 0777, true);
         }
         $files=$this->_scanAll($output_dir);
         rsort($files);
@@ -1531,7 +1551,8 @@ class Instagram_poster extends Home
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET'){
-            redirect('home/access_forbidden', 'location');
+            header('Location: ' . base_url('home/access_forbidden'));
+            exit();
         }
 
         if ($_POST)
@@ -1561,7 +1582,7 @@ class Instagram_poster extends Home
             $times = 0;
             $id                         = $this->input->post('id', true);
             $user_id                    = $this->user_id;
-            $facebook_rx_fb_user_info_id= $this->session->userdata("facebook_rx_fb_user_info");
+            $facebook_rx_fb_user_info_id= session()->get("facebook_rx_fb_user_info");
             $campaign_name              = strip_tags($this->input->post('campaign_name', true));
             $message                    = $this->input->post('message', true);
             $link                       = $this->input->post('link', true);
@@ -1673,7 +1694,7 @@ class Instagram_poster extends Home
             $this->basic->delete_data('facebook_rx_auto_post',array('id'=>$id,'user_id'=>$this->user_id));
             $this->basic->delete_data('facebook_rx_auto_post',array('parent_campaign_id'=>$id,'full_complete'=>'0' ,'user_id'=>$this->user_id));
             
-            $account_switching_id = $this->session->userdata("facebook_rx_fb_user_info");
+            $account_switching_id = session()->get("facebook_rx_fb_user_info");
             $user_id_array=array($this->user_id);
    
             $page_info_arr = array();
@@ -1729,8 +1750,8 @@ class Instagram_poster extends Home
                         $insert_data['parent_campaign_id']= $parent_id;
                         $this->basic->insert_data('facebook_rx_auto_post',$insert_data);
                         $batch_count++;
-                        $insert_id = $this->db->insert_id();
-                        $insert_id = $this->db->insert_id();
+                        $insert_id = db()->insertID();
+                        $insert_id = db()->insertID();
                         if($insert_counter == 0) $parent_id = $insert_id;
                     }
                     else
@@ -1796,7 +1817,7 @@ class Instagram_poster extends Home
                             $insert_data['parent_campaign_id'] = $parent_id;
                             $this->basic->insert_data('facebook_rx_auto_post',$insert_data);
                             $batch_count++;
-                            $insert_id = $this->db->insert_id();
+                            $insert_id = db()->insertID();
                             if($insert_counter == 0) $parent_id = $insert_id; 
                          
                         }
@@ -1864,7 +1885,7 @@ class Instagram_poster extends Home
                         {
                             $this->basic->insert_data('facebook_rx_auto_post',$insert_data);
                             $batch_count2++;
-                            $insert_id = $this->db->insert_id();
+                            $insert_id = db()->insertID();
                             if($insert_counter == 0) $parent_id = $insert_id;
                         }
                         else
@@ -2165,7 +2186,11 @@ class Instagram_poster extends Home
       $file_type=$_FILES['croppedImage']['type'];
       if(empty($errors)==true)
       {
-         move_uploaded_file($file_tmp,"upload_caster/image_video/".$this->user_id.'/'.$file_name);
+         $upload_dir = FCPATH."upload_caster/image_video/".$this->user_id;
+         if(!file_exists($upload_dir)) {
+             mkdir($upload_dir, 0777, true);
+         }
+         move_uploaded_file($file_tmp, $upload_dir.'/'.$file_name);
          echo json_encode($_FILES['croppedImage']);
       }
       else

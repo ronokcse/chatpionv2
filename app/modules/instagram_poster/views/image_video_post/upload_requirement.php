@@ -2,7 +2,7 @@
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h4 class="modal-title"><?php echo $this->lang->line('Instagram Media Restrictions'); ?></h4>
+				<h4 class="modal-title"><?php echo lang('Instagram Media Restrictions'); ?></h4>
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 			</div>
 			<div class="modal-body">
@@ -44,7 +44,7 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				<h4 class="modal-title"><?php echo $this->lang->line('Campaign Status'); ?></h4>
+				<h4 class="modal-title"><?php echo lang('Campaign Status'); ?></h4>
 			</div>
 			<div class="modal-body">
 				<div class="alert text-center" id="response_modal_content">

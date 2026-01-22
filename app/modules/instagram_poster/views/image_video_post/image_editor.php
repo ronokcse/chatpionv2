@@ -15,7 +15,7 @@
   <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
       <div class="modal-header pt-1 pr-2 bg-dark no_radius">
-        <h5 class="modal-title" id="exampleModalLabel"><i class="fas fa-image"></i> <?php echo $this->lang->line("Editor");?></h5>
+        <h5 class="modal-title" id="exampleModalLabel"><i class="fas fa-image"></i> <?php echo lang("Editor");?></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -25,8 +25,8 @@
         <input type="hidden" id="image_type">
       </div>
       <div class="modal-footer bg-dark no_radius">
-        <button type="button" class="btn btn-warning btn-lg"  id="image_save"><i class="fas fa-save"></i> <?php echo $this->lang->line("Save Image");?></button>
-        <button type="button" class="btn btn-light" data-dismiss="modal"> <?php echo $this->lang->line("Close");?></button>
+        <button type="button" class="btn btn-warning btn-lg"  id="image_save"><i class="fas fa-save"></i> <?php echo lang("Save Image");?></button>
+        <button type="button" class="btn btn-light" data-dismiss="modal"> <?php echo lang("Close");?></button>
       </div>
     </div>
   </div>
